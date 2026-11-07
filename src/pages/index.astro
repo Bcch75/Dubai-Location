@@ -2,6 +2,8 @@
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
+import { getActivities, getCars } from '../lib/data';
+import { activityCard, carCard, setBase } from '../lib/cards';
 import hero from '../assets/img/hero.jpg';
 import desert from '../assets/img/desert.jpg';
 import yacht from '../assets/img/yacht.jpg';
@@ -10,17 +12,22 @@ import burj from '../assets/img/burj-khalifa.jpg';
 import carImg from '../assets/img/cars/huracan-evo.jpg';
 
 const tiles = [
-  { href: '/activites/?cat=desert', title: 'Désert', img: desert },
-  { href: '/activites/?cat=mer', title: 'Mer & yacht', img: yacht },
-  { href: '/activites/?cat=ciel', title: 'Dans les airs', img: balloon },
-  { href: '/activites/?cat=incontournables', title: 'Incontournables', img: burj },
+  { href: '/activites/desert/', title: 'Désert', img: desert },
+  { href: '/activites/mer/', title: 'Mer & yacht', img: yacht },
+  { href: '/activites/ciel/', title: 'Dans les airs', img: balloon },
+  { href: '/activites/incontournables/', title: 'Incontournables', img: burj },
   { href: '/voitures/', title: 'Voitures', img: carImg },
 ];
+setBase(import.meta.env.BASE_URL);
+const acts = await getActivities();
+const cars = await getCars();
+const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
+const rowHtml = (k: string) => k === 'cars' ? cars.map((c) => carCard(c, W)).join('') : (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W)).join('');
 const rows = [
   { id: 'populaires', icon: '🔥', title: 'Les plus populaires', sub: 'Les activités préférées de nos clients à Dubaï.', href: '/activites/', kind: 'featured' },
-  { id: 'desert', icon: '🏜️', title: 'Désert', sub: 'Quad, buggy, dîner bédouin : l’aventure au cœur des dunes.', href: '/activites/?cat=desert', kind: 'desert' },
-  { id: 'mer', icon: '🛥️', title: 'Mer & yacht', sub: 'Yacht privé, jet-ski, plongée et croisière à Oman.', href: '/activites/?cat=mer', kind: 'mer' },
-  { id: 'incontournables', icon: '🏙️', title: 'Incontournables & famille', sub: 'Burj Khalifa, Ski Dubai, dauphins, parcs d’attractions…', href: '/activites/?cat=famille', kind: 'famille' },
+  { id: 'desert', icon: '🏜️', title: 'Désert', sub: 'Quad, buggy, dîner bédouin : l’aventure au cœur des dunes.', href: '/activites/desert/', kind: 'desert' },
+  { id: 'mer', icon: '🛥️', title: 'Mer & yacht', sub: 'Yacht privé, jet-ski, plongée et croisière à Oman.', href: '/activites/mer/', kind: 'mer' },
+  { id: 'incontournables', icon: '🏙️', title: 'Incontournables & famille', sub: 'Burj Khalifa, Ski Dubai, dauphins, parcs d’attractions…', href: '/activites/famille/', kind: 'famille' },
   { id: 'voitures', icon: '🏎️', title: 'Location de voitures', sub: 'Supercars et SUV de luxe livrés à votre hôtel.', href: '/voitures/', kind: 'cars' },
 ];
 ---
@@ -62,7 +69,7 @@ const rows = [
         <a href={r.href} class="hidden shrink-0 text-base font-bold text-ink hover:text-gold sm:inline">Toutes les activités →</a>
       </div>
       <div class="relative mt-6">
-        <div data-row={r.kind} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0"></div>
+        <div data-row={r.kind} set:html={rowHtml(r.kind)} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0"></div>
         <button type="button" data-scroll aria-label="Suivant" class="absolute -right-3 top-[38%] hidden h-11 w-11 place-items-center rounded-full border border-line bg-white shadow-soft hover:bg-sand lg:grid">→</button>
       </div>
     </section>
@@ -77,13 +84,14 @@ const rows = [
       <a href="https://wa.me/971569736810" target="_blank" rel="noopener" class="btn-wa shrink-0 !py-3"><Icon name="whatsapp" class="h-5 w-5" /> Nous écrire</a>
     </div>
   </section>
+  <script type="application/json" id="seed-acts" set:html={JSON.stringify(acts)} />
+  <script type="application/json" id="seed-cars" set:html={JSON.stringify(cars)} />
 </Layout>
 
 <script>
-  import { fetchActivities, fetchCars, activityCard, carCard, skeleton, paintFavs, live } from '../lib/app';
+  import { fetchActivities, fetchCars, activityCard, carCard, paintFavs, live } from '../lib/app';
   const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
   const rows = document.querySelectorAll<HTMLElement>('[data-row]');
-  rows.forEach((r) => { if (!r.innerHTML) r.innerHTML = skeleton(4, W); });
   live('acts', fetchActivities, (acts) => rows.forEach((r) => {
     const k = r.dataset.row!; if (k === 'cars') return;
     r.innerHTML = (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W)).join('') || '<p class="text-muted">Bientôt disponible.</p>';

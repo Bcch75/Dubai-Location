@@ -4,6 +4,10 @@ import Layout from '../layouts/Layout.astro';
 import { rentalConditions } from '../data/cars';
 import Icon from '../components/Icon.astro';
 import hero from '../assets/img/cars/hero-cars.jpg';
+import { getCars } from '../lib/data';
+import { carCard, setBase } from '../lib/cards';
+setBase(import.meta.env.BASE_URL);
+const cars = await getCars();
 const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'], ['suv', 'SUV de luxe'], ['sport', 'Sportives & berlines']];
 ---
 <Layout title="Location de voitures de luxe à Dubaï" description="Louez une Lamborghini, une Ferrari, une Rolls-Royce ou un G63 à Dubaï, livrés à votre hôtel ou à l'aéroport." ogImage={hero}>
@@ -17,10 +21,10 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
   </section>
   <section class="container-x py-12">
     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-      <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2><p id="count" class="mt-1 text-muted"></p></div>
+      <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2><p id="count" class="mt-1 text-muted">{cars.length} modèles · livraison hôtel ou aéroport</p></div>
       <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">{cats.map(([id, l]) => <button class="chip" data-cat={id} aria-pressed={id === '' ? 'true' : 'false'}>{l}</button>)}</div>
     </div>
-    <div id="grid" class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+    <div id="grid" set:html={cars.map((c) => carCard(c)).join('')} class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
   </section>
   <section class="bg-sand py-14">
     <div class="container-x">
@@ -30,11 +34,11 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
       </div>
     </div>
   </section>
+  <script type="application/json" id="seed-cars" set:html={JSON.stringify(cars)} />
 </Layout>
 <script>
-  import { fetchCars, carCard, skeleton, paintFavs, live } from '../lib/app';
+  import { fetchCars, carCard, paintFavs, live } from '../lib/app';
   const grid = document.getElementById('grid')!;
-  grid.innerHTML = skeleton(8);
   live('cars', fetchCars, (cars) => {
     grid.innerHTML = cars.map((c) => carCard(c)).join('');
     document.getElementById('count')!.textContent = `${cars.length} modèles · livraison hôtel ou aéroport`;

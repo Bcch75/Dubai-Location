@@ -1,0 +1,7 @@
+---
+import ActivitiesList from '../../components/ActivitiesList.astro';
+export function getStaticPaths() {
+  return ['desert', 'mer', 'ciel', 'incontournables', 'excursions', 'famille'].map((cat) => ({ params: { cat } }));
+}
+---
+<ActivitiesList cat={Astro.params.cat} />

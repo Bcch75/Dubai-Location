@@ -1,0 +1,58 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from './Icon.astro';
+import { getActivities } from '../lib/data';
+import { activityCard, setBase } from '../lib/cards';
+interface Props { cat?: string }
+const { cat = '' } = Astro.props;
+setBase(import.meta.env.BASE_URL);
+const acts = await getActivities();
+const cats = [['', 'Toutes', 'Activités à Dubaï'], ['desert', '🏜️ Désert', 'Désert'], ['mer', '🛥️ Mer & yacht', 'Mer & yacht'], ['ciel', '🎈 Dans les airs', 'Dans les airs'], ['incontournables', '🏙️ Incontournables', 'Incontournables'], ['excursions', '🧭 Excursions', 'Excursions'], ['famille', '👨‍👩‍👧 En famille', 'En famille']];
+const title = cats.find((c) => c[0] === cat)?.[2] ?? 'Activités';
+const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
+---
+<Layout title={`${title} à Dubaï`} description="Nos activités à Dubaï : désert, yacht, montgolfière, hélicoptère, Burj Khalifa, Oman, Abu Dhabi. Réservez en ligne.">
+  <section class="container-x pb-6 pt-28 sm:pt-32">
+    <nav class="text-xs text-muted"><a href="/" class="hover:text-ink">Accueil</a> › <a href="/activites/" class="hover:text-ink">Activités</a>{cat && ` › ${title}`}</nav>
+    <h1 class="mt-2 text-3xl font-bold sm:text-4xl">🇦🇪 {cat ? title : 'Activités à Dubaï'}</h1>
+    <p class="mt-1 text-gray-500">Découvrez notre sélection d'activités à Dubaï, préparées avec soin par notre équipe.</p>
+    <form action="/activites/" method="get" class="mt-6 flex max-w-xl items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5 shadow-sm" role="search">
+      <Icon name="search" class="h-5 w-5 shrink-0 text-muted" />
+      <label for="q" class="sr-only">Rechercher</label>
+      <input id="q" name="q" type="search" placeholder="Rechercher une activité…" class="min-w-0 flex-1 bg-transparent py-2 text-ink outline-none placeholder:text-muted" />
+      <button class="shrink-0 rounded-full bg-gold px-5 py-2 font-semibold text-white">OK</button>
+    </form>
+    <div class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" aria-label="Catégories">
+      {cats.map(([id, label]) => <a href={id ? `/activites/${id}/` : '/activites/'} class="chip" aria-pressed={id === cat ? 'true' : 'false'}>{label}</a>)}
+    </div>
+  </section>
+  <section class="container-x pb-20">
+    <p id="count" class="mb-5 text-sm text-muted" aria-live="polite">{list.length} activité{list.length > 1 ? 's' : ''}</p>
+    <div id="grid" data-cat={cat} class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" set:html={list.map((a) => activityCard(a)).join('')} />
+    <p id="empty" class="hidden rounded-2xl bg-sand p-10 text-center text-muted">Aucune activité trouvée. Écrivez-nous, nous avons d'autres idées !</p>
+  </section>
+  <script type="application/json" id="seed-acts" set:html={JSON.stringify(acts)} />
+</Layout>
+<script>
+  import { fetchActivities, activityCard, paintFavs, live } from '../lib/app';
+  const oldCat = new URLSearchParams(location.search).get('cat');
+  if (oldCat && !location.pathname.includes('/' + oldCat)) location.replace(location.pathname.replace(/\/?$/, '/') + oldCat + '/');
+  const grid = document.getElementById('grid')!;
+  const cat = grid.dataset.cat ?? '';
+  const q = document.getElementById('q') as HTMLInputElement;
+  q.value = new URLSearchParams(location.search).get('q') ?? '';
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const apply = () => {
+    const words = norm(q.value.trim()).split(/\s+/).filter(Boolean);
+    let n = 0;
+    grid.querySelectorAll<HTMLElement>('.card').forEach((c) => {
+      const ok = (!cat || (c.dataset.cats ?? '').split(' ').includes(cat)) && words.every((w) => norm(c.dataset.search ?? '').includes(w));
+      c.style.display = ok ? '' : 'none'; if (ok) n++;
+    });
+    document.getElementById('count')!.textContent = `${n} activité${n > 1 ? 's' : ''}`;
+    document.getElementById('empty')!.classList.toggle('hidden', n > 0);
+  };
+  q.addEventListener('input', apply);
+  apply();
+  live('acts', fetchActivities, (acts) => { grid.innerHTML = acts.map((a) => activityCard(a)).join(''); paintFavs(grid); apply(); });
+</script>

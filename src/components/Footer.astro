@@ -14,7 +14,7 @@ const year = new Date().getFullYear();
     <div class="md:col-span-2">
       <h3 class="font-semibold text-ink">Activités</h3>
       <ul class="mt-4 space-y-2.5">
-        {categories.map((c) => <li><a href={`/activites?cat=${c.id}`} class="hover:text-ink">{c.label}</a></li>)}
+        {categories.map((c) => <li><a href={`/activites/${c.id}/`} class="hover:text-ink">{c.label}</a></li>)}
       </ul>
     </div>
     <div class="md:col-span-2">

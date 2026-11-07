@@ -4,9 +4,9 @@ import { site, waLink } from '../data/site';
 interface Props { transparent?: boolean }
 const path = Astro.url.pathname + Astro.url.search;
 const links = [
-  { href: '/activites/?cat=desert', label: 'Désert', icon: '🏜️' },
-  { href: '/activites/?cat=mer', label: 'Mer & yacht', icon: '🛥️' },
-  { href: '/activites/?cat=ciel', label: 'Dans les airs', icon: '🎈' },
+  { href: '/activites/desert/', label: 'Désert', icon: '🏜️' },
+  { href: '/activites/mer/', label: 'Mer & yacht', icon: '🛥️' },
+  { href: '/activites/ciel/', label: 'Dans les airs', icon: '🎈' },
   { href: '/voitures/', label: 'Voitures', icon: '🏎️' },
   { href: '/blog/', label: 'Blog', icon: '' },
 ];

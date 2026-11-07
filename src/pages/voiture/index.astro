@@ -1,10 +1,13 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { getCars } from '../../lib/data';
+const seedData = await getCars();
 import { rentalConditions } from '../../data/cars';
 ---
 <Layout title="Voiture" description="Louez une voiture de luxe à Dubaï avec Dubai Location.">
   <div id="page" class="container-x pb-20 pt-28 sm:pt-32"><div class="animate-pulse space-y-4"><div class="h-8 w-1/2 rounded bg-sand"></div><div class="h-80 rounded-2xl bg-sand"></div></div></div>
   <script type="application/json" id="conds" set:html={JSON.stringify(rentalConditions)} />
+  <script type="application/json" id="seed-cars" set:html={JSON.stringify(seedData)} />
 </Layout>
 <script>
   import { sb, esc, aed, img, url, cart, carCard, paintFavs, ICON, CAR_CATEGORIES, carPrice, cachedCars, refreshCache, type Car } from '../../lib/app';
