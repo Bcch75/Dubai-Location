@@ -20,7 +20,7 @@ export const site = {
 export const socials: { key: string; label: string; url: string; count: string }[] = [
   { key: 'google', label: 'Avis Google', url: '', count: '' },     // count = note, ex. '4.9'
   { key: 'instagram', label: 'Instagram', url: 'https://www.instagram.com/location.dubai', count: '' },
-  { key: 'tiktok', label: 'TikTok', url: '', count: '' },
+  { key: 'tiktok', label: 'TikTok', url: 'https://www.tiktok.com/@dubai.location8', count: '' },
   { key: 'snapchat', label: 'Snapchat', url: '', count: '' },
   { key: 'facebook', label: 'Facebook', url: '', count: '' },
 ];
