@@ -12,7 +12,7 @@ const links = [
 ];
 ---
 <header id="site-header" class="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
-  <nav class="mx-auto flex max-w-7xl items-center justify-between gap-4 rounded-2xl border border-line/70 bg-white/95 px-4 py-2.5 shadow-[0_4px_24px_-8px_rgb(17_24_39/0.18)] backdrop-blur sm:px-6" aria-label="Navigation principale">
+  <nav class="mx-auto flex h-16 max-w-[1220px] items-center justify-between gap-4 rounded-2xl bg-white px-4 shadow-[0_25px_50px_-12px_rgb(0_0_0/0.25)] ring-1 ring-gray-200/50 sm:px-6" aria-label="Navigation principale">
     <a href="/" class="flex items-center gap-2.5" aria-label={`${site.name}, accueil`}>
       <span class="grid h-10 w-10 place-items-center rounded-xl bg-gold text-white">
         <svg viewBox="0 0 32 32" class="h-6 w-6" aria-hidden="true"><path d="M16 3c-.8 6-1.4 14-1.4 22h2.8C17.4 17 16.8 9 16 3z" fill="currentColor"/><path d="M8 27h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -26,7 +26,7 @@ const links = [
     <ul class="hidden items-center gap-1 lg:flex">
       {links.map((l) => (
         <li>
-          <a href={l.href} class:list={['rounded-full px-4 py-2 text-[15px] font-semibold text-ink transition hover:bg-sand', path === l.href && 'bg-sand']}>
+          <a href={l.href} class:list={['flex h-10 items-center gap-2 rounded-full px-4 text-base font-semibold text-black transition hover:bg-gray-100', path === l.href && 'bg-gray-100']}>
             {l.icon && <span aria-hidden="true" class="mr-1">{l.icon}</span>}{l.label}
           </a>
         </li>

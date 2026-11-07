@@ -29,21 +29,21 @@ const rows = [
     <Image src={hero} alt="Skyline de Dubaï au coucher du soleil" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover" />
     <div class="absolute inset-0 -z-10 bg-black/25"></div>
     <div class="container-x pt-16 text-center">
-      <h1 class="mx-auto max-w-4xl text-4xl font-extrabold text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-6xl">Trouvez et réservez des activités</h1>
-      <form action="/activites/" method="get" role="search" class="mx-auto mt-8 flex max-w-xl items-center gap-2 rounded-full bg-white p-1.5 pl-5 shadow-lift ring-4 ring-white/30">
+      <h1 class="mx-auto max-w-5xl text-4xl font-extrabold leading-none !text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]">Trouvez et réservez des activités</h1>
+      <form action="/activites/" method="get" role="search" class="mx-auto mt-10 flex h-[66px] max-w-[576px] items-center gap-2 rounded-full bg-white p-[7px] pl-5 shadow-lift ring-4 ring-white/40">
         <Icon name="search" class="h-5 w-5 shrink-0 text-muted" />
         <label for="hero-q" class="sr-only">Rechercher</label>
         <input id="hero-q" name="q" type="search" placeholder="Une activité ou une voiture…" class="min-w-0 flex-1 bg-transparent py-2.5 text-ink outline-none placeholder:text-muted" />
-        <button class="shrink-0 rounded-full bg-gold px-5 py-3 font-bold text-white transition hover:bg-gold-deep sm:px-8">Rechercher</button>
+        <button class="h-full shrink-0 rounded-full bg-gold px-5 text-base font-bold text-white shadow-md transition hover:bg-gold-deep sm:px-8 sm:text-xl">Rechercher</button>
       </form>
     </div>
   </section>
 
   <section class="container-x pt-14">
-    <h2 class="text-2xl font-bold sm:text-3xl">Nos univers</h2>
+    <h2 class="mb-2 text-3xl font-bold sm:text-4xl">Nos univers</h2>
     <div class="no-scrollbar -mx-4 mt-6 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
       {tiles.map((t) => (
-        <a href={t.href} class="group relative isolate aspect-[5/7] w-36 shrink-0 snap-start overflow-hidden rounded-3xl sm:w-auto">
+        <a href={t.href} class="group relative isolate aspect-[5/7] w-40 shrink-0 snap-start overflow-hidden rounded-3xl shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] sm:w-auto">
           <Image src={t.img} alt="" widths={[300, 500]} sizes="(min-width: 640px) 20vw, 150px" class="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
           <p class="absolute inset-x-0 bottom-0 p-4 text-xl font-bold text-white sm:text-2xl">{t.title}</p>
@@ -56,10 +56,10 @@ const rows = [
     <section id={r.id} class="container-x scroll-mt-28 pt-16">
       <div class="flex items-end justify-between gap-4">
         <div>
-          <h2 class="flex items-center gap-2 text-2xl font-bold sm:text-3xl"><span aria-hidden="true">{r.icon}</span>{r.title}</h2>
-          <p class="mt-1 text-muted">{r.sub}</p>
+          <h2 class="mb-1 flex items-center gap-2 text-2xl font-bold tracking-[-0.75px] sm:text-[30px] sm:leading-[1.25]"><span aria-hidden="true">{r.icon}</span>{r.title}</h2>
+          <p class="text-gray-500">{r.sub}</p>
         </div>
-        <a href={r.href} class="hidden shrink-0 text-sm font-semibold text-ink hover:text-gold sm:inline">Toutes les activités →</a>
+        <a href={r.href} class="hidden shrink-0 text-base font-bold text-ink hover:text-gold sm:inline">Toutes les activités →</a>
       </div>
       <div class="relative mt-6">
         <div data-row={r.kind} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0"></div>
@@ -81,7 +81,7 @@ const rows = [
 
 <script>
   import { fetchActivities, fetchCars, activityCard, carCard, skeleton, paintFavs } from '../lib/app';
-  const W = 'w-[78vw] shrink-0 snap-start sm:w-[300px]';
+  const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
   const rows = document.querySelectorAll<HTMLElement>('[data-row]');
   rows.forEach((r) => (r.innerHTML = skeleton(4, W)));
   const [acts, cars] = await Promise.all([fetchActivities(), fetchCars()]);
