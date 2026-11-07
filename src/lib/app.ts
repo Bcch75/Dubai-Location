@@ -29,6 +29,8 @@ export const BASE = (document.documentElement.dataset.base ?? '/').replace(/\/?$
 const IDX = document.documentElement.dataset.index === '1';
 export const url = (p: string) => { const s = BASE + p.replace(/^\//, ''); return IDX ? s.replace(/([a-z-]+)\/(?=[?#]|$)/, '$1/index.html') : s; };
 export const img = (u?: string | null) => (!u ? '' : /^https?:/.test(u) ? u : url(u));
+/** Version légère (640 px) pour les vignettes */
+export const thumb = (u?: string | null) => (u && u.startsWith('/img/') && !u.startsWith('/img/thumb/') ? img(u.replace('/img/', '/img/thumb/')) : img(u));
 
 export const esc = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 export const aed = (n: number | null | undefined) => (n == null ? '' : `${n.toLocaleString('fr-FR')} AED`);
@@ -125,12 +127,12 @@ const priceBlock = (price: string, old?: number | null, from = true) => `
 
 export function activityCard(a: Activity, cls = '') {
   return `
-  <article class="card group relative flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_0_rgb(0_0_0/0.14)] ${cls}" data-cats="${esc(a.categories.join(' '))}" data-search="${esc((a.title + ' ' + (a.tagline ?? '') + ' ' + (a.location ?? '') + ' ' + a.categories.join(' ')).toLowerCase())}">
+  <article class="card group relative flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] transition-shadow duration-300 hover:shadow-[0_10px_30px_0_rgb(0_0_0/0.14)] ${cls}" data-cats="${esc(a.categories.join(' '))}" data-search="${esc((a.title + ' ' + (a.tagline ?? '') + ' ' + (a.location ?? '') + ' ' + a.categories.join(' ')).toLowerCase())}">
     <div class="relative h-[176px] overflow-hidden bg-sand">
-      <img src="${esc(img(a.image_url))}" alt="${esc(a.image_alt ?? a.title)}" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+      <img src="${esc(thumb(a.image_url))}" alt="${esc(a.image_alt ?? a.title)}" loading="lazy" decoding="async" width="640" height="420" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
       ${a.badge ? `<span class="absolute left-3 top-3 rounded-full bg-sky-400/90 px-3 py-1.5 text-xs font-semibold leading-4 tracking-[0.3px] text-white shadow-lg">${esc(a.badge)}</span>` : ''}
-      <button type="button" data-fav="activity:${esc(a.slug)}" aria-label="Ajouter aux favoris" class="fav-btn absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink shadow backdrop-blur-sm transition hover:scale-110">${ICON.heart}</button>
-      ${a.duration ? `<span class="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium leading-4 text-white backdrop-blur-sm">${ICON.clock}${esc(a.duration)}</span>` : ''}
+      <button type="button" data-fav="activity:${esc(a.slug)}" aria-label="Ajouter aux favoris" class="fav-btn absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink shadow transition hover:scale-110">${ICON.heart}</button>
+      ${a.duration ? `<span class="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium leading-4 text-white">${ICON.clock}${esc(a.duration)}</span>` : ''}
     </div>
     <div class="flex flex-1 flex-col px-4 pb-4 pt-4">
       <h3 class="mb-2 line-clamp-2 text-[17px] font-semibold leading-[1.375] text-ink"><a href="${url('activite/?s=' + encodeURIComponent(a.slug))}" class="after:absolute after:inset-0">${esc(a.title)}</a></h3>
@@ -147,11 +149,11 @@ export function activityCard(a: Activity, cls = '') {
 export const carPrice = (c: Car) => (c.price_per_day ? `${aed(c.price_per_day)}` : 'Sur demande');
 export function carCard(c: Car, cls = '') {
   return `
-  <article class="card group relative flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_0_rgb(0_0_0/0.14)] ${cls}" data-cats="${esc(c.category)}" data-search="${esc((c.brand + ' ' + c.model + ' ' + c.category).toLowerCase())}">
+  <article class="card group relative flex flex-col overflow-hidden rounded-[18px] bg-white shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] transition-shadow duration-300 hover:shadow-[0_10px_30px_0_rgb(0_0_0/0.14)] ${cls}" data-cats="${esc(c.category)}" data-search="${esc((c.brand + ' ' + c.model + ' ' + c.category).toLowerCase())}">
     <div class="relative h-[176px] overflow-hidden bg-sand">
-      <img src="${esc(img(c.image_url))}" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
+      <img src="${esc(thumb(c.image_url))}" alt="${esc(c.brand + ' ' + c.model)}" loading="lazy" decoding="async" width="640" height="420" class="h-full w-full object-cover transition duration-700 group-hover:scale-105">
       <span class="absolute left-3 top-3 rounded-full bg-sky-400/90 px-3 py-1.5 text-xs font-semibold leading-4 tracking-[0.3px] text-white shadow-lg">${esc(c.tag ?? CAR_CATEGORIES[c.category] ?? '')}</span>
-      <button type="button" data-fav="car:${esc(c.slug)}" aria-label="Ajouter aux favoris" class="fav-btn absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink shadow backdrop-blur-sm transition hover:scale-110">${ICON.heart}</button>
+      <button type="button" data-fav="car:${esc(c.slug)}" aria-label="Ajouter aux favoris" class="fav-btn absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-white/80 text-ink shadow transition hover:scale-110">${ICON.heart}</button>
     </div>
     <div class="flex flex-1 flex-col px-4 pb-4 pt-4">
       <p class="text-xs font-medium text-gray-400">${esc(c.brand)}</p>
@@ -168,6 +170,23 @@ export function carCard(c: Car, cls = '') {
 
 export const skeleton = (n = 4, cls = '') =>
   Array.from({ length: n }, () => `<div class="${cls} animate-pulse overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_-2px_rgb(17_24_39/0.12)]"><div class="aspect-[16/10] bg-sand"></div><div class="space-y-2 p-4"><div class="h-4 w-2/3 rounded bg-sand"></div><div class="h-3 w-full rounded bg-sand"></div><div class="h-3 w-1/2 rounded bg-sand"></div></div></div>`).join('');
+
+// ───────── Cache local : affichage instantané, puis mise à jour en arrière-plan ─────────
+const cacheGet = <T,>(k: string): T | null => { try { return JSON.parse(localStorage.getItem('dl-' + k) || 'null'); } catch { return null; } };
+const cacheSet = (k: string, v: unknown) => { try { localStorage.setItem('dl-' + k, JSON.stringify(v)); } catch {} };
+/** Affiche tout de suite la version en cache, puis la version fraîche si elle a changé */
+export function live<T>(key: string, fetcher: () => Promise<T>, render: (d: T) => void) {
+  const cached = cacheGet<T>(key);
+  if (cached) render(cached);
+  return fetcher().then((fresh) => {
+    const changed = JSON.stringify(fresh) !== JSON.stringify(cached);
+    if (changed) { cacheSet(key, fresh); render(fresh); }
+    return fresh;
+  });
+}
+export const cachedActivities = () => cacheGet<Activity[]>('acts') ?? [];
+export const cachedCars = () => cacheGet<Car[]>('cars') ?? [];
+export const refreshCache = (k: 'acts' | 'cars', v: unknown) => cacheSet(k, v);
 
 // ───────── Requêtes ─────────
 export async function fetchActivities() {
@@ -197,6 +216,5 @@ export async function initHeader() {
     a.title = u ? 'Mon compte' : 'Se connecter';
     a.classList.toggle('text-gold', !!u);
   });
-  await loadFavs();
-  paintFavs();
+  loadFavs().then(() => paintFavs());
 }

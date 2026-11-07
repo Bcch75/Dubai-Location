@@ -24,12 +24,9 @@ const cats = [['', 'Toutes'], ['desert', '🏜️ Désert'], ['mer', '🛥️ Me
   </section>
 </Layout>
 <script>
-  import { fetchActivities, activityCard, skeleton, paintFavs } from '../../lib/app';
+  import { fetchActivities, activityCard, skeleton, paintFavs, live } from '../../lib/app';
   const grid = document.getElementById('grid')!;
   grid.innerHTML = skeleton(8);
-  const acts = await fetchActivities();
-  grid.innerHTML = acts.map((a) => activityCard(a)).join('');
-  paintFavs();
   const params = new URLSearchParams(location.search);
   let cat = params.get('cat') ?? '';
   const q = document.getElementById('q') as HTMLInputElement;
@@ -47,7 +44,7 @@ const cats = [['', 'Toutes'], ['desert', '🏜️ Désert'], ['mer', '🛥️ Me
     document.getElementById('count')!.textContent = `${n} activité${n > 1 ? 's' : ''}`;
     document.getElementById('empty')!.classList.toggle('hidden', n > 0);
   };
-  chips.forEach((b) => b.addEventListener('click', () => { cat = b.dataset.cat ?? ''; apply(); }));
+  chips.forEach((b) => b.addEventListener('click', () => { cat = b.dataset.cat ?? ''; history.replaceState(null, '', cat ? '?cat=' + cat : location.pathname); apply(); }));
   q.addEventListener('input', apply);
-  apply();
+  live('acts', fetchActivities, (acts) => { grid.innerHTML = acts.map((a) => activityCard(a)).join(''); paintFavs(grid); apply(); });
 </script>

@@ -7,11 +7,13 @@ import Layout from '../../layouts/Layout.astro';
   </div>
 </Layout>
 <script>
-  import { sb, esc, aed, img, url, cart, activityCard, paintFavs, ICON, waLink, type Activity } from '../../lib/app';
+  import { sb, esc, aed, img, url, cart, activityCard, paintFavs, ICON, waLink, cachedActivities, refreshCache, type Activity } from '../../lib/app';
   const slug = new URLSearchParams(location.search).get('s') ?? '';
   const page = document.getElementById('page')!;
-  const { data } = await sb.from('activities').select('*').eq('slug', slug).maybeSingle();
-  const a = data as Activity | null;
+  const fromCache = cachedActivities().find((x) => x.slug === slug) ?? null;
+  const net = sb.from('activities').select('*').eq('slug', slug).maybeSingle();
+  const a = (fromCache ?? (await net).data) as Activity | null;
+  if (fromCache) net.then(({ data }) => { if (data && JSON.stringify(data) !== JSON.stringify(fromCache)) { const all = cachedActivities().map((x) => (x.slug === slug ? data : x)); refreshCache('acts', all); location.reload(); } });
   if (!a) {
     page.innerHTML = `<h1 class="text-3xl font-bold">Activité introuvable</h1><a class="btn-gold mt-6" href="${url('activites/')}">Voir toutes les activités</a>`;
   } else {

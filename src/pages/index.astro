@@ -80,17 +80,16 @@ const rows = [
 </Layout>
 
 <script>
-  import { fetchActivities, fetchCars, activityCard, carCard, skeleton, paintFavs } from '../lib/app';
+  import { fetchActivities, fetchCars, activityCard, carCard, skeleton, paintFavs, live } from '../lib/app';
   const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
   const rows = document.querySelectorAll<HTMLElement>('[data-row]');
-  rows.forEach((r) => (r.innerHTML = skeleton(4, W)));
-  const [acts, cars] = await Promise.all([fetchActivities(), fetchCars()]);
-  rows.forEach((r) => {
-    const k = r.dataset.row!;
-    const list = k === 'cars' ? cars.map((c) => carCard(c, W))
-      : (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W));
-    r.innerHTML = list.join('') || '<p class="text-muted">Bientôt disponible.</p>';
-  });
+  rows.forEach((r) => { if (!r.innerHTML) r.innerHTML = skeleton(4, W); });
+  live('acts', fetchActivities, (acts) => rows.forEach((r) => {
+    const k = r.dataset.row!; if (k === 'cars') return;
+    r.innerHTML = (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W)).join('') || '<p class="text-muted">Bientôt disponible.</p>';
+    paintFavs(r);
+  }));
+  live('cars', fetchCars, (cars) => rows.forEach((r) => { if (r.dataset.row === 'cars') { r.innerHTML = cars.map((c) => carCard(c, W)).join(''); paintFavs(r); } }));
   paintFavs();
   document.querySelectorAll<HTMLButtonElement>('[data-scroll]').forEach((b) =>
     b.addEventListener('click', () => b.previousElementSibling?.scrollBy({ left: 640, behavior: 'smooth' })));

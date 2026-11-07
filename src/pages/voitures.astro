@@ -32,13 +32,14 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
   </section>
 </Layout>
 <script>
-  import { fetchCars, carCard, skeleton, paintFavs } from '../lib/app';
+  import { fetchCars, carCard, skeleton, paintFavs, live } from '../lib/app';
   const grid = document.getElementById('grid')!;
   grid.innerHTML = skeleton(8);
-  const cars = await fetchCars();
-  grid.innerHTML = cars.map((c) => carCard(c)).join('');
-  document.getElementById('count')!.textContent = `${cars.length} modèles · livraison hôtel ou aéroport`;
-  paintFavs();
+  live('cars', fetchCars, (cars) => {
+    grid.innerHTML = cars.map((c) => carCard(c)).join('');
+    document.getElementById('count')!.textContent = `${cars.length} modèles · livraison hôtel ou aéroport`;
+    paintFavs(grid);
+  });
   const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-cat]')];
   chips.forEach((b) => b.addEventListener('click', () => {
     chips.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
