@@ -47,13 +47,13 @@ const rows = [
   </section>
 
   <section class="container-x pt-14">
-    <h2 class="mb-2 text-3xl font-bold sm:text-4xl">Nos univers</h2>
-    <div class="no-scrollbar -mx-4 mt-6 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0">
+    <h2 class="mb-8 text-3xl font-bold sm:text-4xl">Nos univers</h2>
+    <div class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
       {tiles.map((t) => (
-        <a href={t.href} class="group relative isolate aspect-[5/7] w-40 shrink-0 snap-start overflow-hidden rounded-3xl shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] sm:w-auto">
+        <a href={t.href} class="group relative isolate h-[220px] w-[156px] shrink-0 snap-start overflow-hidden rounded-[24px] shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] sm:h-[283px] sm:w-[200px]">
           <Image src={t.img} alt="" widths={[300, 500]} sizes="(min-width: 640px) 20vw, 150px" class="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-          <p class="absolute inset-x-0 bottom-0 p-4 text-xl font-bold text-white sm:text-2xl">{t.title}</p>
+          <p class="absolute inset-x-0 bottom-0 p-4 text-lg font-bold leading-tight text-white [overflow-wrap:anywhere] sm:text-[22px]">{t.title}</p>
         </a>
       ))}
     </div>
@@ -69,7 +69,7 @@ const rows = [
         <a href={r.href} class="hidden shrink-0 text-base font-bold text-ink hover:text-gold sm:inline">Toutes les activités →</a>
       </div>
       <div class="relative mt-6">
-        <div data-row={r.kind} set:html={rowHtml(r.kind)} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-5 overflow-x-auto scroll-smooth px-4 pb-4 sm:mx-0 sm:px-0"></div>
+        <div data-row={r.kind} set:html={rowHtml(r.kind)} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-6 overflow-x-auto scroll-smooth px-4 pb-6 pt-1 sm:-mx-2 sm:px-2"></div>
         <button type="button" data-scroll aria-label="Suivant" class="absolute -right-3 top-[38%] hidden h-11 w-11 place-items-center rounded-full border border-line bg-white shadow-soft hover:bg-sand lg:grid">→</button>
       </div>
     </section>

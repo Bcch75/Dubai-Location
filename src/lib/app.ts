@@ -2,8 +2,8 @@
 //  Logique côté navigateur : Supabase, panier, favoris, rendu des cartes
 // ═══════════════════════════════════════════════════════════
 import { createClient, type User } from '@supabase/supabase-js';
-import { setBase, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES, type Activity, type Car } from './cards';
-export { url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES };
+import { setBase, setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES, type Activity, type Car } from './cards';
+export { setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES };
 export type { Activity, Car };
 
 export const sb = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
@@ -11,6 +11,38 @@ export const WA = '971569736810';
 
 // Chemin de base (permet d'héberger le site dans un sous-dossier)
 setBase(document.documentElement.dataset.base ?? '/', document.documentElement.dataset.index === '1');
+
+// ───────── Devise et langue choisies par le visiteur ─────────
+const pref = (k: string) => { try { return localStorage.getItem('dl-' + k); } catch { return null; } };
+const savePref = (k: string, v: string) => { try { localStorage.setItem('dl-' + k, v); } catch {} };
+try {
+  const rates = JSON.parse(pref('rates') || 'null');
+  if (rates) Object.keys(CURRENCIES).forEach((c) => rates[c] && (CURRENCIES[c].rate = rates[c]));
+} catch {}
+setCurrency(pref('cur') || 'AED');
+// Taux de change du jour (mis à jour au plus toutes les 12 h)
+if (+(pref('rates-at') || 0) < Date.now() - 12 * 3600e3) {
+  fetch('https://open.er-api.com/v6/latest/AED').then((r) => r.json()).then((d) => {
+    if (d?.rates) { savePref('rates', JSON.stringify(d.rates)); savePref('rates-at', String(Date.now())); }
+  }).catch(() => {});
+}
+export function chooseCurrency(code: string) { savePref('cur', code); location.reload(); }
+export const LANGS: [string, string, string][] = [['fr', '🇫🇷', 'Français'], ['en', '🇬🇧', 'English'], ['ar', '🇦🇪', 'العربية'], ['ru', '🇷🇺', 'Русский']];
+export const lang = () => pref('lang') || 'fr';
+export function chooseLang(code: string) {
+  savePref('lang', code);
+  const host = location.hostname;
+  const v = code === 'fr' ? '' : `/fr/${code}`;
+  const exp = code === 'fr' ? '; expires=Thu, 01 Jan 1970 00:00:00 GMT' : '';
+  for (const d of ['', `; domain=${host}`, `; domain=.${host}`]) document.cookie = `googtrans=${v}; path=/${d}${exp}`;
+  location.reload();
+}
+// Traduction automatique si une autre langue que le français est choisie
+if (lang() !== 'fr') {
+  (window as any).gtInit = () => new (window as any).google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'gt-el');
+  const el = document.createElement('div'); el.id = 'gt-el'; el.style.display = 'none'; document.body.append(el);
+  const sc = document.createElement('script'); sc.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; sc.async = true; document.head.append(sc);
+}
 export const waLink = (msg: string) => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 
 // ───────── Session ─────────
@@ -98,6 +130,7 @@ export function live<T>(key: string, fetcher: () => Promise<T>, render: (d: T) =
   if (!shown && !cached) render([] as unknown as T);
   if (cached && JSON.stringify(cached) !== JSON.stringify(shown)) { render(cached); shown = cached; }
   if (!shown) shown = cached;
+  if (currency() !== 'AED' && shown) render(shown);
   return fetcher().then((fresh) => {
     if (!fresh || (Array.isArray(fresh) && !fresh.length && shown)) return shown as T; // réseau bloqué : on garde ce qui est affiché
     cacheSet(key, fresh);

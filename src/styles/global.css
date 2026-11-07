@@ -86,3 +86,8 @@
 .fav-btn.is-fav .fav-fill { fill: currentColor; }
 .prose-blog h2 { font-size: 1.4rem; font-weight: 700; margin-top: 2rem; }
 .prose-blog p { margin-top: 1rem; line-height: 1.75; color: var(--color-ink-soft); }
+
+/* Traduction automatique : on masque la barre de Google */
+.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
+body { top: 0 !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }

@@ -24,7 +24,7 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
       <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2><p id="count" class="mt-1 text-muted">{cars.length} modèles · livraison hôtel ou aéroport</p></div>
       <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">{cats.map(([id, l]) => <button class="chip" data-cat={id} aria-pressed={id === '' ? 'true' : 'false'}>{l}</button>)}</div>
     </div>
-    <div id="grid" set:html={cars.map((c) => carCard(c)).join('')} class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+    <div id="grid" set:html={cars.map((c) => carCard(c)).join('')} class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
   </section>
   <section class="bg-sand py-14">
     <div class="container-x">

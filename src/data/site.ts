@@ -9,6 +9,9 @@ export const site = {
   email: 'dubailocation19@gmail.com',
   city: 'Dubaï, Émirats arabes unis',
   instagram: '', // ex. 'https://instagram.com/dubailocation' — laissé vide = masqué
+  tiktok: '',    // ex. 'https://tiktok.com/@dubailocation'
+  snapchat: '',  // ex. 'https://snapchat.com/add/dubailocation'
+  googleReviews: '', // lien vers vos avis Google
   hours: '7j/7 · 8h – 23h (heure de Dubaï)',
 };
 

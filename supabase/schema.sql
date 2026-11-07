@@ -179,3 +179,11 @@ alter table public.activities add column if not exists qty_label text not null d
 alter table public.cars add column if not exists perk text;
 alter table public.cars add column if not exists old_price integer;
 alter table public.cars add column if not exists description text;
+
+-- ═════════ Notes, avis et vidéos (affichés seulement s'ils sont renseignés) ═════════
+alter table public.activities add column if not exists rating numeric(2,1);
+alter table public.activities add column if not exists reviews_count integer;
+alter table public.activities add column if not exists video_url text;
+alter table public.cars add column if not exists rating numeric(2,1);
+alter table public.cars add column if not exists reviews_count integer;
+alter table public.cars add column if not exists video_url text;

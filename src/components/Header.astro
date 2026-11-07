@@ -34,6 +34,17 @@ const links = [
     </ul>
 
     <div class="flex items-center gap-0.5">
+      <div class="relative">
+        <button type="button" id="lc-btn" class="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-sand" aria-label="Langue et devise" aria-expanded="false">
+          <svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        </button>
+        <div id="lc-panel" class="absolute right-0 top-12 z-50 hidden w-64 rounded-2xl bg-white p-4 shadow-[0_25px_50px_-12px_rgb(0_0_0/0.25)] ring-1 ring-gray-200">
+          <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Langue</p>
+          <div id="lc-langs" class="mt-2 grid grid-cols-2 gap-1.5"></div>
+          <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Devise</p>
+          <div id="lc-curs" class="mt-2 grid grid-cols-2 gap-1.5"></div>
+        </div>
+      </div>
       <a href="/activites/" class="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-sand" aria-label="Rechercher"><Icon name="search" class="h-5 w-5" /></a>
       <a href="/favoris/" class="grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-sand" aria-label="Mes favoris"><Icon name="heart" class="h-5 w-5" /></a>
       <a href="/panier/" class="relative grid h-10 w-10 place-items-center rounded-full text-ink transition hover:bg-sand" aria-label="Panier">
@@ -73,6 +84,17 @@ const links = [
 </style>
 
 <script>
+  import { LANGS, lang, chooseLang, CURRENCIES, currency, chooseCurrency } from '../lib/app';
+  const lcBtn = document.getElementById('lc-btn')!, lcPanel = document.getElementById('lc-panel')!;
+  const opt = (on: boolean, data: string, label: string) => `<button type="button" ${data} class="rounded-lg px-2.5 py-2 text-left text-sm ${on ? 'bg-blue-50 font-semibold text-gold ring-1 ring-gold' : 'hover:bg-gray-100'}">${label}</button>`;
+  document.getElementById('lc-langs')!.innerHTML = LANGS.map(([c, f, l]) => opt(lang() === c, `data-lang="${c}"`, `${f} ${l}`)).join('');
+  document.getElementById('lc-curs')!.innerHTML = Object.entries(CURRENCIES).map(([c, v]) => opt(currency() === c, `data-cur="${c}"`, `${v.flag} ${c}`)).join('');
+  lcBtn.addEventListener('click', (e) => { e.stopPropagation(); const open = lcPanel.classList.toggle('hidden') === false; lcBtn.setAttribute('aria-expanded', String(open)); });
+  document.addEventListener('click', (e) => { if (!lcPanel.contains(e.target as Node)) lcPanel.classList.add('hidden'); });
+  lcPanel.addEventListener('click', (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-lang],[data-cur]'); if (!b) return;
+    if (b.dataset.lang) chooseLang(b.dataset.lang); else chooseCurrency(b.dataset.cur!);
+  });
   const menu = document.getElementById('mobile-menu')!;
   const openBtn = document.getElementById('menu-open')!;
   const setOpen = (open: boolean) => {
