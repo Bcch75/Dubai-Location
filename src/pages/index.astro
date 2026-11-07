@@ -32,16 +32,16 @@ const rows = [
 ];
 ---
 <Layout>
-  <section class="relative isolate flex h-[520px] items-center justify-center overflow-hidden sm:h-[630px]">
+  <section class="relative isolate flex h-[clamp(520px,56vw,860px)] items-center justify-center overflow-hidden">
     <Image src={hero} alt="La mer et le skyline de Dubaï avec le Burj Al Arab et des bateaux" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover" />
     <div class="absolute inset-0 -z-10 bg-black/25"></div>
     <div class="container-x pt-16 text-center">
       <h1 class="mx-auto max-w-5xl text-4xl font-extrabold leading-none !text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]">Trouvez et réservez des activités</h1>
-      <form action="/activites/" method="get" role="search" class="mx-auto mt-10 flex h-[66px] max-w-[576px] items-center gap-2 rounded-full bg-white p-[7px] pl-5 shadow-lift ring-4 ring-white/40">
-        <Icon name="search" class="h-5 w-5 shrink-0 text-muted" />
+      <form action="/activites/" method="get" role="search" class="relative mx-auto mt-10 w-full max-w-[576px]">
         <label for="hero-q" class="sr-only">Rechercher</label>
-        <input id="hero-q" name="q" type="search" placeholder="Une activité ou une voiture…" class="min-w-0 flex-1 bg-transparent py-2.5 text-ink outline-none placeholder:text-muted" />
-        <button class="h-full shrink-0 rounded-full bg-gold px-5 text-base font-bold text-white shadow-md transition hover:bg-gold-deep sm:px-8 sm:text-xl">Rechercher</button>
+        <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="hero-q" name="q" type="search" placeholder="Destination ou une activité..." class="h-[66px] w-full rounded-full border border-gray-200 bg-white py-5 pl-12 pr-[150px] text-base text-[#121212] shadow-[0_10px_15px_-3px_rgb(0_0_0/0.1),0_4px_6px_-4px_rgb(0_0_0/0.1)] outline-none placeholder:text-gray-400 focus:border-gold sm:pr-[190px]" />
+        <button class="absolute right-[7px] top-[7px] h-[52px] rounded-full bg-[#0171eb] px-5 text-base font-bold text-white shadow-[0_4px_6px_-1px_rgb(0_0_0/0.1),0_2px_4px_-2px_rgb(0_0_0/0.1)] transition hover:bg-gold-deep sm:px-8 sm:text-xl">Rechercher</button>
       </form>
     </div>
   </section>
