@@ -1,0 +1,17 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Article">
+  <article id="post" class="container-x max-w-3xl pb-20 pt-28 sm:pt-32"><div class="h-64 animate-pulse rounded-2xl bg-sand"></div></article>
+</Layout>
+<script>
+  import { sb, esc, img, url } from '../../lib/app';
+  const { data: p } = await sb.from('posts').select('*').eq('slug', new URLSearchParams(location.search).get('s') ?? '').maybeSingle();
+  const el = document.getElementById('post')!;
+  if (!p) el.innerHTML = `<h1 class="text-3xl font-bold">Article introuvable</h1><a class="mt-4 inline-block text-gold" href="${url('blog/')}">← Blog</a>`;
+  else {
+    document.title = `${p.title} | Dubai Location`;
+    const body = esc(p.content ?? '').split(/\n\n+/).map((b) => (b.startsWith('## ') ? `<h2>${b.slice(3)}</h2>` : `<p>${b.replace(/\n/g, '<br>')}</p>`)).join('');
+    el.innerHTML = `<a class="text-sm text-muted hover:text-ink" href="${url('blog/')}">← Blog</a><h1 class="mt-3 text-3xl font-bold sm:text-5xl">${esc(p.title)}</h1><p class="mt-2 text-muted">${new Date(p.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p>${p.cover_url ? `<img src="${esc(img(p.cover_url))}" alt="" class="mt-6 aspect-[16/9] w-full rounded-2xl object-cover">` : ''}<div class="prose-blog mt-6">${body}</div><a href="${url('activites/')}" class="btn-gold mt-10">Voir les activités</a>`;
+  }
+</script>

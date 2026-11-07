@@ -1,0 +1,19 @@
+---
+import TextPage from '../layouts/TextPage.astro';
+import { site } from '../data/site';
+---
+<TextPage title="Conditions de réservation" intro="Les grandes lignes pour réserver sereinement avec nous.">
+  <p class="todo">À faire valider par Dubai Location : ce texte est une base claire, à adapter aux conditions réelles (acompte, annulation, remboursement).</p>
+  <h2>Réservation</h2>
+  <p>Toute réservation se fait par message (WhatsApp ou email). Une réservation est confirmée lorsque {site.name} vous envoie un récapitulatif écrit : expérience, date, horaire, nombre de participants et prix final.</p>
+  <h2>Prix</h2>
+  <p>Les prix affichés sur le site sont indicatifs et exprimés en dirhams des Émirats arabes unis (AED). Le prix définitif dépend de la formule, de la date et du nombre de participants, et vous est toujours communiqué avant la confirmation.</p>
+  <h2>Paiement</h2>
+  <p>Les modalités de paiement (acompte, solde, moyens acceptés) vous sont précisées lors de la confirmation de votre réservation.</p>
+  <h2>Annulation et modification</h2>
+  <p>Les conditions d'annulation varient selon l'activité et le prestataire. Elles vous sont communiquées avant la réservation. En cas de conditions météorologiques défavorables, l'activité est reportée ou remboursée.</p>
+  <h2>Sécurité</h2>
+  <p>Certaines activités (quad, moto, buggy, jet-ski, plongée) sont soumises à des conditions d'âge, de santé ou de permis. Les consignes des encadrants doivent être respectées à tout moment.</p>
+  <h2>Contact</h2>
+  <p>Pour toute question : {site.phoneDisplay} · {site.email}</p>
+</TextPage>

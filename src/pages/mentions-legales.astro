@@ -1,0 +1,18 @@
+---
+import TextPage from '../layouts/TextPage.astro';
+import { site } from '../data/site';
+---
+<TextPage title="Mentions légales">
+  <p class="todo">À compléter par Dubai Location : raison sociale, numéro de licence commerciale (trade licence), adresse et responsable de publication.</p>
+  <h2>Éditeur du site</h2>
+  <ul>
+    <li>Nom commercial : {site.name}</li>
+    <li>Adresse : {site.city}</li>
+    <li>Téléphone : {site.phoneDisplay}</li>
+    <li>Email : {site.email}</li>
+  </ul>
+  <h2>Données personnelles</h2>
+  <p>Ce site ne collecte aucune donnée via un serveur : les formulaires ouvrent simplement WhatsApp ou votre messagerie, avec votre message pré-rempli. Les informations que vous nous envoyez servent uniquement à traiter votre demande. Elles ne sont jamais revendues.</p>
+  <h2>Crédits photos</h2>
+  <p>Photographies issues d'Unsplash (licence Unsplash), utilisées à titre d'illustration.</p>
+</TextPage>

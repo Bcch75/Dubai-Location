@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import RequestForm from '../components/RequestForm.astro';
+import { site, waLink } from '../data/site';
+const faqs = [
+  { q: 'Comment réserver une activité ?', a: "C'est très simple : envoyez-nous un message sur WhatsApp, ou remplissez le formulaire de demande. Nous vous répondons avec les disponibilités, le prix exact et tous les détails pratiques, puis nous confirmons votre réservation." },
+  { q: 'Les prix affichés sont-ils définitifs ?', a: "Les prix sont indiqués en dirhams (AED), à titre indicatif. Le tarif final dépend de la formule, de la date et du nombre de participants. Il vous est toujours confirmé avant la réservation, sans mauvaise surprise." },
+  { q: 'Venez-vous me chercher à mon hôtel ?', a: "Oui, le transfert depuis votre hôtel est inclus ou disponible en option pour la plupart des expériences (désert, montgolfière, Oman, Abu Dhabi…). Précisez-nous simplement votre hôtel." },
+  { q: 'Y a-t-il un âge minimum ?', a: "Cela dépend de l'activité. La plupart des expériences sont ouvertes aux familles. Pour le quad, la moto ou le jet-ski, des conditions d'âge s'appliquent : demandez-nous, nous vous orienterons vers la bonne formule." },
+  { q: 'Puis-je organiser un événement spécial ?', a: "Avec plaisir ! Demande en mariage dans le désert, anniversaire sur un yacht, sortie de groupe… Dites-nous ce que vous imaginez, et nous construisons l'expérience avec vous." },
+  { q: 'Quelles sont les conditions pour louer une voiture ?', a: "Il faut en général avoir 21 ans (25 ans pour certaines supercars) et un permis valide depuis plus d'un an. Un permis international peut être demandé selon votre pays. Une caution est demandée à la remise du véhicule. Nous vous précisons tout avant la réservation, et la voiture est livrée à votre hôtel ou à l'aéroport." },
+];
+---
+<Layout title="Contact & réservation" description="Contactez Dubai Location sur WhatsApp ou par email pour réserver une activité ou une voiture à Dubaï.">
+  <section class="bg-sand pb-16 pt-32 sm:pt-36">
+    <div class="container-x grid items-start gap-10 lg:grid-cols-2">
+      <div>
+        <h1 class="text-4xl font-extrabold sm:text-5xl">Contact & réservation</h1>
+        <p class="mt-4 max-w-lg text-lg text-muted">Dites-nous ce qui vous fait envie, avec vos dates et le nombre de personnes. Nous vous répondons avec les disponibilités et le prix exact.</p>
+        <ul class="mt-8 space-y-3">
+          <li><a href={waLink()} target="_blank" rel="noopener" class="flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition hover:shadow-soft"><span class="grid h-11 w-11 place-items-center rounded-full bg-whatsapp text-white"><Icon name="whatsapp" class="h-5 w-5" /></span><span><span class="block text-sm text-muted">WhatsApp (le plus rapide)</span><span class="font-semibold">{site.phoneDisplay}</span></span></a></li>
+          <li><a href={`mailto:${site.email}`} class="flex items-center gap-4 rounded-2xl border border-line bg-white p-4 transition hover:shadow-soft"><span class="grid h-11 w-11 place-items-center rounded-full bg-gold text-white"><Icon name="mail" class="h-5 w-5" /></span><span class="min-w-0"><span class="block text-sm text-muted">Email</span><span class="block truncate font-semibold">{site.email}</span></span></a></li>
+        </ul>
+      </div>
+      <div class="rounded-2xl border border-line bg-white p-6 shadow-soft sm:p-8">
+        <h2 class="text-xl font-bold">Demande de réservation</h2>
+        <p class="mt-1 text-sm text-muted">Votre message s'ouvre directement dans WhatsApp.</p>
+        <div class="mt-6"><RequestForm /></div>
+      </div>
+    </div>
+  </section>
+  <section id="faq" class="container-x max-w-3xl scroll-mt-28 py-16">
+    <h2 class="text-2xl font-bold sm:text-3xl">Questions fréquentes</h2>
+    <div class="mt-6 divide-y divide-line border-y border-line">
+      {faqs.map((f) => (
+        <details class="group py-1">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-6 py-4 font-semibold">{f.q}<span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sand transition group-open:rotate-45"><Icon name="plus" class="h-4 w-4" /></span></summary>
+          <p class="pb-5 pr-12 leading-relaxed text-muted">{f.a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+</Layout>
+<style>summary::-webkit-details-marker { display: none; }</style>

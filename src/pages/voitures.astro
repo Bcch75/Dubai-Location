@@ -1,0 +1,47 @@
+---
+import { Image } from 'astro:assets';
+import Layout from '../layouts/Layout.astro';
+import { rentalConditions } from '../data/cars';
+import Icon from '../components/Icon.astro';
+import hero from '../assets/img/cars/hero-cars.jpg';
+const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'], ['suv', 'SUV de luxe'], ['sport', 'Sportives & berlines']];
+---
+<Layout title="Location de voitures de luxe à Dubaï" description="Louez une Lamborghini, une Ferrari, une Rolls-Royce ou un G63 à Dubaï, livrés à votre hôtel ou à l'aéroport." ogImage={hero}>
+  <section class="relative isolate flex h-[420px] items-center justify-center overflow-hidden">
+    <Image src={hero} alt="Lamborghini avec une plaque de Dubaï" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" class="absolute inset-0 -z-20 h-full w-full object-cover" />
+    <div class="absolute inset-0 -z-10 bg-black/40"></div>
+    <div class="container-x pt-16 text-center text-white">
+      <h1 class="text-4xl font-extrabold drop-shadow sm:text-6xl">Location de voitures de luxe</h1>
+      <p class="mx-auto mt-4 max-w-xl text-lg text-white/90">Livraison à votre hôtel ou à l'aéroport, partout à Dubaï.</p>
+    </div>
+  </section>
+  <section class="container-x py-12">
+    <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+      <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2><p id="count" class="mt-1 text-muted"></p></div>
+      <div class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">{cats.map(([id, l]) => <button class="chip" data-cat={id} aria-pressed={id === '' ? 'true' : 'false'}>{l}</button>)}</div>
+    </div>
+    <div id="grid" class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+  </section>
+  <section class="bg-sand py-14">
+    <div class="container-x">
+      <h2 class="text-2xl font-bold sm:text-3xl">Conditions de location</h2>
+      <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {rentalConditions.map((c) => <div class="rounded-2xl border border-line bg-white p-5"><span class="grid h-10 w-10 place-items-center rounded-full bg-gold-light text-gold"><Icon name={c.icon} class="h-5 w-5" /></span><h3 class="mt-3 font-bold">{c.title}</h3><p class="mt-1 text-sm text-muted">{c.text}</p></div>)}
+      </div>
+    </div>
+  </section>
+</Layout>
+<script>
+  import { fetchCars, carCard, skeleton, paintFavs } from '../lib/app';
+  const grid = document.getElementById('grid')!;
+  grid.innerHTML = skeleton(8);
+  const cars = await fetchCars();
+  grid.innerHTML = cars.map((c) => carCard(c)).join('');
+  document.getElementById('count')!.textContent = `${cars.length} modèles · livraison hôtel ou aéroport`;
+  paintFavs();
+  const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-cat]')];
+  chips.forEach((b) => b.addEventListener('click', () => {
+    chips.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    grid.querySelectorAll<HTMLElement>('.card').forEach((c) => (c.style.display = !b.dataset.cat || c.dataset.cats === b.dataset.cat ? '' : 'none'));
+  }));
+</script>

@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Mes favoris">
+  <section class="container-x pb-20 pt-28 sm:pt-32">
+    <h1 class="text-3xl font-bold sm:text-4xl">Mes favoris</h1>
+    <div id="grid" class="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+  </section>
+</Layout>
+<script>
+  import { sb, getUser, goLogin, activityCard, carCard, skeleton, loadFavs, paintFavs, url, type Activity, type Car } from '../../lib/app';
+  const grid = document.getElementById('grid')!;
+  const u = await getUser();
+  if (!u) goLogin();
+  else {
+    grid.innerHTML = skeleton(4);
+    const favs = await loadFavs();
+    const slugs = (t: string) => [...favs].filter((k) => k.startsWith(t + ':')).map((k) => k.split(':')[1]);
+    const [{ data: a }, { data: c }] = await Promise.all([
+      sb.from('activities').select('*').in('slug', slugs('activity')),
+      sb.from('cars').select('*').in('slug', slugs('car')),
+    ]);
+    const html = [...((a ?? []) as Activity[]).map((x) => activityCard(x)), ...((c ?? []) as Car[]).map((x) => carCard(x))].join('');
+    grid.innerHTML = html || `<p class="col-span-full rounded-2xl bg-sand p-10 text-center text-muted">Aucun favori. Cliquez sur le ♡ d'une activité pour l'ajouter. <a class="font-semibold text-gold" href="${url('activites/')}">Voir les activités →</a></p>`;
+    paintFavs();
+  }
+</script>

@@ -1,0 +1,58 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Connexion">
+  <section class="container-x flex min-h-[80svh] items-center justify-center pb-16 pt-28">
+    <div class="w-full max-w-md rounded-3xl border border-line bg-white p-6 shadow-soft sm:p-8">
+      <div class="grid grid-cols-2 rounded-full bg-sand p-1 text-sm font-semibold">
+        <button data-tab="login" class="tab rounded-full py-2">Se connecter</button>
+        <button data-tab="signup" class="tab rounded-full py-2">Créer un compte</button>
+      </div>
+      <form id="f" class="mt-6 space-y-3">
+        <div data-only="signup"><label class="label" for="name">Nom complet</label><input id="name" class="field" autocomplete="name"></div>
+        <div data-only="signup"><label class="label" for="phone">Téléphone WhatsApp</label><input id="phone" type="tel" class="field" autocomplete="tel"></div>
+        <div><label class="label" for="email">Email</label><input id="email" type="email" required class="field" autocomplete="email"></div>
+        <div><label class="label" for="pw">Mot de passe</label><input id="pw" type="password" required minlength="6" class="field" autocomplete="current-password"></div>
+        <button id="submit" class="w-full rounded-xl bg-gold py-3.5 font-semibold text-white hover:bg-gold-deep">Se connecter</button>
+        <p id="msg" class="hidden text-center text-sm"></p>
+        <button type="button" id="forgot" data-only="login" class="block w-full text-center text-sm text-muted hover:text-ink">Mot de passe oublié ?</button>
+      </form>
+    </div>
+  </section>
+</Layout>
+<style>.tab[aria-selected='true']{background:#fff;box-shadow:0 1px 4px rgb(0 0 0/.1)}</style>
+<script>
+  import { sb, url } from '../../lib/app';
+  let mode: 'login' | 'signup' = 'login';
+  const next = new URLSearchParams(location.search).get('next') || url('compte/');
+  const msg = document.getElementById('msg')!;
+  const say = (t: string, ok = false) => { msg.textContent = t; msg.className = 'text-center text-sm ' + (ok ? 'text-emerald-700' : 'text-red-600'); };
+  const setMode = (m: typeof mode) => {
+    mode = m;
+    document.querySelectorAll<HTMLElement>('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === m)));
+    document.querySelectorAll<HTMLElement>('[data-only]').forEach((el) => el.classList.toggle('hidden', el.dataset.only !== m));
+    document.getElementById('submit')!.textContent = m === 'login' ? 'Se connecter' : 'Créer mon compte';
+    msg.className = 'hidden';
+  };
+  document.querySelectorAll<HTMLElement>('.tab').forEach((t) => t.addEventListener('click', () => setMode(t.dataset.tab as typeof mode)));
+  setMode(location.hash === '#inscription' ? 'signup' : 'login');
+  const v = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
+  document.getElementById('f')!.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (mode === 'login') {
+      const { error } = await sb.auth.signInWithPassword({ email: v('email'), password: v('pw') });
+      if (error) return say(error.message === 'Invalid login credentials' ? 'Email ou mot de passe incorrect.' : error.message === 'Email not confirmed' ? 'Confirmez d’abord votre email (lien reçu par email).' : error.message);
+      location.href = next;
+    } else {
+      const { data, error } = await sb.auth.signUp({ email: v('email'), password: v('pw'), options: { data: { full_name: v('name'), phone: v('phone') }, emailRedirectTo: location.origin + url('compte/') } });
+      if (error) return say(error.message.includes('already') ? 'Un compte existe déjà avec cet email.' : error.message);
+      if (data.session) location.href = next;
+      else say('Compte créé ! Cliquez sur le lien reçu par email pour l’activer, puis connectez-vous.', true);
+    }
+  });
+  document.getElementById('forgot')!.addEventListener('click', async () => {
+    if (!v('email')) return say('Indiquez votre email ci-dessus.');
+    const { error } = await sb.auth.resetPasswordForEmail(v('email'), { redirectTo: location.origin + url('compte/') });
+    say(error ? error.message : 'Email de réinitialisation envoyé.', !error);
+  });
+</script>

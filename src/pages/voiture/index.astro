@@ -1,0 +1,67 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { rentalConditions } from '../../data/cars';
+---
+<Layout title="Voiture" description="Louez une voiture de luxe à Dubaï avec Dubai Location.">
+  <div id="page" class="container-x pb-20 pt-28 sm:pt-32"><div class="animate-pulse space-y-4"><div class="h-8 w-1/2 rounded bg-sand"></div><div class="h-80 rounded-2xl bg-sand"></div></div></div>
+  <script type="application/json" id="conds" set:html={JSON.stringify(rentalConditions)} />
+</Layout>
+<script>
+  import { sb, esc, aed, img, url, cart, carCard, paintFavs, ICON, CAR_CATEGORIES, carPrice, type Car } from '../../lib/app';
+  const conds = JSON.parse(document.getElementById('conds')!.textContent!);
+  const slug = new URLSearchParams(location.search).get('s') ?? '';
+  const page = document.getElementById('page')!;
+  const { data } = await sb.from('cars').select('*').eq('slug', slug).maybeSingle();
+  const c = data as Car | null;
+  if (!c) { page.innerHTML = `<h1 class="text-3xl font-bold">Voiture introuvable</h1><a class="btn-gold mt-6" href="${url('voitures/')}">Voir les voitures</a>`; }
+  else {
+    const name = `${c.brand} ${c.model}`;
+    document.title = `${name} | Dubai Location`;
+    const today = new Date().toISOString().slice(0, 10);
+    page.innerHTML = `
+      <nav class="text-xs text-muted"><a href="${url('')}">Accueil</a> › <a href="${url('voitures/')}">Voitures</a></nav>
+      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">${esc(name)}</h1>
+      <div class="mt-2 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
+        <span>${esc(CAR_CATEGORIES[c.category] ?? '')} · ${c.seats ?? '-'} places · ${esc(c.engine ?? '')} · Boîte auto</span>
+        <button type="button" data-fav="car:${esc(c.slug)}" class="fav-btn flex items-center gap-1.5 font-medium text-ink">${ICON.heart} Ajouter aux favoris</button>
+      </div>
+      <div class="mt-5 grid gap-8 lg:grid-cols-[1fr_340px]">
+        <div>
+          <img src="${esc(img(c.image_url))}" alt="${esc(name)}" class="aspect-[16/10] w-full rounded-2xl object-cover">
+          ${c.description ? `<p class="mt-6 leading-relaxed text-ink-soft">${esc(c.description)}</p>` : ''}
+          <h2 class="mt-8 text-xl font-bold">Conditions de location</h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">${conds.map((k: any) => `<div class="rounded-xl border border-line p-4"><b>${esc(k.title)}</b><p class="mt-1 text-sm text-muted">${esc(k.text)}</p></div>`).join('')}</div>
+        </div>
+        <aside class="lg:sticky lg:top-28 lg:self-start">
+          <form id="book" class="rounded-2xl border border-line bg-white p-5 shadow-soft">
+            <p class="text-xs text-muted">Prix par jour</p>
+            <p class="text-2xl font-bold">${esc(carPrice(c))}</p>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <div><label class="label" for="d1">Début</label><input id="d1" type="date" min="${today}" class="field !px-3"></div>
+              <div><label class="label" for="d2">Fin</label><input id="d2" type="date" min="${today}" class="field !px-3"></div>
+            </div>
+            <div class="mt-5 flex items-center justify-between border-t border-line pt-4"><span class="text-muted">Total estimé</span><span id="total" class="text-xl font-bold">-</span></div>
+            <button class="mt-4 w-full rounded-xl bg-gold py-3.5 font-semibold text-white hover:bg-gold-deep">Ajouter au panier</button>
+            <p id="err" class="mt-2 hidden text-center text-sm text-red-600">Veuillez choisir les dates</p>
+            <p id="ok" class="mt-2 hidden text-center text-sm text-emerald-700">Ajouté au panier ✓ <a class="font-semibold underline" href="${url('panier/')}">Voir le panier</a></p>
+            <p class="mt-4 text-sm text-muted">✓ Livraison hôtel ou aéroport · ✓ Sans paiement en ligne</p>
+          </form>
+        </aside>
+      </div>
+      <section class="mt-16"><h2 class="text-2xl font-bold">Autres voitures</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-5 overflow-x-auto px-4 pb-4 sm:mx-0 sm:px-0"></div></section>`;
+    const d1 = document.getElementById('d1') as HTMLInputElement, d2 = document.getElementById('d2') as HTMLInputElement;
+    const days = () => (d1.value && d2.value ? Math.max(1, Math.round((+new Date(d2.value) - +new Date(d1.value)) / 86400000)) : 0);
+    const paint = () => { const n = days(); document.getElementById('total')!.textContent = !n ? '-' : c.price_per_day ? `${aed(c.price_per_day * n)} (${n} j)` : `Sur demande (${n} j)`; };
+    [d1, d2].forEach((e) => e.addEventListener('input', () => { d2.min = d1.value || today; paint(); }));
+    document.getElementById('book')!.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!d1.value || !d2.value || d2.value < d1.value) { document.getElementById('err')!.classList.remove('hidden'); return; }
+      document.getElementById('err')!.classList.add('hidden');
+      cart.add({ type: 'car', slug: c.slug, title: name, image: c.image_url, option: null, date: d1.value, endDate: d2.value, qty: 1, qtyLabel: 'Voiture', unitPrice: c.price_per_day, priceUnit: '/ jour' });
+      document.getElementById('ok')!.classList.remove('hidden');
+    });
+    const { data: rel } = await sb.from('cars').select('*').eq('active', true).neq('slug', c.slug).limit(8);
+    document.getElementById('related')!.innerHTML = ((rel ?? []) as Car[]).map((r) => carCard(r, 'w-[78vw] shrink-0 snap-start sm:w-[280px]')).join('');
+    paintFavs();
+  }
+</script>

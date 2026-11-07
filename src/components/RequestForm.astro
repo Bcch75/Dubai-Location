@@ -1,0 +1,102 @@
+---
+// Formulaire de demande : construit un message WhatsApp pré-rempli (aucun serveur nécessaire).
+// Un second bouton permet d'envoyer la même demande par email.
+import Icon from './Icon.astro';
+import { activities } from '../data/activities';
+import { cars, carName } from '../data/cars';
+import { site } from '../data/site';
+interface Props { preselect?: string; options?: string[]; compact?: boolean }
+const { preselect = '', options = [], compact = false } = Astro.props;
+const today = new Date().toISOString().slice(0, 10);
+---
+<form class="request-form space-y-4" data-wa={site.whatsapp} data-email={site.email} novalidate>
+  <div>
+    <label class="label" for={`rf-activity-${compact ? 'c' : 'f'}`}>Expérience souhaitée</label>
+    <select id={`rf-activity-${compact ? 'c' : 'f'}`} name="activity" class="field">
+      <option value="">Je ne sais pas encore, conseillez-moi</option>
+      <optgroup label="Expériences">
+        {activities.map((a) => <option value={a.title} selected={a.slug === preselect}>{a.title}</option>)}
+      </optgroup>
+      <optgroup label="Location de voiture">
+        <option value="Location de voiture (modèle à définir)" selected={preselect === 'car'}>Voiture : modèle à définir</option>
+        {cars.map((c) => <option value={`Location ${carName(c)}`} selected={c.slug === preselect}>{carName(c)}</option>)}
+      </optgroup>
+    </select>
+  </div>
+  {options.length > 0 && (
+    <div>
+      <label class="label" for="rf-option">Formule</label>
+      <select id="rf-option" name="option" class="field">
+        <option value="">À définir ensemble</option>
+        {options.map((o) => <option value={o}>{o}</option>)}
+      </select>
+    </div>
+  )}
+  <div class="grid grid-cols-2 gap-3">
+    <div>
+      <label class="label" for={`rf-date-${compact ? 'c' : 'f'}`}>Date</label>
+      <input id={`rf-date-${compact ? 'c' : 'f'}`} name="date" type="date" min={today} class="field" />
+    </div>
+    <div>
+      <label class="label" for={`rf-people-${compact ? 'c' : 'f'}`}>Personnes</label>
+      <input id={`rf-people-${compact ? 'c' : 'f'}`} name="people" type="number" min="1" max="50" value="2" class="field" />
+    </div>
+  </div>
+  <div>
+    <label class="label" for={`rf-name-${compact ? 'c' : 'f'}`}>Votre prénom <span class="text-gold-deep">*</span></label>
+    <input id={`rf-name-${compact ? 'c' : 'f'}`} name="name" type="text" autocomplete="given-name" placeholder="Ex. Sarah" required class="field" />
+  </div>
+  {!compact && (
+    <div>
+      <label class="label" for="rf-msg">Message (facultatif)</label>
+      <textarea id="rf-msg" name="message" rows="3" placeholder="Hôtel, heure souhaitée, occasion spéciale…" class="field resize-none"></textarea>
+    </div>
+  )}
+  <p class="form-error hidden text-sm font-medium text-red-600" role="alert">Merci d'indiquer votre prénom 🙂</p>
+  <button type="submit" class="btn-wa w-full !py-4 text-base">
+    <Icon name="whatsapp" class="h-5 w-5" /> Envoyer ma demande sur WhatsApp
+  </button>
+  <button type="button" data-email-btn class="w-full text-center text-sm font-medium text-muted underline-offset-4 hover:text-ink hover:underline">
+    ou envoyer par email
+  </button>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('.request-form').forEach((form) => {
+    const build = () => {
+      const d = new FormData(form);
+      const v = (k: string) => String(d.get(k) ?? '').trim();
+      const name = v('name');
+      const err = form.querySelector('.form-error')!;
+      if (!name) {
+        err.classList.remove('hidden');
+        (form.querySelector('[name=name]') as HTMLInputElement).focus();
+        return null;
+      }
+      err.classList.add('hidden');
+      const date = v('date') ? new Date(v('date') + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'à définir';
+      const lines = [
+        `Bonjour Dubai Location 👋`,
+        ``,
+        `Je m'appelle ${name} et je souhaite réserver :`,
+        `• Expérience : ${v('activity') || 'je souhaite être conseillé(e)'}`,
+        v('option') ? `• Formule : ${v('option')}` : null,
+        `• Date : ${date}`,
+        `• Nombre de personnes : ${v('people') || '?'}`,
+        v('message') ? `\n${v('message')}` : null,
+        ``,
+        `Merci !`,
+      ].filter((l) => l !== null);
+      return lines.join('\n');
+    };
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const msg = build();
+      if (msg) window.open(`https://wa.me/${form.dataset.wa}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
+    });
+    form.querySelector('[data-email-btn]')?.addEventListener('click', () => {
+      const msg = build();
+      if (msg) window.location.href = `mailto:${form.dataset.email}?subject=${encodeURIComponent('Demande de réservation')}&body=${encodeURIComponent(msg)}`;
+    });
+  });
+</script>

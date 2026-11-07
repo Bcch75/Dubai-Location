@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Blog" description="Conseils, idées d'activités et guides pour réussir votre séjour à Dubaï.">
+  <section class="container-x pb-20 pt-28 sm:pt-32">
+    <h1 class="text-3xl font-bold sm:text-4xl">Blog</h1>
+    <p class="mt-1 text-muted">Nos conseils pour profiter de Dubaï.</p>
+    <div id="grid" class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3"></div>
+  </section>
+</Layout>
+<script>
+  import { sb, esc, img, url } from '../../lib/app';
+  const { data } = await sb.from('posts').select('slug,title,excerpt,cover_url,published_at').eq('published', true).order('published_at', { ascending: false });
+  document.getElementById('grid')!.innerHTML = (data ?? []).map((p) => `
+    <a href="${url('article/?s=' + encodeURIComponent(p.slug))}" class="group overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_-2px_rgb(17_24_39/0.12)] transition hover:shadow-lift">
+      <img src="${esc(img(p.cover_url))}" alt="" class="aspect-[16/9] w-full object-cover">
+      <div class="p-5"><p class="text-xs text-muted">${new Date(p.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</p><h2 class="mt-1 text-lg font-bold group-hover:text-gold">${esc(p.title)}</h2><p class="mt-2 text-sm text-muted">${esc(p.excerpt)}</p></div>
+    </a>`).join('') || '<p class="text-muted">Bientôt des articles !</p>';
+</script>

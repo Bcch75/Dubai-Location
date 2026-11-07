@@ -1,0 +1,166 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Espace admin">
+  <section class="container-x pb-20 pt-28 sm:pt-32">
+    <div id="deny" class="hidden rounded-2xl bg-sand p-8 text-center"><p class="text-lg font-semibold">Accès réservé à l'administrateur.</p></div>
+    <div id="app" class="hidden">
+      <h1 class="text-3xl font-bold sm:text-4xl">Espace admin</h1>
+      <div class="no-scrollbar mt-5 flex gap-2 overflow-x-auto">
+        <button class="chip" data-tab="orders" aria-pressed="true">📋 Réservations</button>
+        <button class="chip" data-tab="activities" aria-pressed="false">🏜️ Activités</button>
+        <button class="chip" data-tab="cars" aria-pressed="false">🏎️ Voitures</button>
+        <button class="chip" data-tab="posts" aria-pressed="false">📝 Blog</button>
+      </div>
+      <div id="panel" class="mt-6"></div>
+    </div>
+  </section>
+  <dialog id="dlg" class="m-auto w-[min(720px,94vw)] rounded-2xl p-0 backdrop:bg-black/50">
+    <form id="edit" method="dialog" class="max-h-[85vh] overflow-y-auto p-6"></form>
+  </dialog>
+</Layout>
+<script>
+  import { sb, isAdmin, getUser, goLogin, esc, aed, img } from '../../lib/app';
+  const user = await getUser();
+  if (!user) goLogin();
+  else if (!(await isAdmin())) document.getElementById('deny')!.classList.remove('hidden');
+  else document.getElementById('app')!.classList.remove('hidden');
+
+  type F = { k: string; l: string; t?: 'text' | 'textarea' | 'number' | 'bool' | 'list' | 'image' | 'gallery' | 'json' | 'select'; o?: string[] };
+  const SCHEMAS: Record<string, { title: (r: any) => string; sub: (r: any) => string; fields: F[] }> = {
+    activities: {
+      title: (r) => r.title, sub: (r) => `${aed(r.price)} · ${(r.categories ?? []).join(', ')}`,
+      fields: [
+        { k: 'title', l: 'Titre' }, { k: 'slug', l: 'Identifiant URL (sans espaces)' },
+        { k: 'categories', l: 'Catégories (une par ligne : desert, mer, ciel, incontournables, excursions, famille)', t: 'list' },
+        { k: 'tagline', l: 'Phrase courte (carte)' }, { k: 'description', l: 'Description', t: 'textarea' },
+        { k: 'image_url', l: 'Photo principale', t: 'image' }, { k: 'gallery', l: 'Photos supplémentaires', t: 'gallery' },
+        { k: 'price', l: 'Prix (AED)', t: 'number' }, { k: 'old_price', l: 'Ancien prix barré (AED, facultatif)', t: 'number' },
+        { k: 'price_from', l: 'Afficher « à partir de »', t: 'bool' }, { k: 'price_unit', l: 'Unité de prix (ex. / pers., / heure)' },
+        { k: 'qty_label', l: 'Libellé quantité (Participants, Heures…)' },
+        { k: 'duration', l: 'Durée' }, { k: 'location', l: 'Lieu' }, { k: 'badge', l: 'Badge (ex. Populaire)' }, { k: 'perk', l: 'Avantage en vert (ex. Transfert inclus)' },
+        { k: 'highlights', l: 'Points forts (un par ligne)', t: 'list' }, { k: 'included', l: 'Inclus (un par ligne)', t: 'list' }, { k: 'excluded', l: 'Non inclus (un par ligne)', t: 'list' },
+        { k: 'important', l: 'Information importante', t: 'textarea' },
+        { k: 'options', l: 'Formules (une par ligne : Nom | détail | prix)', t: 'json' },
+        { k: 'featured', l: 'Afficher dans « Les plus populaires »', t: 'bool' }, { k: 'position', l: 'Ordre d’affichage', t: 'number' }, { k: 'active', l: 'Visible sur le site', t: 'bool' },
+      ],
+    },
+    cars: {
+      title: (r) => `${r.brand} ${r.model}`, sub: (r) => (r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Sur demande'),
+      fields: [
+        { k: 'brand', l: 'Marque' }, { k: 'model', l: 'Modèle' }, { k: 'slug', l: 'Identifiant URL' },
+        { k: 'category', l: 'Catégorie', t: 'select', o: ['supercar', 'prestige', 'suv', 'sport'] },
+        { k: 'image_url', l: 'Photo', t: 'image' }, { k: 'description', l: 'Description', t: 'textarea' },
+        { k: 'price_per_day', l: 'Prix par jour (AED, vide = sur demande)', t: 'number' }, { k: 'old_price', l: 'Ancien prix barré', t: 'number' },
+        { k: 'seats', l: 'Places', t: 'number' }, { k: 'engine', l: 'Moteur' }, { k: 'tag', l: 'Badge' }, { k: 'perk', l: 'Avantage en vert' },
+        { k: 'position', l: 'Ordre', t: 'number' }, { k: 'active', l: 'Visible sur le site', t: 'bool' },
+      ],
+    },
+    posts: {
+      title: (r) => r.title, sub: (r) => new Date(r.published_at).toLocaleDateString('fr-FR'),
+      fields: [
+        { k: 'title', l: 'Titre' }, { k: 'slug', l: 'Identifiant URL' }, { k: 'excerpt', l: 'Résumé', t: 'textarea' },
+        { k: 'cover_url', l: 'Image de couverture', t: 'image' }, { k: 'content', l: 'Contenu (## pour un sous-titre)', t: 'textarea' }, { k: 'published', l: 'Publié', t: 'bool' },
+      ],
+    },
+  };
+  const panel = document.getElementById('panel')!;
+  const dlg = document.getElementById('dlg') as HTMLDialogElement;
+  const form = document.getElementById('edit') as HTMLFormElement;
+  const STATUS: Record<string, string> = { pending: 'En attente', confirmed: 'Confirmée', cancelled: 'Annulée', done: 'Terminée' };
+
+  async function showOrders() {
+    const { data } = await sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
+    panel.innerHTML = (data ?? []).length ? (data ?? []).map((o: any) => `
+      <div class="mb-3 rounded-2xl border border-line bg-white p-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <p class="font-semibold">n°${o.id} · ${esc(o.contact_name)} · <a class="text-gold" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}" target="_blank">${esc(o.contact_phone)}</a> · ${esc(o.contact_email)}</p>
+          <select data-status="${o.id}" class="field !w-auto !py-2">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v}</option>`).join('')}</select>
+        </div>
+        <p class="text-xs text-muted">${new Date(o.created_at).toLocaleString('fr-FR')}${o.total_estimate ? ' · total estimé ' + aed(o.total_estimate) : ''}</p>
+        <ul class="mt-2 text-sm">${o.order_items.map((i: any) => `<li>• ${esc(i.item_title)}${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people : ''}</li>`).join('')}</ul>
+        ${o.notes ? `<p class="mt-2 text-sm text-muted">Note client : ${esc(o.notes)}</p>` : ''}
+        <div class="mt-3 flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Message visible par le client (prix final, heure de prise en charge…)" value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-outline !px-4 !py-2 text-sm">OK</button></div>
+      </div>`).join('') : '<p class="rounded-2xl bg-sand p-6 text-muted">Aucune réservation pour l’instant.</p>';
+  }
+  panel.addEventListener('change', async (e) => {
+    const s = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-status]');
+    if (s) await sb.from('orders').update({ status: s.value }).eq('id', +s.dataset.status!);
+  });
+  panel.addEventListener('click', async (e) => {
+    const t = e.target as HTMLElement;
+    const n = t.closest<HTMLElement>('[data-save-note]');
+    if (n) { const id = n.dataset.saveNote!; await sb.from('orders').update({ admin_note: (panel.querySelector(`[data-note="${id}"]`) as HTMLInputElement).value }).eq('id', +id); n.textContent = '✓'; }
+    const ed = t.closest<HTMLElement>('[data-edit]');
+    if (ed) openEdit(current, ed.dataset.edit === 'new' ? null : +ed.dataset.edit!);
+  });
+
+  let current = 'orders';
+  let rows: any[] = [];
+  async function showTable(tab: string) {
+    const s = SCHEMAS[tab];
+    const order = tab === 'posts' ? 'published_at' : 'position';
+    const { data } = await sb.from(tab).select('*').order(order, { ascending: tab !== 'posts' });
+    rows = data ?? [];
+    panel.innerHTML = `<button data-edit="new" class="btn-gold mb-4 !py-2.5">+ Ajouter</button>` + rows.map((r) => `
+      <div class="mb-2 flex items-center gap-4 rounded-xl border border-line bg-white p-3">
+        <img src="${esc(img(r.image_url ?? r.cover_url))}" class="h-14 w-20 rounded-lg bg-sand object-cover" alt="">
+        <div class="min-w-0 flex-1"><p class="truncate font-semibold">${esc(s.title(r))} ${r.active === false || r.published === false ? '<span class="text-xs text-red-600">(masqué)</span>' : ''}</p><p class="text-sm text-muted">${esc(s.sub(r))}</p></div>
+        <button data-edit="${r.id}" class="btn-outline !px-4 !py-2 text-sm">Modifier</button>
+      </div>`).join('');
+  }
+
+  function openEdit(tab: string, id: number | null) {
+    const s = SCHEMAS[tab]; const r = id ? rows.find((x) => x.id === id) : { active: true, published: true, price_from: true, position: 100, qty_label: 'Participants' };
+    const val = (f: F) => {
+      const v = r[f.k];
+      if (f.t === 'list' || f.t === 'gallery') return (v ?? []).join('\n');
+      if (f.t === 'json') return (v ?? []).map((o: any) => [o.name, o.detail ?? '', o.price ?? ''].join(' | ')).join('\n');
+      return v ?? '';
+    };
+    form.innerHTML = `<h2 class="text-xl font-bold">${id ? 'Modifier' : 'Ajouter'}</h2><div class="mt-4 space-y-3">` + s.fields.map((f) => {
+      const id_ = 'f_' + f.k;
+      if (f.t === 'bool') return `<label class="flex items-center gap-2"><input type="checkbox" id="${id_}" ${r[f.k] ? 'checked' : ''} class="h-5 w-5 accent-[#0171eb]"> ${esc(f.l)}</label>`;
+      if (f.t === 'select') return `<div><label class="label" for="${id_}">${esc(f.l)}</label><select id="${id_}" class="field">${f.o!.map((o) => `<option ${o === r[f.k] ? 'selected' : ''}>${o}</option>`).join('')}</select></div>`;
+      if (f.t === 'image' || f.t === 'gallery') return `<div><label class="label" for="${id_}">${esc(f.l)}</label>${f.t === 'image' ? `<input id="${id_}" class="field" value="${esc(val(f))}" placeholder="URL ou téléversez">` : `<textarea id="${id_}" rows="2" class="field" placeholder="Une URL par ligne">${esc(val(f))}</textarea>`}<input type="file" accept="image/*" ${f.t === 'gallery' ? 'multiple' : ''} data-upload="${id_}" class="mt-2 text-sm"></div>`;
+      const big = ['textarea', 'list', 'json'].includes(f.t ?? '');
+      return `<div><label class="label" for="${id_}">${esc(f.l)}</label>${big ? `<textarea id="${id_}" rows="${f.k === 'content' || f.k === 'description' ? 8 : 3}" class="field">${esc(val(f))}</textarea>` : `<input id="${id_}" type="${f.t === 'number' ? 'number' : 'text'}" class="field" value="${esc(val(f))}">`}</div>`;
+    }).join('') + `</div><p id="ferr" class="mt-3 hidden text-sm text-red-600"></p><div class="mt-6 flex flex-wrap gap-2"><button value="save" class="btn-gold">Enregistrer</button><button value="cancel" formnovalidate class="btn-outline">Annuler</button>${id ? '<button value="delete" formnovalidate class="ml-auto text-sm text-red-600">Supprimer</button>' : ''}</div>`;
+    form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
+      const target = form.querySelector<HTMLInputElement | HTMLTextAreaElement>('#' + inp.dataset.upload)!;
+      for (const file of Array.from(inp.files ?? [])) {
+        const path = `${tab}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+        const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+        if (error) { alert('Erreur upload : ' + error.message); continue; }
+        const u = sb.storage.from('images').getPublicUrl(path).data.publicUrl;
+        target.value = target.tagName === 'TEXTAREA' ? (target.value ? target.value + '\n' : '') + u : u;
+      }
+    }));
+    form.onsubmit = async (e) => {
+      const action = ((e as SubmitEvent).submitter as HTMLButtonElement)?.value;
+      if (action === 'cancel') return;
+      e.preventDefault();
+      if (action === 'delete') { if (confirm('Supprimer définitivement ?')) { await sb.from(tab).delete().eq('id', id!); dlg.close(); showTable(tab); } return; }
+      const out: any = {};
+      for (const f of s.fields) {
+        const el = form.querySelector<HTMLInputElement>('#f_' + f.k)!;
+        if (f.t === 'bool') out[f.k] = el.checked;
+        else if (f.t === 'number') out[f.k] = el.value === '' ? null : +el.value;
+        else if (f.t === 'list' || f.t === 'gallery') out[f.k] = el.value.split('\n').map((x) => x.trim()).filter(Boolean);
+        else if (f.t === 'json') out[f.k] = el.value.split('\n').map((x) => x.trim()).filter(Boolean).map((line) => { const [name, detail, price] = line.split('|').map((x) => x.trim()); return { name, detail: detail || null, price: price ? +price.replace(/\D/g, '') : null }; });
+        else out[f.k] = el.value.trim() || null;
+      }
+      if (tab === 'activities' && out.price == null) out.price = 0;
+      if (!out.slug) out.slug = (out.title ?? `${out.brand ?? ''}-${out.model ?? ''}`).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const { error } = id ? await sb.from(tab).update(out).eq('id', id) : await sb.from(tab).insert(out);
+      if (error) { const p = form.querySelector('#ferr')!; p.textContent = error.message; p.classList.remove('hidden'); return; }
+      dlg.close(); showTable(tab);
+    };
+    dlg.showModal();
+  }
+
+  const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+  const show = (t: string) => { current = t; tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t))); t === 'orders' ? showOrders() : showTable(t); };
+  tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab!)));
+  if (await isAdmin()) show('orders');
+</script>
