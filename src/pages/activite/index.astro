@@ -10,7 +10,7 @@ const seedData = await getActivities();
   <script type="application/json" id="seed-acts" set:html={JSON.stringify(seedData)} />
 </Layout>
 <script>
-  import { sb, esc, aed, img, url, cart, activityCard, paintFavs, ICON, waLink, cachedActivities, refreshCache, type Activity } from '../../lib/app';
+  import { sb, esc, aed, img, url, cart, activityCard, paintFavs, ICON, waLink, videoBadge, cachedActivities, refreshCache, type Activity } from '../../lib/app';
   const slug = new URLSearchParams(location.search).get('s') ?? '';
   const page = document.getElementById('page')!;
   const fromCache = cachedActivities().find((x) => x.slug === slug) ?? null;
@@ -40,7 +40,7 @@ const seedData = await getActivities();
           <div class="relative grid h-[260px] gap-2 sm:h-[400px] ${pics.length > 1 ? 'sm:grid-cols-[2fr_1fr] sm:grid-rows-2' : ''}">
             <button type="button" data-gal="0" class="block h-full overflow-hidden rounded-2xl sm:row-span-2"><img src="${esc(img(pics[0]))}" alt="${esc(a.image_alt ?? a.title)}" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"></button>
             ${pics.slice(1, 3).map((p, i) => `<button type="button" data-gal="${i + 1}" class="relative hidden h-full overflow-hidden rounded-2xl sm:block ${pics.length === 2 ? 'sm:row-span-2' : ''}"><img src="${esc(img(p))}" alt="" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]">${i === Math.min(1, pics.length - 2) ? `<span class="absolute inset-0 grid place-items-center bg-black/35 text-sm font-semibold text-white">🖼️ Voir toutes les photos (${pics.length})</span>` : ''}</button>`).join('')}
-            ${a.video_url ? `<a href="${esc(a.video_url)}" target="_blank" rel="noopener" class="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 px-3 py-1.5 text-xs font-semibold text-white shadow-lg">${ICON.insta} Vidéo</a>` : ''}
+            ${a.video_url ? videoBadge(a.video_url, 'absolute right-3 top-3 z-10') : ''}
           </div>
           ${pics.length > 1 ? `<button type="button" data-gal="0" class="mt-2 text-sm font-semibold text-gold sm:hidden">🖼️ Voir toutes les photos (${pics.length})</button>` : ''}
           <div class="mt-6 space-y-4 leading-relaxed text-ink-soft">${(a.description ?? '').split(/\n\n+/).map((p) => `<p>${esc(p)}</p>`).join('')}</div>
@@ -63,7 +63,13 @@ const seedData = await getActivities();
             <p class="text-xs text-muted">${a.price_from ? 'À partir de' : 'Prix'}</p>
             <p class="text-2xl font-bold">${a.old_price ? `<span class="mr-2 text-base font-medium text-muted line-through">${aed(a.old_price)}</span>` : ''}${aed(a.price)} <span class="text-sm font-normal text-muted">${esc(a.price_unit ?? '')}</span></p>
             ${a.important ? `<p class="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">⚠️ ${esc(a.important)}</p>` : ''}
-            ${a.options?.length ? `<label class="label mt-4" for="opt">Formule</label><select id="opt" class="field">${a.options.map((o, i) => `<option value="${i}">${esc(o.name)}${o.price ? ' · ' + aed(o.price) : ''}</option>`).join('')}</select>` : ''}
+            ${a.options?.length ? `<p class="label mt-4">Formule</p>
+              <select id="opt" class="hidden" aria-hidden="true">${a.options.map((o, i) => `<option value="${i}">${esc(o.name)}</option>`).join('')}</select>
+              <button type="button" id="opt-btn" class="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left transition hover:border-gold">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-lg">🎟️</span>
+                <span class="min-w-0 flex-1"><b id="opt-name" class="block truncate text-sm text-ink">Choisir une formule</b><span id="opt-price" class="text-xs text-gray-500">${a.options.length} formules disponibles</span></span>
+                <span class="text-gray-400">›</span>
+              </button>` : ''}
             <div class="mt-4 grid grid-cols-2 gap-3">
               <div><label class="label" for="date">Date</label><input id="date" type="date" min="${today}" class="field !px-3" required></div>
               <div><label class="label" for="qty">${esc(a.qty_label || 'Participants')}</label><input id="qty" type="number" min="1" max="50" value="2" class="field !px-3"></div>
@@ -94,6 +100,26 @@ const seedData = await getActivities();
     gal.querySelector('[data-n]')!.addEventListener('click', () => showG(gi + 1));
     gal.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') showG(gi - 1); if (e.key === 'ArrowRight') showG(gi + 1); });
     const opt = document.getElementById('opt') as HTMLSelectElement | null;
+    let optChosen = !a.options?.length;
+    if (opt) {
+      const od = document.createElement('dialog');
+      od.className = 'm-auto w-[min(520px,94vw)] rounded-2xl p-0 backdrop:bg-black/50';
+      od.innerHTML = `<div class="flex items-center justify-between border-b border-gray-100 p-5"><h3 class="text-lg font-bold">Choisir une formule</h3><button type="button" data-x class="grid h-9 w-9 place-items-center rounded-full bg-gray-100">✕</button></div>
+        <div class="max-h-[65vh] space-y-2 overflow-y-auto p-4">${a.options.map((o, i) => `<button type="button" data-pick="${i}" class="flex w-full items-center justify-between gap-4 rounded-xl border-2 border-line p-4 text-left transition hover:border-gold"><span><b class="block text-ink">${esc(o.name)}</b>${o.detail ? `<span class="text-sm text-gray-500">${esc(o.detail)}</span>` : ''}</span><span class="shrink-0 font-bold text-ink">${o.price ? aed(o.price) : aed(a.price)}</span></button>`).join('')}</div>`;
+      document.body.append(od);
+      document.getElementById('opt-btn')!.addEventListener('click', () => od.showModal());
+      od.querySelector('[data-x]')!.addEventListener('click', () => od.close());
+      od.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLElement>('[data-pick]'); if (!b) return;
+        const o = a.options[+b.dataset.pick!];
+        opt.value = b.dataset.pick!; optChosen = true;
+        document.getElementById('opt-name')!.textContent = o.name;
+        document.getElementById('opt-price')!.textContent = aed(o.price || a.price) + (a.price_unit ? ' ' + a.price_unit : '');
+        document.getElementById('opt-btn')!.classList.add('border-gold', 'bg-blue-50/40');
+        od.querySelectorAll('[data-pick]').forEach((x) => x.classList.toggle('!border-gold', x === b));
+        od.close(); paint();
+      });
+    }
     const qty = document.getElementById('qty') as HTMLInputElement;
     const date = document.getElementById('date') as HTMLInputElement;
     const unit = () => (opt && a.options[+opt.value]?.price) || a.price;
@@ -102,7 +128,8 @@ const seedData = await getActivities();
     document.getElementById('book')!.addEventListener('submit', (e) => {
       e.preventDefault();
       const err = document.getElementById('err')!;
-      if (!date.value) { err.classList.remove('hidden'); date.focus(); return; }
+      if (!optChosen) { err.textContent = 'Veuillez choisir une formule'; err.classList.remove('hidden'); document.getElementById('opt-btn')!.click(); return; }
+      if (!date.value) { err.textContent = 'Veuillez sélectionner une date'; err.classList.remove('hidden'); date.focus(); return; }
       err.classList.add('hidden');
       cart.add({ type: 'activity', slug: a.slug, title: a.title, image: a.image_url, option: opt ? a.options[+opt.value].name : null,
         date: date.value, endDate: null, qty: Math.max(1, +qty.value || 1), qtyLabel: a.qty_label || 'Participants', unitPrice: unit(), priceUnit: a.price_unit });

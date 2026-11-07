@@ -49,6 +49,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
       address: { '@type': 'PostalAddress', addressLocality: 'Dubai', addressCountry: 'AE' },
       url: Astro.site?.toString(),
     })} />
+    <!-- Statistiques de visites Vercel (à activer dans Vercel → Analytics) -->
+    <script is:inline defer src="/_vercel/insights/script.js"></script>
+    {site.googleAnalyticsId && (
+      <>
+        <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${site.googleAnalyticsId}`}></script>
+        <script is:inline define:vars={{ id: site.googleAnalyticsId }}>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',id);</script>
+      </>
+    )}
   </head>
   <body class="min-h-screen">
     <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-white focus:px-4 focus:py-2">Aller au contenu</a>

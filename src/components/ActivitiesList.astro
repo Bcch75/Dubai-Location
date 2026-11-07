@@ -3,11 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import Icon from './Icon.astro';
 import { getActivities } from '../lib/data';
 import { activityCard, setBase } from '../lib/cards';
-import { site } from '../data/site';
-const socials = [
-  [site.googleReviews, 'Avis Google', '⭐'], [site.instagram, 'Instagram', '📸'], [site.tiktok, 'TikTok', '🎵'], [site.snapchat, 'Snapchat', '👻'],
-  [`https://wa.me/${site.whatsapp}`, 'WhatsApp', '💬'],
-].filter(([u]) => u);
+import { site, socials } from '../data/site';
+import Social from './Social.astro';
+const links = [...socials.filter((x) => x.url), { key: 'whatsapp', label: 'WhatsApp', url: `https://wa.me/${site.whatsapp}`, count: '' }];
 interface Props { cat?: string }
 const { cat = '' } = Astro.props;
 setBase(import.meta.env.BASE_URL);
@@ -34,7 +32,7 @@ const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
   <section class="container-x pb-6">
     <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-ink px-5 py-4 text-white">
       <div class="flex items-center gap-3"><span class="grid h-10 w-10 place-items-center rounded-xl bg-gold font-extrabold">DL</span><span class="font-semibold">Dubai Location</span></div>
-      <div class="flex flex-wrap gap-2">{socials.map(([u, l, i]) => <a href={u} target="_blank" rel="noopener" class="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold transition hover:bg-white/20"><span>{i}</span>{l}</a>)}</div>
+      <div class="flex flex-wrap gap-2">{links.map((x) => <a href={x.url} target="_blank" rel="noopener" title={x.label} class="flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-sm font-semibold transition hover:bg-white/20"><Social k={x.key} class="h-4 w-4" />{x.count || x.label}</a>)}</div>
     </div>
   </section>
   <section class="container-x pb-20">

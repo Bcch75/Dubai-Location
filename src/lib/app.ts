@@ -2,8 +2,8 @@
 //  Logique côté navigateur : Supabase, panier, favoris, rendu des cartes
 // ═══════════════════════════════════════════════════════════
 import { createClient, type User } from '@supabase/supabase-js';
-import { setBase, setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES, type Activity, type Car } from './cards';
-export { setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES };
+import { videoBadge, setBase, setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES, type Activity, type Car } from './cards';
+export { videoBadge, setCurrency, currency, CURRENCIES, url, img, thumb, esc, aed, ICON, activityCard, carCard, carPrice, skeleton, CATEGORIES, CAR_CATEGORIES };
 export type { Activity, Car };
 
 export const sb = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);

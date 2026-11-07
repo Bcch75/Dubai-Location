@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
-import { site, waLink } from '../data/site';
+import { site, socials, waLink } from '../data/site';
+import Social from './Social.astro';
 import { categories } from '../data/activities';
 const year = new Date().getFullYear();
 ---
@@ -20,9 +21,9 @@ const year = new Date().getFullYear();
     <div class="md:col-span-2">
       <h3 class="font-semibold text-ink">Services</h3>
       <ul class="mt-4 space-y-2.5">
-        <li><a href="/activites" class="hover:text-ink">Toutes les activités</a></li>
-        <li><a href="/voitures" class="hover:text-ink">Location de voitures</a></li>
-        <li><a href="/contact" class="hover:text-ink">Contact & FAQ</a></li>
+        <li><a href="/activites/" class="hover:text-ink">Toutes les activités</a></li>
+        <li><a href="/voitures/" class="hover:text-ink">Location de voitures</a></li>
+        <li><a href="/contact/" class="hover:text-ink">Contact & FAQ</a></li>
       </ul>
     </div>
     <div class="md:col-span-3">
@@ -38,8 +39,8 @@ const year = new Date().getFullYear();
   <div class="container-x flex flex-col gap-3 border-t border-line py-6 sm:flex-row sm:items-center sm:justify-between">
     <p>© {year} {site.name}. Tous droits réservés</p>
     <div class="flex items-center gap-4 pr-20 text-ink">
-      {site.instagram && <a href={site.instagram} target="_blank" rel="noopener" aria-label="Instagram"><Icon name="instagram" class="h-4 w-4" /></a>}
-      <a href={waLink()} target="_blank" rel="noopener" aria-label="WhatsApp"><Icon name="whatsapp" class="h-4 w-4" /></a>
+      {socials.filter((x) => x.url && x.key !== 'google').map((x) => <a href={x.url} target="_blank" rel="noopener" aria-label={x.label} class="transition hover:text-gold"><Social k={x.key} class="h-5 w-5" /></a>)}
+      <a href={waLink()} target="_blank" rel="noopener" aria-label="WhatsApp" class="transition hover:text-gold"><Social k="whatsapp" class="h-5 w-5" /></a>
       <a href={`mailto:${site.email}`} aria-label="Email"><Icon name="mail" class="h-4 w-4" /></a>
     </div>
   </div>

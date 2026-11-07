@@ -48,6 +48,7 @@ export const aed = (n: number | null | undefined) => {
 };
 // ───────── Rendu HTML des cartes ─────────
 const ICON = {
+  tiktok: '<svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="currentColor"><path d="M16.6 3c.4 2.2 1.8 3.7 4 3.9v3.1a7.6 7.6 0 0 1-4-1.2v6.1a5.9 5.9 0 1 1-5.9-5.9c.3 0 .6 0 .9.1v3.2a2.8 2.8 0 1 0 2 2.7V3h3z"/></svg>',
   star: '<svg viewBox="0 0 24 24" class="h-4 w-4 text-amber-400" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>',
   insta: '<svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>',
   heart: '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path class="fav-fill" d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7.5 2.8C19.5 15.4 12 20 12 20z"/></svg>',
@@ -64,10 +65,13 @@ const priceBlock = (price: string, old?: number | null, from = true) => `
   </div>`;
 
 
+export const videoBadge = (v: string, extra = '') => /tiktok\.com/i.test(v)
+  ? `<a href="${esc(v)}" target="_blank" rel="noopener" class="flex items-center gap-1 rounded-full bg-black px-3 py-1.5 text-xs font-semibold leading-4 text-white shadow-lg ring-1 ring-white/20 ${extra}">${ICON.tiktok}Vidéo</a>`
+  : `<a href="${esc(v)}" target="_blank" rel="noopener" class="flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 px-3 py-1.5 text-xs font-semibold leading-4 text-white shadow-lg ${extra}">${ICON.insta}Vidéo</a>`;
 const topBadges = (badge: string | null | undefined, video: string | null | undefined) => `
       <div class="absolute left-3 right-12 top-3 z-10 flex flex-wrap gap-1.5">
         ${badge ? `<span class="rounded-full bg-sky-400/90 px-3 py-1.5 text-xs font-semibold leading-4 tracking-[0.3px] text-white shadow-lg">${esc(badge)}</span>` : ''}
-        ${video ? `<a href="${esc(video)}" target="_blank" rel="noopener" class="flex items-center gap-1 rounded-full bg-gradient-to-r from-fuchsia-500 to-pink-500 px-3 py-1.5 text-xs font-semibold leading-4 text-white shadow-lg">${ICON.insta}Vidéo</a>` : ''}
+        ${video ? videoBadge(video) : ''}
       </div>`;
 const footLeft = (rating?: number | null, count?: number | null) => rating
   ? `<span class="flex items-center gap-1 text-sm font-semibold text-ink">${ICON.star}${Number(rating).toFixed(1)}${count ? ` <span class="font-normal text-gray-400">(${count})</span>` : ''}</span>`
