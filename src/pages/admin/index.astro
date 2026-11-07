@@ -4,17 +4,31 @@ import Layout from '../../layouts/Layout.astro';
 <Layout title="Espace admin">
   <section class="container-x pb-20 pt-28 sm:pt-32">
     <div id="deny" class="hidden rounded-2xl bg-sand p-8 text-center"><p class="text-lg font-semibold">Accès réservé à l'administrateur.</p></div>
-    <div id="app" class="hidden">
-      <h1 class="text-3xl font-bold sm:text-4xl">Espace admin</h1>
-      <p class="mt-1 text-gray-500">Tout ce que vous modifiez ici apparaît immédiatement sur le site.</p>
-      <div class="no-scrollbar mt-5 flex gap-2 overflow-x-auto">
-        <button class="chip" data-tab="orders" aria-pressed="true">📋 Réservations</button>
-        <button class="chip" data-tab="activities" aria-pressed="false">🏜️ Activités</button>
-        <button class="chip" data-tab="cars" aria-pressed="false">🏎️ Voitures</button>
-        <button class="chip" data-tab="posts" aria-pressed="false">📝 Blog</button>
+    <div id="app" class="hidden"><div class="lg:grid lg:grid-cols-[250px_1fr] lg:gap-8">
+      <aside class="mb-6 lg:mb-0">
+        <div class="lg:sticky lg:top-28">
+          <div class="mb-4 hidden items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 lg:flex">
+            <span id="me-initial" class="grid h-11 w-11 place-items-center rounded-full bg-gold text-lg font-bold text-white">A</span>
+            <span class="min-w-0"><b id="me-name" class="block truncate text-sm text-ink">Administrateur</b><span class="text-xs text-gray-500">Espace admin</span></span>
+          </div>
+          <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:grid lg:gap-1.5 lg:overflow-visible lg:px-0" aria-label="Espace admin">
+            <button class="side" data-tab="dashboard"><span>📊</span>Tableau de bord</button>
+            <button class="side" data-tab="account"><span>👤</span>Mon compte</button>
+            <button class="side" data-tab="activities"><span>🏜️</span>Catalogue activités</button>
+            <button class="side" data-tab="cars"><span>🏎️</span>Catalogue voitures</button>
+            <button class="side" data-tab="orders"><span>📋</span>Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
+            <button class="side" data-tab="clients"><span>👥</span>Clients</button>
+            <button class="side" data-tab="posts"><span>📝</span>Blog</button>
+            <a class="side" href="/" target="_blank"><span>🌐</span>Voir le site ↗</a>
+          </nav>
+        </div>
+      </aside>
+      <div>
+        <h1 id="view-title" class="text-3xl font-bold sm:text-4xl">Tableau de bord</h1>
+        <p id="view-sub" class="mt-1 text-gray-500"></p>
+        <div id="panel" class="mt-6"></div>
       </div>
-      <div id="panel" class="mt-6"></div>
-    </div>
+    </div></div>
   </section>
   <dialog id="dlg" class="m-auto w-[min(760px,96vw)] rounded-2xl bg-sand p-0 backdrop:bg-black/50">
     <form id="edit" class="max-h-[90vh] overflow-y-auto"></form>
@@ -38,6 +52,13 @@ import Layout from '../../layouts/Layout.astro';
   .sw input:checked::after { transform: translateX(20px); }
   .drop { border: 2px dashed #d1d5db; border-radius: 14px; padding: 16px; text-align: center; cursor: pointer; color: #6b7280; font-size: 0.9rem; transition: border-color .2s, background .2s; }
   .drop:hover { border-color: #0171eb; background: #f8fbff; }
+  .side { display: flex; align-items: center; gap: 10px; white-space: nowrap; border-radius: 14px; padding: 11px 14px; font-size: 0.95rem; font-weight: 600; color: #374151; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .05); outline: 1px solid #f3f4f6; text-align: left; transition: all .15s; }
+  .side:hover { background: #f8fafc; }
+  .side[aria-pressed='true'] { background: #0171eb; color: #fff; outline-color: #0171eb; box-shadow: 0 6px 16px -6px rgb(1 113 235 / .6); }
+  .side span { font-size: 1.1rem; }
+  .stat { background: #fff; border-radius: 18px; padding: 18px 20px; box-shadow: 0 4px 20px rgb(0 0 0 / .06); }
+  .stat b { display: block; font-size: 1.9rem; font-weight: 800; color: #111827; line-height: 1.1; margin-top: 6px; }
+  .stat span { font-size: .85rem; color: #6b7280; }
 </style>
 
 <script>
@@ -286,8 +307,135 @@ import Layout from '../../layouts/Layout.astro';
     form.scrollTop = 0;
   }
 
+  // ═════════ Tableau de bord ═════════
+  const TITLES: Record<string, [string, string]> = {
+    dashboard: ['Tableau de bord', 'Un coup d’œil sur votre activité.'],
+    account: ['Mon compte', 'Vos informations personnelles et votre mot de passe.'],
+    activities: ['Catalogue activités', 'Ajoutez, modifiez ou masquez vos activités.'],
+    cars: ['Catalogue voitures', 'Gérez votre flotte et vos prix par jour.'],
+    orders: ['Commandes', 'Les réservations envoyées par vos clients.'],
+    clients: ['Clients', 'Les personnes qui ont créé un compte.'],
+    posts: ['Blog', 'Vos articles de conseils.'],
+  };
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+
+  async function showDashboard() {
+    const [{ data: orders }, { count: nActs }, { count: nCars }, { count: nClients }] = await Promise.all([
+      sb.from('orders').select('id,status,total_estimate,created_at,contact_name,order_items(item_title)').order('created_at', { ascending: false }),
+      sb.from('activities').select('id', { count: 'exact', head: true }).eq('active', true),
+      sb.from('cars').select('id', { count: 'exact', head: true }).eq('active', true),
+      sb.from('profiles').select('id', { count: 'exact', head: true }),
+    ]);
+    const o = orders ?? [];
+    const pending = o.filter((x: any) => x.status === 'pending').length;
+    const month = new Date().toISOString().slice(0, 7);
+    const thisMonth = o.filter((x: any) => x.created_at.startsWith(month));
+    const ca = o.filter((x: any) => ['confirmed', 'done'].includes(x.status)).reduce((s: number, x: any) => s + (x.total_estimate ?? 0), 0);
+    // nombre de réservations par activité
+    const counts: Record<string, number> = {};
+    o.forEach((x: any) => x.order_items.forEach((it: any) => (counts[it.item_title] = (counts[it.item_title] ?? 0) + 1)));
+    const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    panel.innerHTML = `
+      <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <button data-go="orders" class="stat text-left ${pending ? 'ring-2 ring-red-400' : ''}"><span>⏳ À traiter</span><b>${pending}</b><span>commande${pending > 1 ? 's' : ''} en attente</span></button>
+        <div class="stat"><span>📅 Ce mois-ci</span><b>${thisMonth.length}</b><span>réservation${thisMonth.length > 1 ? 's' : ''}</span></div>
+        <div class="stat"><span>💰 Chiffre confirmé</span><b>${aed(ca) || '0 AED'}</b><span>commandes confirmées</span></div>
+        <button data-go="clients" class="stat text-left"><span>👥 Clients</span><b>${nClients ?? 0}</b><span>comptes créés</span></button>
+      </div>
+      <div class="mt-4 grid gap-4 sm:grid-cols-3">
+        <button data-go="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">🏜️</span><span><b class="block">${nActs ?? 0} activités</b><span class="text-sm text-gray-500">visibles sur le site</span></span></button>
+        <button data-go="cars" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">🏎️</span><span><b class="block">${nCars ?? 0} voitures</b><span class="text-sm text-gray-500">dans la flotte</span></span></button>
+        <button data-new="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">➕</span><span><b class="block">Nouvelle activité</b><span class="text-sm text-gray-500">l’ajouter en 2 minutes</span></span></button>
+      </div>
+      <div class="mt-6 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+        <section class="blk"><h3>📋 Dernières commandes</h3>
+          ${o.length ? `<ul class="mt-3 divide-y divide-gray-100">${o.slice(0, 6).map((x: any) => `<li class="flex items-center justify-between gap-3 py-3 text-sm"><span class="min-w-0"><b>n°${x.id} · ${esc(x.contact_name ?? '')}</b><span class="block truncate text-gray-500">${esc(x.order_items.map((i: any) => i.item_title).join(', '))}</span></span><span class="shrink-0 text-right"><span class="block">${STATUS[x.status] ?? x.status}</span><span class="text-xs text-gray-400">${fmtDate(x.created_at)}</span></span></li>`).join('')}</ul><button data-go="orders" class="mt-2 text-sm font-semibold text-gold">Voir toutes les commandes →</button>` : '<p class="mt-3 text-sm text-gray-500">Aucune commande pour l’instant. Elles apparaîtront ici dès qu’un client réservera.</p>'}
+        </section>
+        <section class="blk"><h3>🔥 Les plus réservées</h3>
+          ${top.length ? `<ol class="mt-3 space-y-2 text-sm">${top.map(([t, n], i) => `<li class="flex justify-between gap-3"><span>${i + 1}. ${esc(t)}</span><b>${n}</b></li>`).join('')}</ol>` : '<p class="mt-3 text-sm text-gray-500">Pas encore de données.</p>'}
+        </section>
+      </div>`;
+  }
+
+  // ═════════ Mon compte ═════════
+  async function showAccount() {
+    const { data: p } = await sb.from('profiles').select('*').eq('id', user!.id).maybeSingle();
+    panel.innerHTML = `
+      <form id="acc" class="blk max-w-2xl space-y-4">
+        <h3>👤 Mes informations</h3>
+        <div class="grid gap-4 sm:grid-cols-2">${input('full_name', 'Nom complet', p?.full_name, 'Votre nom')}${input('phone', 'Téléphone WhatsApp', p?.phone, '+971…', 'tel')}</div>
+        <div><span class="lab">Email de connexion</span><p class="rounded-xl bg-sand px-4 py-3 text-sm">${esc(user!.email)}</p></div>
+        <button class="btn-gold !py-2.5">💾 Enregistrer</button><span id="acc-ok" class="ml-3 hidden text-sm text-emerald-700">Enregistré ✓</span>
+      </form>
+      <form id="pwd" class="blk mt-4 max-w-2xl space-y-4">
+        <h3>🔒 Changer mon mot de passe</h3>
+        ${input('pw1', 'Nouveau mot de passe', '', '6 caractères minimum', 'password')}
+        ${input('pw2', 'Confirmer le mot de passe', '', '', 'password')}
+        <button class="btn-outline !py-2.5">Changer le mot de passe</button><span id="pwd-msg" class="ml-3 text-sm"></span>
+      </form>`;
+    panel.querySelector('#acc')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (k: string) => (panel.querySelector<HTMLInputElement>('#f_' + k)!.value || '').trim();
+      await sb.from('profiles').update({ full_name: v('full_name'), phone: v('phone') }).eq('id', user!.id);
+      panel.querySelector('#acc-ok')!.classList.remove('hidden'); paintMe(v('full_name'));
+    });
+    panel.querySelector('#pwd')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const a = panel.querySelector<HTMLInputElement>('#f_pw1')!.value, b = panel.querySelector<HTMLInputElement>('#f_pw2')!.value;
+      const m = panel.querySelector('#pwd-msg')!;
+      if (a.length < 6) { m.textContent = '6 caractères minimum.'; m.className = 'ml-3 text-sm text-red-600'; return; }
+      if (a !== b) { m.textContent = 'Les deux mots de passe sont différents.'; m.className = 'ml-3 text-sm text-red-600'; return; }
+      const { error } = await sb.auth.updateUser({ password: a });
+      m.textContent = error ? 'Erreur : ' + error.message : 'Mot de passe changé ✓'; m.className = 'ml-3 text-sm ' + (error ? 'text-red-600' : 'text-emerald-700');
+    });
+  }
+
+  // ═════════ Clients ═════════
+  async function showClients() {
+    const [{ data: people }, { data: orders }] = await Promise.all([
+      sb.from('profiles').select('*').order('created_at', { ascending: false }),
+      sb.from('orders').select('user_id'),
+    ]);
+    const n: Record<string, number> = {};
+    (orders ?? []).forEach((o: any) => (n[o.user_id] = (n[o.user_id] ?? 0) + 1));
+    panel.innerHTML = (people ?? []).length ? `<div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100"><table class="w-full text-left text-sm">
+      <thead class="bg-gray-50 text-xs uppercase text-gray-500"><tr><th class="p-3">Client</th><th class="hidden p-3 sm:table-cell">Contact</th><th class="p-3">Commandes</th><th class="hidden p-3 md:table-cell">Inscrit le</th></tr></thead>
+      <tbody class="divide-y divide-gray-100">${(people ?? []).map((p: any) => `<tr>
+        <td class="p-3"><b>${esc(p.full_name || '—')}</b>${p.is_admin ? ' <span class="rounded bg-blue-50 px-1.5 text-xs text-gold">admin</span>' : ''}<span class="block text-gray-500 sm:hidden">${esc(p.email ?? '')}</span></td>
+        <td class="hidden p-3 sm:table-cell">${esc(p.email ?? '')}${p.phone ? `<br><a class="text-gold" target="_blank" href="https://wa.me/${esc(p.phone.replace(/\D/g, ''))}">📱 ${esc(p.phone)}</a>` : ''}</td>
+        <td class="p-3">${n[p.id] ?? 0}</td><td class="hidden p-3 md:table-cell">${fmtDate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`
+      : '<p class="blk text-gray-500">Aucun client pour l’instant.</p>';
+  }
+
+  const paintMe = (name?: string | null) => {
+    document.getElementById('me-name')!.textContent = name || user?.email || 'Administrateur';
+    document.getElementById('me-initial')!.textContent = (name || user?.email || 'A')[0].toUpperCase();
+  };
+  async function paintPending() {
+    const { count } = await sb.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending');
+    const b = document.getElementById('pending-badge')!; b.textContent = String(count ?? 0); b.classList.toggle('hidden', !count);
+  }
+
   const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
-  const show = (t: string) => { current = t; tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t))); t === 'orders' ? showOrders() : showTable(t); };
+  const show = (t: string) => {
+    current = t;
+    tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
+    document.getElementById('view-title')!.textContent = TITLES[t][0];
+    document.getElementById('view-sub')!.textContent = TITLES[t][1];
+    panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
+    history.replaceState(null, '', '#' + t);
+    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients } as Record<string, () => void>)[t]?.() ?? showTable(t);
+    if (t === 'orders' || t === 'dashboard') paintPending();
+  };
   tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab!)));
-  if (await isAdmin()) show('orders');
+  panel.addEventListener('click', (e) => {
+    const g = (e.target as HTMLElement).closest<HTMLElement>('[data-go]'); if (g) show(g.dataset.go!);
+    const nw = (e.target as HTMLElement).closest<HTMLElement>('[data-new]'); if (nw) { current = nw.dataset.new!; showTable(current).then(() => openEdit(current, null)); }
+  });
+  if (await isAdmin()) {
+    const { data: me } = await sb.from('profiles').select('full_name').eq('id', user!.id).maybeSingle();
+    paintMe(me?.full_name);
+    const start = location.hash.slice(1);
+    show(TITLES[start] ? start : 'dashboard');
+  }
 </script>

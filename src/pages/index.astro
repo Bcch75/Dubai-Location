@@ -32,8 +32,8 @@ const rows = [
 ];
 ---
 <Layout>
-  <section class="relative isolate flex h-[clamp(520px,56vw,860px)] items-center justify-center overflow-hidden">
-    <Image src={hero} alt="La mer et le skyline de Dubaï avec le Burj Al Arab et des bateaux" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover" />
+  <section class="relative isolate flex h-[520px] items-center justify-center overflow-hidden sm:h-[630px]">
+    <Image src={hero} alt="La mer et le skyline de Dubaï avec le Burj Al Arab et des bateaux" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover object-[center_45%]" />
     <div class="absolute inset-0 -z-10 bg-black/25"></div>
     <div class="container-x pt-16 text-center">
       <h1 class="mx-auto max-w-5xl text-4xl font-extrabold leading-none !text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]">Trouvez et réservez des activités</h1>

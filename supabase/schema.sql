@@ -187,3 +187,16 @@ alter table public.activities add column if not exists video_url text;
 alter table public.cars add column if not exists rating numeric(2,1);
 alter table public.cars add column if not exists reviews_count integer;
 alter table public.cars add column if not exists video_url text;
+
+-- ═════════ Email dans les profils (pour la liste des clients côté admin) ═════════
+alter table public.profiles add column if not exists email text;
+update public.profiles p set email = u.email from auth.users u where u.id = p.id and p.email is null;
+create or replace function public.handle_new_user() returns trigger
+language plpgsql security definer set search_path = public as $$
+begin
+  insert into public.profiles (id, full_name, phone, email, is_admin)
+  values (new.id, new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'phone', new.email,
+          exists (select 1 from public.admin_emails a where lower(a.email) = lower(new.email)))
+  on conflict (id) do nothing;
+  return new;
+end $$;
