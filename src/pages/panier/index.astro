@@ -56,7 +56,7 @@ import Layout from '../../layouts/Layout.astro';
             <span class="min-w-[86px] text-center text-sm"><b class="text-base">${i.qty}</b> ${esc(i.qtyLabel.toLowerCase())}</span>
             <button type="button" data-qty="${i.key}" data-d="1" class="grid h-10 w-10 place-items-center rounded-full border border-line text-lg font-semibold transition hover:border-ink" aria-label="Plus">+</button>
           </div>`}
-          <button type="button" data-rm="${i.key}" class="flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-semibold text-red-600 transition hover:bg-red-50" aria-label="Retirer du panier">${trash}Retirer</button>
+          <button type="button" data-rm="${i.key}" class="grid h-10 w-10 place-items-center rounded-full text-red-600 transition hover:bg-red-50" aria-label="Retirer du panier" title="Retirer">${trash.replace('h-4 w-4', 'h-5 w-5')}</button>
         </div>
       </div>`).join('') + `<button type="button" id="cart-clear" class="mt-1 text-sm font-medium text-muted underline-offset-4 hover:text-red-600 hover:underline">Vider le panier</button>`;
     const sub = cart.total(), disc = promo ? Math.round((sub * promo.pct) / 100) : 0;

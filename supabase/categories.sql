@@ -23,3 +23,4 @@ insert into public.categories (slug, label, icon, subtitle, image_url, position,
   ('excursions', 'Excursions', '🧭', 'Abu Dhabi, Oman : partez à la découverte.', '/img/oman.webp', 50, false, false),
   ('famille', 'En famille', '👨‍👩‍👧', 'Des sorties pour petits et grands.', '/img/dolphin.webp', 60, false, true)
 on conflict (slug) do nothing;
+alter table public.categories add column if not exists icon_color text;

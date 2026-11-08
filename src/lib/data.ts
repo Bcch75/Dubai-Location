@@ -12,7 +12,7 @@ let acts: Promise<Activity[]> | null = null, cars: Promise<Car[]> | null = null;
 export const getActivities = () => (acts ??= get<Activity>('activities?select=*&active=eq.true&order=position'));
 export const getCars = () => (cars ??= get<Car>('cars?select=*&active=eq.true&order=position'));
 
-export type Category = { slug: string; label: string; icon: string | null; subtitle: string | null; image_url: string | null; position: number; in_menu: boolean; on_home: boolean; active: boolean };
+export type Category = { slug: string; label: string; icon: string | null; icon_color?: string | null; subtitle: string | null; image_url: string | null; position: number; in_menu: boolean; on_home: boolean; active: boolean };
 const FALLBACK: Category[] = [
   { slug: 'desert', label: 'Désert', icon: 'sunset', subtitle: null, image_url: '/img/desert.webp', position: 10, in_menu: true, on_home: true, active: true },
   { slug: 'mer', label: 'Mer & yacht', icon: 'sailboat', subtitle: null, image_url: '/img/yacht.webp', position: 20, in_menu: true, on_home: true, active: true },

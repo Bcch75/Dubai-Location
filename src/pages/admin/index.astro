@@ -69,7 +69,8 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
-  import { ICONS, pill, iconKey } from '../../lib/icons';
+  import { pill, iconKey, ICON_COLORS } from '../../lib/icons';
+  import { ICON_LIB } from '../../lib/icon-library';
   const user = await getUser();
   if (!user) goLogin();
   else if (!(await isAdmin())) document.getElementById('deny')!.classList.remove('hidden');
@@ -677,40 +678,84 @@ import Layout from '../../layouts/Layout.astro';
     const { data: acts } = await sb.from('activities').select('categories');
     const n = (sl: string) => (acts ?? []).filter((a: any) => a.categories.includes(sl)).length;
     panel.innerHTML = `
-      <button id="cat-new" class="btn-gold mb-4">+ Ajouter une catégorie</button>
+      <div class="mb-4 flex flex-wrap items-center gap-3">
+        <button id="cat-new" class="btn-gold">+ Ajouter une catégorie</button>
+        <p class="text-sm text-gray-500">Cliquez sur une catégorie pour la modifier · faites-la <b>glisser</b> pour changer l’ordre.</p>
+      </div>
       <p id="cat-msg" class="mb-3 text-sm"></p>
-      <div class="space-y-2">${cats.map((c: any, i: number) => `
-        <div class="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
-          <img src="${esc(thumb(c.image_url))}" alt="" class="h-14 w-14 shrink-0 rounded-xl bg-sand object-cover">
-          <div class="min-w-0 flex-1"><p class="flex items-center gap-2 font-semibold">${pill(c.icon, 16)} ${esc(c.label)} ${c.active ? '' : '<span class="text-xs text-red-600">(masquée)</span>'}</p>
-            <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · 📌 menu' : ''}${c.on_home ? ' · 🏠 accueil' : ''}</p></div>
-          <div class="flex flex-col"><button data-mv="${esc(c.slug)}" data-d="-1" ${i === 0 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▲</button><button data-mv="${esc(c.slug)}" data-d="1" ${i === cats.length - 1 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▼</button></div>
-          <button data-cedit="${esc(c.slug)}" class="btn-outline !px-4 !py-2 text-sm">✏️ Modifier</button>
+      <div id="cat-list" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">${cats.map((c: any) => `
+        <div data-slug="${esc(c.slug)}" class="cat-card group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:shadow-lift hover:ring-gold">
+          <div class="relative h-28 bg-sand">
+            ${c.image_url ? `<img src="${esc(thumb(c.image_url))}" alt="" class="h-full w-full object-cover">` : ''}
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+            <span data-handle class="absolute right-2 top-2 grid h-9 w-9 cursor-grab touch-none place-items-center rounded-full bg-white/90 text-gray-500 shadow active:cursor-grabbing" title="Glisser pour déplacer" aria-label="Déplacer">
+              <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>
+            </span>
+            ${c.active ? '' : '<span class="absolute left-2 top-2 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">Masquée</span>'}
+          </div>
+          <div class="flex items-center gap-3 p-3">
+            ${pill(c.icon, 18, false, c.icon_color)}
+            <div class="min-w-0"><p class="truncate font-semibold">${esc(c.label)}</p>
+              <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · dans le menu' : ''}${c.on_home ? ' · sur l’accueil' : ''}</p></div>
+          </div>
         </div>`).join('')}</div>`;
-    const msg = panel.querySelector('#cat-msg');
     panel.querySelector('#cat-new')!.addEventListener('click', () => catForm(null, cats.length ? cats[cats.length - 1].position + 10 : 10));
-    panel.querySelectorAll<HTMLElement>('[data-cedit]').forEach((b) => b.addEventListener('click', () => catForm(cats.find((c: any) => c.slug === b.dataset.cedit), 0)));
-    panel.querySelectorAll<HTMLElement>('[data-mv]').forEach((b) => b.addEventListener('click', async () => {
-      const i = cats.findIndex((c: any) => c.slug === b.dataset.mv), j = i + +b.dataset.d!;
-      const a = cats[i], c = cats[j]; if (!c) return;
-      await Promise.all([sb.from('categories').update({ position: c.position }).eq('slug', a.slug), sb.from('categories').update({ position: a.position === c.position ? c.position + 1 : a.position }).eq('slug', c.slug)]);
-      await showCategories(); publishSite(panel.querySelector('#cat-msg'));
+    panel.querySelectorAll<HTMLElement>('.cat-card').forEach((el) => el.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-handle]')) return;
+      catForm(cats.find((c: any) => c.slug === el.dataset.slug), 0);
     }));
-    void msg;
+    const { default: Sortable } = await import('sortablejs');
+    Sortable.create(panel.querySelector('#cat-list') as HTMLElement, {
+      handle: '[data-handle]', animation: 180, ghostClass: 'opacity-40',
+      onEnd: async () => {
+        const order = [...panel.querySelectorAll<HTMLElement>('.cat-card')].map((el) => el.dataset.slug!);
+        await Promise.all(order.map((slug, i) => sb.from('categories').update({ position: (i + 1) * 10 }).eq('slug', slug)));
+        publishSite(panel.querySelector('#cat-msg'));
+      },
+    });
   }
+
+  // Sélecteur d'icône : recherche + couleur
+  function iconPicker(current: string | null, color: string | null) {
+    let sel = iconKey(current), col = color || '';
+    const box = document.createElement('div');
+    const keys = Object.keys(ICON_LIB);
+    const draw = (q = '') => {
+      const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      const shown = keys.filter((k) => !q || norm(ICON_LIB[k].k).includes(norm(q)));
+      box.querySelector('#ip-grid')!.innerHTML = shown.map((k) => `<button type="button" data-ik="${k}" title="${esc(ICON_LIB[k].k.split(' ')[0])}" class="grid aspect-square place-items-center rounded-xl border-2 transition ${k === sel ? 'border-gold bg-blue-50' : 'border-transparent hover:bg-gray-50'}">${pill(k, 20, false, col || '#374151')}</button>`).join('') || '<p class="col-span-full p-4 text-sm text-gray-500">Aucune icône trouvée.</p>';
+      box.querySelector('#ip-preview')!.innerHTML = sel ? pill(sel, 26, false, col || null) : '<span class="text-sm text-gray-400">Aucune</span>';
+    };
+    box.innerHTML = `
+      <div class="flex items-center gap-3"><div id="ip-preview"></div><input id="ip-q" class="field !py-2" placeholder="Rechercher : soleil, bateau, voiture, famille…"></div>
+      <div class="mt-3"><span class="lab">Couleur</span><div id="ip-cols" class="flex flex-wrap gap-2">${['', ...ICON_COLORS].map((c) => `<button type="button" data-ic="${c}" class="h-8 w-8 rounded-full ring-2 ring-offset-2 ${c === col ? 'ring-gold' : 'ring-transparent'}" style="background:${c || 'conic-gradient(#f59e0b,#ef4444,#8b5cf6,#0171eb,#10b981,#f59e0b)'}" title="${c ? c : 'Couleur automatique'}"></button>`).join('')}</div></div>
+      <div id="ip-grid" class="mt-3 grid max-h-72 grid-cols-6 gap-1 overflow-y-auto rounded-xl border border-gray-100 p-2 sm:grid-cols-8"></div>`;
+    box.querySelector('#ip-q')!.addEventListener('input', (e) => draw((e.target as HTMLInputElement).value));
+    box.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const k = t.closest<HTMLElement>('[data-ik]'); if (k) { sel = k.dataset.ik!; draw((box.querySelector('#ip-q') as HTMLInputElement).value); }
+      const c = t.closest<HTMLElement>('[data-ic]'); if (c) { col = c.dataset.ic!; box.querySelectorAll('[data-ic]').forEach((x) => x.classList.toggle('ring-gold', x === c)); box.querySelectorAll('[data-ic]').forEach((x) => x.classList.toggle('ring-transparent', x !== c)); draw((box.querySelector('#ip-q') as HTMLInputElement).value); }
+    });
+    setTimeout(() => draw(), 0);
+    return { el: box, value: () => ({ icon: sel, color: col || null }) };
+  }
+
   function catForm(c: any, pos: number) {
+    const picker = iconPicker(c?.icon ?? null, c?.icon_color ?? null);
     form.innerHTML = `
       <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
         <h2 class="text-lg font-bold">${c ? 'Modifier' : 'Ajouter'} une catégorie</h2>
-        <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">💾 Enregistrer</button></div>
+        <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">Enregistrer</button></div>
       </div>
       <div class="space-y-4 p-4 sm:p-5">
-        ${block('🗂️', 'La catégorie', '', `${input('label', 'Nom', c?.label, 'Ex. Désert')}<div><span class="lab">Icône</span><div class="flex flex-wrap gap-2">${Object.entries(ICONS).filter(([k]) => !['pin', 'warn', 'ticket', 'photos', 'ban', 'tag'].includes(k)).map(([k, i]) => `<label class="pick !p-1.5" title="${esc(i.l)}"><input type="radio" name="cicon" value="${k}" ${iconKey(c?.icon) === k ? 'checked' : ''}>${pill(k, 20)}</label>`).join('')}</div></div>${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
-        ${block('📸', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
-        ${block('👁️', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible sur le site', c?.active ?? true))}
+        ${block('', 'La catégorie', '', `${input('label', 'Nom', c?.label, 'Ex. Désert')}${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
+        <section class="blk"><h3>Icône</h3><p class="hint">${Object.keys(ICON_LIB).length} icônes : cherchez un mot, puis choisissez la couleur.</p><div id="ip-slot" class="mt-4"></div></section>
+        ${block('', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
+        ${block('', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible sur le site', c?.active ?? true))}
         <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
-        ${c ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">🗑️ Supprimer la catégorie</button>` : ''}
+        ${c ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">Supprimer la catégorie</button>` : ''}
       </div>`;
+    form.querySelector('#ip-slot')!.append(picker.el);
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     form.onclick = (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); };
     form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
@@ -730,7 +775,8 @@ import Layout from '../../layouts/Layout.astro';
       const chk = (k: string) => (form.querySelector('#f_' + k) as HTMLInputElement).checked;
       const err = form.querySelector('#ferr')!;
       if (!v('label')) { err.textContent = 'Indiquez un nom.'; err.classList.remove('hidden'); return; }
-      const row = { label: v('label'), icon: form.querySelector<HTMLInputElement>('input[name="cicon"]:checked')?.value ?? null, subtitle: v('subtitle') || null, image_url: getPhotos('main')[0] ?? null, in_menu: chk('in_menu'), on_home: chk('on_home'), active: chk('active') };
+      const ic = picker.value();
+      const row = { label: v('label'), icon: ic.icon, icon_color: ic.color, subtitle: v('subtitle') || null, image_url: getPhotos('main')[0] ?? null, in_menu: chk('in_menu'), on_home: chk('on_home'), active: chk('active') };
       const { error } = c ? await sb.from('categories').update(row).eq('slug', c.slug) : await sb.from('categories').insert({ ...row, slug: slugify(v('label')), position: pos });
       if (error) { err.textContent = error.message.includes('duplicate') ? 'Cette catégorie existe déjà.' : error.message; err.classList.remove('hidden'); return; }
       dlg.close(); await showCategories(); publishSite(panel.querySelector('#cat-msg'));

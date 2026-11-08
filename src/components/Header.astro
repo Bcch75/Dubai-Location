@@ -7,9 +7,9 @@ interface Props { transparent?: boolean }
 const path = Astro.url.pathname + Astro.url.search;
 const categories = await getCategories();
 const links = [
-  ...categories.filter((c) => c.in_menu).slice(0, 4).map((c) => ({ href: `/activites/${c.slug}/`, label: c.label, icon: c.icon ?? '' })),
-  { href: '/voitures/', label: 'Voitures', icon: 'car' },
-  { href: '/blog/', label: 'Blog', icon: '' },
+  ...categories.filter((c) => c.in_menu).slice(0, 4).map((c) => ({ href: `/activites/${c.slug}/`, label: c.label, icon: c.icon ?? '', color: c.icon_color ?? null })),
+  { href: '/voitures/', label: 'Voitures', icon: 'car', color: null },
+  { href: '/blog/', label: 'Blog', icon: '', color: null },
 ];
 ---
 <header id="site-header" class="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
@@ -28,7 +28,7 @@ const links = [
       {links.map((l) => (
         <li>
           <a href={l.href} class:list={['flex h-10 items-center gap-2 rounded-full px-4 text-base font-semibold text-black transition hover:bg-gray-100', path === l.href && 'bg-gray-100']}>
-            {l.icon && <Fragment set:html={pill(l.icon, 15)} />}{l.label}
+            {l.icon && <Fragment set:html={pill(l.icon, 15, false, l.color)} />}{l.label}
           </a>
         </li>
       ))}
@@ -71,7 +71,7 @@ const links = [
       </div>
       <ul class="mt-4 space-y-1">
         <li><a href="/activites/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Toutes les activités</a></li>
-        {links.map((l) => <li><a href={l.href} data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">{l.icon && <span class="mr-2 inline-flex align-middle" set:html={pill(l.icon, 16)} />}{l.label}</a></li>)}
+        {links.map((l) => <li><a href={l.href} data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">{l.icon && <span class="mr-2 inline-flex align-middle" set:html={pill(l.icon, 16, false, l.color)} />}{l.label}</a></li>)}
         <li><a href="/contact/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Contact</a></li>
         <li><a href="/compte/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Mon compte</a></li>
       </ul>
