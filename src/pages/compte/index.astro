@@ -19,9 +19,10 @@ import Layout from '../../layouts/Layout.astro';
   </section>
 </Layout>
 <script>
-  import { sb, getUser, goLogin, esc, aed, url } from '../../lib/app';
+  import { sb, getUser, goLogin, isAdmin, esc, aed, url } from '../../lib/app';
   const u = await getUser();
   if (!u) goLogin();
+  else if (await isAdmin()) location.replace(url('admin/'));
   else {
     document.getElementById('who')!.textContent = u.email ?? '';
     const { data: p } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();

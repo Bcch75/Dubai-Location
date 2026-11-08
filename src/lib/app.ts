@@ -7,7 +7,7 @@ export { videoBadge, setCurrency, currency, CURRENCIES, url, img, thumb, esc, ae
 export type { Activity, Car };
 
 export const sb = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
-export const WA = '971569736810';
+export const WA = document.documentElement.dataset.wa || '971569736810';
 
 // Chemin de base (permet d'héberger le site dans un sous-dossier)
 setBase(document.documentElement.dataset.base ?? '/', document.documentElement.dataset.index === '1');
@@ -170,6 +170,21 @@ export async function fetchCars() {
   return (data ?? []) as Car[];
 }
 
+// ───────── Statistiques de visites (anonymes, sans cookie) ─────────
+export function logVisit() {
+  try {
+    if (location.pathname.includes('/admin') || /localhost|127\.0\.0\.1/.test(location.hostname) && !location.search.includes('stats')) return;
+    const q = new URLSearchParams(location.search);
+    const ref = document.referrer ? new URL(document.referrer).hostname : '';
+    const src = q.get('utm_source') || ref;
+    const SOURCES: [RegExp, string][] = [[/insta/i, 'Instagram'], [/tiktok/i, 'TikTok'], [/facebook|fb\./i, 'Facebook'], [/snap/i, 'Snapchat'], [/google/i, 'Google'], [/whatsapp|wa\.me/i, 'WhatsApp'], [/bing|yahoo|duckduckgo|qwant|ecosia/i, 'Autre moteur']];
+    let source = SOURCES.find(([r]) => r.test(src))?.[1] ?? '';
+    if (!source && ref && ref !== location.hostname) source = ref.replace(/^www\./, '');
+    if (ref === location.hostname) source = 'Navigation interne';
+    sb.rpc('log_visit', { p_path: location.pathname, p_slug: q.get('s'), p_source: source || 'Direct', p_tz: Intl.DateTimeFormat().resolvedOptions().timeZone }).then(() => {}, () => {});
+  } catch {}
+}
+
 // ───────── En-tête : compteur panier + état connecté ─────────
 export async function initHeader() {
   const paint = () => document.querySelectorAll<HTMLElement>('[data-cart-count]').forEach((el) => {
@@ -183,6 +198,7 @@ export async function initHeader() {
   const u = await getUser();
   document.querySelectorAll<HTMLAnchorElement>('[data-account-link]').forEach((a) => {
     a.href = url(u ? 'compte/' : 'connexion/');
+    if (u) isAdmin().then((ad) => { if (ad) { a.href = url('admin/'); a.title = 'Espace admin'; } });
     a.title = u ? 'Mon compte' : 'Se connecter';
     a.classList.toggle('text-gold', !!u);
   });

@@ -18,8 +18,13 @@ import Layout from '../../layouts/Layout.astro';
             <button class="side" data-tab="cars"><span>🏎️</span>Catalogue voitures</button>
             <button class="side" data-tab="orders"><span>📋</span>Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
             <button class="side" data-tab="clients"><span>👥</span>Clients</button>
+            <button class="side" data-tab="calendar"><span>🗓️</span>Calendrier</button>
+            <button class="side" data-tab="promos"><span>🏷️</span>Codes promo</button>
+            <button class="side" data-tab="stats"><span>📈</span>Statistiques</button>
             <button class="side" data-tab="posts"><span>📝</span>Blog</button>
+            <button class="side" data-tab="settings"><span>⚙️</span>Réglages du site</button>
             <a class="side" href="/" target="_blank"><span>🌐</span>Voir le site ↗</a>
+            <button class="side !text-red-600" id="logout"><span>🚪</span>Se déconnecter</button>
           </nav>
         </div>
       </aside>
@@ -89,7 +94,7 @@ import Layout from '../../layouts/Layout.astro';
           <select data-status="${o.id}" class="field !w-auto !py-2">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v}</option>`).join('')}</select>
         </div>
         <ul class="mt-3 space-y-1 text-sm">${o.order_items.map((i: any) => `<li>• <b>${esc(i.item_title)}</b>${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
-        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b></p>` : ''}
+        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b>${o.promo_code ? ` · 🏷️ ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>` : ''}
         ${o.notes ? `<p class="mt-2 rounded-lg bg-sand p-2 text-sm">💬 Client : ${esc(o.notes)}</p>` : ''}
         <label class="lab mt-4">Message pour le client <small>(il le voit dans « Mon compte »)</small></label>
         <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Ex. Prise en charge à 15h à votre hôtel. Prix final : 1 200 AED." value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-gold !px-4 !py-2 text-sm">Envoyer</button></div>
@@ -316,6 +321,10 @@ import Layout from '../../layouts/Layout.astro';
     orders: ['Commandes', 'Les réservations envoyées par vos clients.'],
     clients: ['Clients', 'Les personnes qui ont créé un compte.'],
     posts: ['Blog', 'Vos articles de conseils.'],
+    calendar: ['Calendrier', 'Vos réservations jour par jour, et les dates complètes.'],
+    promos: ['Codes promo', 'Créez des réductions pour vos clients (Instagram, fidélité…).'],
+    stats: ['Statistiques', 'Les 30 derniers jours : visites, activités vues, provenance.'],
+    settings: ['Réglages du site', 'Coordonnées, textes et photo de l’accueil.'],
   };
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
@@ -407,6 +416,240 @@ import Layout from '../../layouts/Layout.astro';
       : '<p class="blk text-gray-500">Aucun client pour l’instant.</p>';
   }
 
+
+  // ═════════ Calendrier + dates complètes ═════════
+  let calMonth = new Date(); calMonth.setDate(1);
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  let catalog: { type: 'activity' | 'car'; slug: string; name: string }[] = [];
+  async function loadCatalog() {
+    if (catalog.length) return catalog;
+    const [{ data: a }, { data: c }] = await Promise.all([sb.from('activities').select('slug,title').order('position'), sb.from('cars').select('slug,brand,model').order('position')]);
+    catalog = [...(a ?? []).map((x: any) => ({ type: 'activity' as const, slug: x.slug, name: x.title })), ...(c ?? []).map((x: any) => ({ type: 'car' as const, slug: x.slug, name: `${x.brand} ${x.model}` }))];
+    return catalog;
+  }
+  async function showCalendar() {
+    await loadCatalog();
+    const y = calMonth.getFullYear(), m = calMonth.getMonth();
+    const first = new Date(y, m, 1), last = new Date(y, m + 1, 0);
+    const from = iso(first), to = iso(last);
+    const [{ data: items }, { data: blocked }] = await Promise.all([
+      sb.from('order_items').select('item_title,item_type,date,end_date,people,orders!inner(id,status,contact_name)').lte('date', to).or(`end_date.gte.${from},date.gte.${from}`),
+      sb.from('blocked_dates').select('*').gte('day', from).lte('day', to),
+    ]);
+    const byDay: Record<string, any[]> = {};
+    (items ?? []).forEach((it: any) => {
+      if (it.orders?.status === 'cancelled') return;
+      const start = new Date(it.date + 'T12:00'), end = new Date((it.end_date ?? it.date) + 'T12:00');
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) (byDay[iso(d)] ??= []).push(it);
+    });
+    const bl: Record<string, any[]> = {};
+    (blocked ?? []).forEach((b: any) => (bl[b.day] ??= []).push(b));
+    const nameOf = (t: string, sl: string) => catalog.find((c) => c.type === t && c.slug === sl)?.name ?? sl;
+    const offset = (first.getDay() + 6) % 7; // lundi en premier
+    const cells = [...Array(offset).fill(null), ...Array.from({ length: last.getDate() }, (_, i) => new Date(y, m, i + 1))];
+    const today = iso(new Date());
+    panel.innerHTML = `
+      <div class="blk">
+        <div class="flex items-center justify-between gap-3">
+          <button data-cal="-1" class="btn-outline !px-4 !py-2">‹</button>
+          <h3 class="!text-xl capitalize">${first.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</h3>
+          <button data-cal="1" class="btn-outline !px-4 !py-2">›</button>
+        </div>
+        <div class="mt-4 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-400">${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((d) => `<div>${d}</div>`).join('')}</div>
+        <div class="mt-1 grid grid-cols-7 gap-1">${cells.map((d) => {
+          if (!d) return '<div></div>';
+          const k = iso(d), its = byDay[k] ?? [], bls = bl[k] ?? [];
+          return `<button data-day="${k}" class="min-h-[74px] rounded-xl border p-1.5 text-left text-[11px] leading-tight transition hover:border-gold ${k === today ? 'border-gold' : 'border-gray-100'} ${bls.length ? 'bg-red-50' : 'bg-white'}">
+            <b class="text-sm ${k === today ? 'text-gold' : 'text-ink'}">${d.getDate()}</b>
+            ${its.slice(0, 2).map((it: any) => `<span class="mt-0.5 block truncate rounded px-1 ${it.orders.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${esc(it.item_title)}</span>`).join('')}
+            ${its.length > 2 ? `<span class="block text-gray-400">+${its.length - 2}</span>` : ''}
+            ${bls.length ? `<span class="mt-0.5 block truncate rounded bg-red-500 px-1 text-white">🚫 ${bls.length} complet</span>` : ''}
+          </button>`;
+        }).join('')}</div>
+        <p class="mt-3 flex flex-wrap gap-3 text-xs text-gray-500"><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-amber-300"></span>En attente</span><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-emerald-400"></span>Confirmée</span><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-red-500"></span>Date complète</span></p>
+      </div>
+      <div id="day-detail" class="mt-4"></div>`;
+    panel.querySelectorAll<HTMLElement>('[data-cal]').forEach((b) => b.addEventListener('click', () => { calMonth.setMonth(calMonth.getMonth() + +b.dataset.cal!); showCalendar(); }));
+    panel.querySelectorAll<HTMLElement>('[data-day]').forEach((b) => b.addEventListener('click', () => dayDetail(b.dataset.day!, byDay[b.dataset.day!] ?? [], bl[b.dataset.day!] ?? [], nameOf)));
+  }
+  function dayDetail(day: string, its: any[], bls: any[], nameOf: (t: string, s: string) => string) {
+    const box = panel.querySelector('#day-detail')!;
+    box.innerHTML = `<div class="blk">
+      <h3 class="capitalize">📅 ${new Date(day + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+      ${its.length ? `<ul class="mt-3 space-y-1 text-sm">${its.map((it: any) => `<li>• <b>${esc(it.item_title)}</b> · ${esc(it.orders.contact_name ?? '')} · n°${it.orders.id} · ${STATUS[it.orders.status]}${it.item_type === 'activity' ? ' · ' + it.people + ' pers.' : ''}</li>`).join('')}</ul>` : '<p class="mt-2 text-sm text-gray-500">Aucune réservation ce jour-là.</p>'}
+      <h4 class="mt-5 font-semibold">🚫 Dates complètes</h4>
+      ${bls.length ? `<ul class="mt-2 space-y-1 text-sm">${bls.map((b: any) => `<li class="flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2"><span>${esc(nameOf(b.item_type, b.item_slug))}${b.note ? ' — ' + esc(b.note) : ''}</span><button data-unblock="${b.id}" class="text-sm font-semibold text-red-600">Débloquer</button></li>`).join('')}</ul>` : ''}
+      <div class="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <select id="blk-item" class="field !py-2 text-sm">${catalog.map((c) => `<option value="${c.type}|${esc(c.slug)}">${c.type === 'car' ? '🏎️' : '🏜️'} ${esc(c.name)}</option>`).join('')}</select>
+        <input id="blk-note" class="field !py-2 text-sm" placeholder="Note (facultatif, ex. yacht déjà loué)">
+        <button id="blk-add" class="btn-gold !py-2 text-sm">Marquer complet</button>
+      </div>
+    </div>`;
+    box.querySelector('#blk-add')!.addEventListener('click', async () => {
+      const [t, sl] = (box.querySelector('#blk-item') as HTMLSelectElement).value.split('|');
+      const { error } = await sb.from('blocked_dates').insert({ item_type: t, item_slug: sl, day, note: (box.querySelector('#blk-note') as HTMLInputElement).value || null });
+      if (error && !error.message.includes('duplicate')) return alert(error.message);
+      await showCalendar(); panel.querySelector<HTMLElement>(`[data-day="${day}"]`)?.click();
+    });
+    box.querySelectorAll<HTMLElement>('[data-unblock]').forEach((b) => b.addEventListener('click', async () => {
+      await sb.from('blocked_dates').delete().eq('id', +b.dataset.unblock!);
+      await showCalendar(); panel.querySelector<HTMLElement>(`[data-day="${day}"]`)?.click();
+    }));
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ═════════ Codes promo ═════════
+  async function showPromos() {
+    const { data } = await sb.from('promo_codes').select('*').order('created_at', { ascending: false });
+    panel.innerHTML = `
+      <form id="promo-new" class="blk">
+        <h3>➕ Nouveau code</h3>
+        <div class="mt-4 grid gap-3 sm:grid-cols-4">
+          ${input('pcode', 'Code', '', 'Ex. DUBAI10')}
+          ${input('ppct', 'Réduction (%)', '', 'Ex. 10', 'number')}
+          ${input('pexp', 'Valable jusqu’au', '', '', 'date', '(facultatif)')}
+          ${input('pmax', 'Nombre max. d’utilisations', '', 'Illimité', 'number', '(facultatif)')}
+        </div>
+        <button class="btn-gold mt-4 !py-2.5">Créer le code</button><span id="perr" class="ml-3 text-sm text-red-600"></span>
+      </form>
+      <div class="mt-4 space-y-2">${(data ?? []).map((c: any) => `
+        <div class="flex flex-wrap items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100">
+          <span class="rounded-lg bg-blue-50 px-3 py-1.5 font-mono font-bold text-gold">${esc(c.code)}</span>
+          <b>-${c.percent} %</b>
+          <span class="text-sm text-gray-500">${c.uses} utilisation${c.uses > 1 ? 's' : ''}${c.max_uses ? ' / ' + c.max_uses : ''}${c.expires_on ? ' · jusqu’au ' + new Date(c.expires_on + 'T12:00').toLocaleDateString('fr-FR') : ''}</span>
+          <label class="sw ml-auto !py-0"><span class="mr-2 text-sm">${c.active ? 'Actif' : 'Désactivé'}</span><input type="checkbox" data-ptoggle="${esc(c.code)}" ${c.active ? 'checked' : ''}></label>
+          <button data-pdel="${esc(c.code)}" class="text-sm text-gray-400 hover:text-red-600">🗑️</button>
+        </div>`).join('') || '<p class="blk text-sm text-gray-500">Aucun code pour l’instant.</p>'}</div>`;
+    panel.querySelector('#promo-new')!.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (k: string) => (panel.querySelector<HTMLInputElement>('#f_' + k)!.value || '').trim();
+      const code = v('pcode').toUpperCase().replace(/\s+/g, ''), pct = +v('ppct');
+      const err = panel.querySelector('#perr')!;
+      if (!code || !pct || pct < 1 || pct > 90) { err.textContent = 'Indiquez un code et une réduction entre 1 et 90 %.'; return; }
+      const { error } = await sb.from('promo_codes').insert({ code, percent: pct, expires_on: v('pexp') || null, max_uses: v('pmax') ? +v('pmax') : null });
+      if (error) { err.textContent = error.message.includes('duplicate') ? 'Ce code existe déjà.' : error.message; return; }
+      showPromos();
+    });
+    panel.querySelectorAll<HTMLInputElement>('[data-ptoggle]').forEach((t) => t.addEventListener('change', async () => { await sb.from('promo_codes').update({ active: t.checked }).eq('code', t.dataset.ptoggle!); showPromos(); }));
+    panel.querySelectorAll<HTMLElement>('[data-pdel]').forEach((b) => b.addEventListener('click', async () => { if (confirm('Supprimer ce code ?')) { await sb.from('promo_codes').delete().eq('code', b.dataset.pdel!); showPromos(); } }));
+  }
+
+  // ═════════ Statistiques ═════════
+  async function showStats() {
+    await loadCatalog();
+    const since = new Date(Date.now() - 30 * 864e5).toISOString();
+    const { data } = await sb.from('visits').select('at,path,item_slug,source,tz').gte('at', since).limit(50000);
+    const v = data ?? [];
+    const days: Record<string, number> = {};
+    for (let i = 29; i >= 0; i--) days[iso(new Date(Date.now() - i * 864e5))] = 0;
+    v.forEach((x: any) => { const k = iso(new Date(x.at)); if (k in days) days[k]++; });
+    const max = Math.max(1, ...Object.values(days));
+    const tally = (f: (x: any) => string | null) => { const o: Record<string, number> = {}; v.forEach((x: any) => { const k = f(x); if (k) o[k] = (o[k] ?? 0) + 1; }); return Object.entries(o).sort((a, b) => b[1] - a[1]); };
+    const nameOf = (sl: string) => catalog.find((c) => c.slug === sl)?.name ?? sl;
+    const topItems = tally((x) => x.item_slug).slice(0, 8);
+    const sources = tally((x) => x.source || 'Direct');
+    const regions = tally((x) => (x.tz ? x.tz.replace(/_/g, ' ').split('/').pop() : null)).slice(0, 8);
+    const pct = (n: number) => Math.round((n / Math.max(1, v.length)) * 100);
+    const bars = (rows: [string, number][], label: (k: string) => string) => rows.length ? rows.map(([k, n]) => `<li><div class="flex justify-between text-sm"><span class="truncate">${esc(label(k))}</span><b>${n}</b></div><div class="mt-1 h-2 rounded-full bg-gray-100"><div class="h-2 rounded-full bg-gold" style="width:${Math.max(3, (n / rows[0][1]) * 100)}%"></div></div></li>`).join('') : '<li class="text-sm text-gray-500">Pas encore de données.</li>';
+    panel.innerHTML = `
+      <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        <div class="stat"><span>👀 Visites (30 j)</span><b>${v.length}</b><span>pages vues</span></div>
+        <div class="stat"><span>📅 Aujourd’hui</span><b>${days[iso(new Date())] ?? 0}</b><span>pages vues</span></div>
+        <div class="stat"><span>🏜️ Fiches consultées</span><b>${v.filter((x: any) => x.item_slug).length}</b><span>activités et voitures</span></div>
+        <div class="stat"><span>📸 Depuis les réseaux</span><b>${pct(v.filter((x: any) => ['Instagram', 'TikTok', 'Facebook', 'Snapchat'].includes(x.source)).length)} %</b><span>Instagram, TikTok…</span></div>
+      </div>
+      <section class="blk mt-4"><h3>📊 Visites par jour</h3>
+        <div class="mt-4 flex h-32 items-end gap-1">${Object.entries(days).map(([d, n]) => `<div class="flex-1 rounded-t bg-gold/80 hover:bg-gold" style="height:${Math.max(2, (n / max) * 100)}%" title="${new Date(d + 'T12:00').toLocaleDateString('fr-FR')} : ${n}"></div>`).join('')}</div>
+      </section>
+      <div class="mt-4 grid gap-4 lg:grid-cols-3">
+        <section class="blk"><h3>🔥 Les plus vues</h3><ul class="mt-3 space-y-3">${bars(topItems, nameOf)}</ul></section>
+        <section class="blk"><h3>🔗 D’où viennent-ils</h3><ul class="mt-3 space-y-3">${bars(sources, (k) => k)}</ul></section>
+        <section class="blk"><h3>🌍 Région (fuseau horaire)</h3><ul class="mt-3 space-y-3">${bars(regions, (k) => k)}</ul></section>
+      </div>
+      <p class="mt-4 text-xs text-gray-400">Statistiques anonymes : aucune donnée personnelle n’est enregistrée. Pour les pays exacts, activez aussi « Analytics » dans votre projet Vercel.</p>`;
+  }
+
+  // ═════════ Réglages du site ═════════
+  async function showSettings() {
+    const [{ data: st }, { data: adm }] = await Promise.all([sb.from('settings').select('data').eq('id', 1).maybeSingle(), sb.from('admin_settings').select('deploy_hook').eq('id', 1).maybeSingle()]);
+    const d: any = st?.data ?? {};
+    form.innerHTML = '';
+    panel.innerHTML = `
+      <form id="set-form" class="space-y-4">
+        ${block('📞', 'Coordonnées', 'Affichées dans le pied de page, la page Contact et les boutons WhatsApp.', `
+          <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'Numéro WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone affiché', d.phone, '+971 56 973 6810')}</div>
+          <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email de contact', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
+        ${block('🏠', 'Page d’accueil', '', `
+          ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
+          ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
+          <div><span class="lab">Grande photo <small>(laissez vide pour garder la photo actuelle)</small></span><div data-photos-settings>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div></div>`)}
+        ${block('🚀', 'Publication', 'Le site est republié automatiquement après l’enregistrement (environ 1 minute).', `
+          ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
+          <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
+        <div class="sticky bottom-4 flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lift">
+          <button class="btn-gold">💾 Enregistrer et publier</button>
+          <button type="button" id="publish-now" class="btn-outline !py-3 text-sm">🚀 Republier le site</button>
+          <span id="set-msg" class="text-sm"></span>
+        </div>
+      </form>`;
+    const f = panel.querySelector('#set-form') as HTMLFormElement;
+    const v = (k: string) => (f.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
+    // envoi de la photo d'accueil (même composant que le catalogue)
+    f.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
+      const file = inp.files?.[0]; if (!file) return;
+      const path = `site/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+      const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+      if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
+      const u = sb.storage.from('images').getPublicUrl(path).data.publicUrl;
+      f.querySelector('[data-photos="hero"] .photos')!.innerHTML = photoItem(u);
+    }));
+    f.addEventListener('click', (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); });
+    const msg = f.querySelector('#set-msg')!;
+    const publish = async () => {
+      const hook = v('deploy_hook');
+      if (!hook) { msg.textContent = 'Enregistré ✓ (ajoutez le lien Deploy Hook pour publier automatiquement)'; msg.className = 'text-sm text-amber-700'; return; }
+      try { await fetch(hook, { method: 'POST', mode: 'no-cors' }); msg.textContent = 'Enregistré ✓ — le site se met à jour (≈ 1 min)'; msg.className = 'text-sm text-emerald-700'; }
+      catch { msg.textContent = 'Enregistré, mais la publication a échoué : vérifiez le lien.'; msg.className = 'text-sm text-red-600'; }
+    };
+    f.querySelector('#publish-now')!.addEventListener('click', publish);
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const hero = [...f.querySelectorAll<HTMLElement>('[data-photos="hero"] .photo')].map((p) => p.dataset.url!)[0] ?? '';
+      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero };
+      const [{ error: e1 }, { error: e2 }] = await Promise.all([
+        sb.from('settings').update({ data }).eq('id', 1),
+        sb.from('admin_settings').update({ deploy_hook: v('deploy_hook') || null }).eq('id', 1),
+      ]);
+      if (e1 || e2) { msg.textContent = 'Erreur : ' + (e1 ?? e2)!.message; msg.className = 'text-sm text-red-600'; return; }
+      await publish();
+    });
+  }
+
+  // ═════════ Alerte en direct : nouvelle commande ═════════
+  function startLiveAlerts() {
+    const beep = () => { try { const c = new AudioContext(); const o = c.createOscillator(); const g = c.createGain(); o.connect(g); g.connect(c.destination); o.frequency.value = 880; g.gain.value = 0.08; o.start(); setTimeout(() => { o.frequency.value = 1175; }, 150); setTimeout(() => { o.stop(); c.close(); }, 320); } catch {} };
+    sb.channel('admin-orders').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload: any) => {
+      const o = payload.new;
+      beep(); paintPending();
+      document.title = '🔔 Nouvelle commande ! | Dubai Location';
+      const t = document.createElement('div');
+      t.className = 'fixed right-4 top-24 z-[70] w-80 rounded-2xl bg-white p-4 shadow-lift ring-2 ring-gold';
+      t.innerHTML = `<p class="font-bold">🔔 Nouvelle réservation n°${o.id}</p><p class="text-sm text-gray-600">${esc(o.contact_name ?? '')} · ${esc(o.contact_phone ?? '')}</p><div class="mt-3 flex gap-2"><button class="btn-gold !px-4 !py-2 text-sm" data-open>Voir</button><button class="btn-outline !px-4 !py-2 text-sm" data-x>Fermer</button></div>`;
+      document.body.append(t);
+      t.querySelector('[data-open]')!.addEventListener('click', () => { t.remove(); show('orders'); });
+      t.querySelector('[data-x]')!.addEventListener('click', () => t.remove());
+      if ('Notification' in window && Notification.permission === 'granted') new Notification('🔔 Nouvelle réservation n°' + o.id, { body: `${o.contact_name ?? ''} · ${o.contact_phone ?? ''}` });
+      if (current === 'dashboard' || current === 'orders') show(current);
+    }).subscribe();
+    if ('Notification' in window && Notification.permission === 'default') {
+      const b = document.createElement('button');
+      b.className = 'side mt-2 !bg-amber-50 !text-amber-800';
+      b.innerHTML = '<span>🔔</span>Activer les alertes';
+      b.addEventListener('click', async () => { await Notification.requestPermission(); b.remove(); });
+      document.querySelector('aside nav')!.append(b);
+    }
+  }
+
   const paintMe = (name?: string | null) => {
     document.getElementById('me-name')!.textContent = name || user?.email || 'Administrateur';
     document.getElementById('me-initial')!.textContent = (name || user?.email || 'A')[0].toUpperCase();
@@ -416,6 +659,7 @@ import Layout from '../../layouts/Layout.astro';
     const b = document.getElementById('pending-badge')!; b.textContent = String(count ?? 0); b.classList.toggle('hidden', !count);
   }
 
+  document.getElementById('logout')?.addEventListener('click', async () => { await sb.auth.signOut(); location.href = '/'; });
   const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
   const show = (t: string) => {
     current = t;
@@ -424,7 +668,7 @@ import Layout from '../../layouts/Layout.astro';
     document.getElementById('view-sub')!.textContent = TITLES[t][1];
     panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
     history.replaceState(null, '', '#' + t);
-    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients } as Record<string, () => void>)[t]?.() ?? showTable(t);
+    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
     if (t === 'orders' || t === 'dashboard') paintPending();
   };
   tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab!)));
@@ -437,5 +681,6 @@ import Layout from '../../layouts/Layout.astro';
     paintMe(me?.full_name);
     const start = location.hash.slice(1);
     show(TITLES[start] ? start : 'dashboard');
+    startLiveAlerts();
   }
 </script>

@@ -125,11 +125,27 @@ const seedData = await getActivities();
     const unit = () => (opt && a.options[+opt.value]?.price) || a.price;
     const paint = () => { document.getElementById('total')!.textContent = aed(unit() * Math.max(1, +qty.value || 1)); };
     [opt, qty].forEach((el) => el?.addEventListener('input', paint)); paint();
+    // Dates complètes (bloquées par l'admin)
+    const blocked = new Set<string>();
+    const fullEl = document.createElement('p');
+    fullEl.className = 'mt-2 hidden rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700';
+    date.closest('.grid')!.after(fullEl);
+    const fmtD = (d: string) => new Date(d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+    sb.from('blocked_dates').select('day').eq('item_type', 'activity').eq('item_slug', a.slug).gte('day', today).order('day').then(({ data }) => {
+      (data ?? []).forEach((x: any) => blocked.add(x.day));
+      if (blocked.size) { fullEl.textContent = '🚫 Complet le : ' + [...blocked].slice(0, 8).map(fmtD).join(', ') + (blocked.size > 8 ? '…' : ''); fullEl.classList.remove('hidden'); }
+    });
+    date.addEventListener('change', () => {
+      const err = document.getElementById('err')!;
+      if (blocked.has(date.value)) { err.textContent = 'Complet ce jour-là : choisissez une autre date 🙏'; err.classList.remove('hidden'); }
+      else err.classList.add('hidden');
+    });
     document.getElementById('book')!.addEventListener('submit', (e) => {
       e.preventDefault();
       const err = document.getElementById('err')!;
       if (!optChosen) { err.textContent = 'Veuillez choisir une formule'; err.classList.remove('hidden'); document.getElementById('opt-btn')!.click(); return; }
       if (!date.value) { err.textContent = 'Veuillez sélectionner une date'; err.classList.remove('hidden'); date.focus(); return; }
+      if (blocked.has(date.value)) { err.textContent = 'Complet ce jour-là : choisissez une autre date 🙏'; err.classList.remove('hidden'); date.focus(); return; }
       err.classList.add('hidden');
       cart.add({ type: 'activity', slug: a.slug, title: a.title, image: a.image_url, option: opt ? a.options[+opt.value].name : null,
         date: date.value, endDate: null, qty: Math.max(1, +qty.value || 1), qtyLabel: a.qty_label || 'Participants', unitPrice: unit(), priceUnit: a.price_unit });

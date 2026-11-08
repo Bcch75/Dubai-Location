@@ -12,7 +12,27 @@ export const site = {
   // Statistiques de visites : identifiant Google Analytics (ex. 'G-XXXXXXX'), vide = désactivé.
   // Les statistiques Vercel fonctionnent sans identifiant (à activer dans Vercel → Analytics).
   googleAnalyticsId: '',
+  heroTitle: 'Trouvez et réservez des activités',
+  searchPlaceholder: 'Destination ou une activité...',
+  heroImage: '', // vide = photo par défaut du site
 };
+
+// Les réglages modifiés dans l'espace admin (⚙️ Réglages du site) remplacent les valeurs ci-dessus
+try {
+  const r = await fetch(`${import.meta.env.PUBLIC_SUPABASE_URL}/rest/v1/settings?id=eq.1&select=data`, {
+    headers: { apikey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${import.meta.env.PUBLIC_SUPABASE_ANON_KEY}` },
+  });
+  const d = r.ok ? (await r.json())[0]?.data : null;
+  if (d) {
+    if (d.whatsapp) site.whatsapp = String(d.whatsapp).replace(/\D/g, '');
+    if (d.phone) site.phoneDisplay = d.phone;
+    if (d.email) site.email = d.email;
+    if (d.hours) site.hours = d.hours;
+    if (d.hero_title) site.heroTitle = d.hero_title;
+    if (d.search_placeholder) site.searchPlaceholder = d.search_placeholder;
+    if (d.hero_image) site.heroImage = d.hero_image;
+  }
+} catch { /* hors ligne : valeurs par défaut */ }
 
 // ───────── Réseaux sociaux ─────────
 // Remplissez le lien (url) et le nombre d'abonnés (count, ex. '12K').
