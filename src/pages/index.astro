@@ -2,59 +2,52 @@
 import { Image } from 'astro:assets';
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
-import { getActivities, getCars } from '../lib/data';
+import { getActivities, getCars, getCategories } from '../lib/data';
 import { site } from '../data/site';
 import { activityCard, carCard, setBase } from '../lib/cards';
 import hero from '../assets/img/hero.jpg';
-import desert from '../assets/img/desert.jpg';
-import yacht from '../assets/img/yacht.jpg';
-import balloon from '../assets/img/montgolfiere.jpg';
-import burj from '../assets/img/burj-khalifa.jpg';
 import carImg from '../assets/img/cars/huracan-evo.jpg';
 
+const categories = await getCategories();
+const tileImg = (u: string | null) => (u && u.startsWith('/img/') ? u.replace('/img/', '/img/thumb/') : u ?? '');
 const tiles = [
-  { href: '/activites/desert/', title: 'Désert', img: desert },
-  { href: '/activites/mer/', title: 'Mer & yacht', img: yacht },
-  { href: '/activites/ciel/', title: 'Dans les airs', img: balloon },
-  { href: '/activites/incontournables/', title: 'Incontournables', img: burj },
-  { href: '/voitures/', title: 'Voitures', img: carImg },
+  ...categories.map((c) => ({ href: `/activites/${c.slug}/`, title: c.label, src: tileImg(c.image_url) })),
+  { href: '/voitures/', title: 'Voitures', src: '' },
 ];
 setBase(import.meta.env.BASE_URL);
 const acts = await getActivities();
 const cars = await getCars();
-const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
+const W = 'w-[76vw] max-w-[300px] shrink-0 snap-start sm:w-[270px]';
 const rowHtml = (k: string) => k === 'cars' ? cars.map((c) => carCard(c, W)).join('') : (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W)).join('');
 const rows = [
   { id: 'populaires', icon: '🔥', title: 'Les plus populaires', sub: 'Les activités préférées de nos clients à Dubaï.', href: '/activites/', kind: 'featured' },
-  { id: 'desert', icon: '🏜️', title: 'Désert', sub: 'Quad, buggy, dîner bédouin : l’aventure au cœur des dunes.', href: '/activites/desert/', kind: 'desert' },
-  { id: 'mer', icon: '🛥️', title: 'Mer & yacht', sub: 'Yacht privé, jet-ski, plongée et croisière à Oman.', href: '/activites/mer/', kind: 'mer' },
-  { id: 'incontournables', icon: '🏙️', title: 'Incontournables & famille', sub: 'Burj Khalifa, Ski Dubai, dauphins, parcs d’attractions…', href: '/activites/famille/', kind: 'famille' },
+  ...categories.filter((c) => c.on_home).map((c) => ({ id: c.slug, icon: c.icon ?? '', title: c.label, sub: c.subtitle ?? '', href: `/activites/${c.slug}/`, kind: c.slug })),
   { id: 'voitures', icon: '🏎️', title: 'Location de voitures', sub: 'Supercars et SUV de luxe livrés à votre hôtel.', href: '/voitures/', kind: 'cars' },
 ];
 ---
 <Layout>
-  <section class="relative isolate flex h-[520px] items-center justify-center overflow-hidden sm:h-[630px]">
+  <section class="relative isolate flex h-[450px] items-center justify-center overflow-hidden sm:h-[630px]">
     {site.heroImage
       ? <img src={site.heroImage} alt="Dubaï" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover object-[center_45%]" />
       : <Image src={hero} alt="La mer et le skyline de Dubaï avec le Burj Al Arab et des bateaux" widths={[800, 1280, 1920, 2560]} sizes="100vw" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover object-[center_45%]" />}
     <div class="absolute inset-0 -z-10 bg-black/25"></div>
-    <div class="container-x pt-16 text-center">
-      <h1 class="mx-auto max-w-5xl text-4xl font-extrabold leading-none !text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]">{site.heroTitle}</h1>
-      <form action="/activites/" method="get" role="search" class="relative mx-auto mt-10 w-full max-w-[576px]">
+    <div class="container-x pt-14 text-center sm:pt-16">
+      <h1 class="mx-auto max-w-5xl text-[42px] font-extrabold leading-[1.04] tracking-[-0.01em] !text-white sm:leading-none drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]">{site.heroTitle}</h1>
+      <form action="/activites/" method="get" role="search" class="relative mx-auto mt-7 w-full max-w-[576px] sm:mt-10">
         <label for="hero-q" class="sr-only">Rechercher</label>
         <svg viewBox="0 0 24 24" class="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="hero-q" name="q" type="search" placeholder={site.searchPlaceholder} class="h-[66px] w-full rounded-full border border-gray-200 bg-white py-5 pl-12 pr-[150px] text-base text-[#121212] shadow-[0_10px_15px_-3px_rgb(0_0_0/0.1),0_4px_6px_-4px_rgb(0_0_0/0.1)] outline-none placeholder:text-gray-400 focus:border-gold sm:pr-[190px]" />
-        <button class="absolute right-[7px] top-[7px] h-[52px] rounded-full bg-[#0171eb] px-5 text-base font-bold text-white shadow-[0_4px_6px_-1px_rgb(0_0_0/0.1),0_2px_4px_-2px_rgb(0_0_0/0.1)] transition hover:bg-gold-deep sm:px-8 sm:text-xl">Rechercher</button>
+        <input id="hero-q" name="q" type="search" placeholder={site.searchPlaceholder} class="h-[58px] w-full rounded-full border border-gray-200 bg-white py-4 pl-11 pr-[136px] sm:h-[66px] sm:py-5 sm:pl-12 text-base text-[#121212] shadow-[0_10px_15px_-3px_rgb(0_0_0/0.1),0_4px_6px_-4px_rgb(0_0_0/0.1)] outline-none placeholder:text-gray-400 focus:border-gold sm:pr-[190px]" />
+        <button class="absolute right-[6px] top-[6px] h-[46px] rounded-full bg-[#0171eb] px-5 text-base font-bold sm:right-[7px] sm:top-[7px] sm:h-[52px] text-white shadow-[0_4px_6px_-1px_rgb(0_0_0/0.1),0_2px_4px_-2px_rgb(0_0_0/0.1)] transition hover:bg-gold-deep sm:px-8 sm:text-xl">Rechercher</button>
       </form>
     </div>
   </section>
 
   <section class="container-x pt-14">
-    <h2 class="mb-8 text-3xl font-bold sm:text-4xl">Nos univers</h2>
+    <h2 class="mb-6 text-[32px] font-extrabold leading-tight sm:mb-8 sm:text-4xl">Nos univers</h2>
     <div class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0">
       {tiles.map((t) => (
-        <a href={t.href} class="group relative isolate h-[220px] w-[156px] shrink-0 snap-start overflow-hidden rounded-[24px] shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] sm:h-[283px] sm:w-[200px]">
-          <Image src={t.img} alt="" widths={[300, 500]} sizes="(min-width: 640px) 20vw, 150px" class="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />
+        <a href={t.href} class="group relative isolate h-[250px] w-[160px] shrink-0 snap-start overflow-hidden rounded-[24px] shadow-[0_4px_20px_0_rgb(0_0_0/0.08)] sm:h-[283px] sm:w-[200px]">
+          {t.src ? <img src={t.src} alt="" loading="lazy" class="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" /> : <Image src={carImg} alt="" widths={[300, 500]} sizes="200px" class="absolute inset-0 -z-20 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" />}
           <div class="absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
           <p class="absolute inset-x-0 bottom-0 p-4 text-lg font-bold leading-tight text-white [overflow-wrap:anywhere] sm:text-[22px]">{t.title}</p>
         </a>
@@ -64,12 +57,12 @@ const rows = [
 
   {rows.map((r) => (
     <section id={r.id} class="container-x scroll-mt-28 pt-16">
-      <div class="flex items-end justify-between gap-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h2 class="mb-1 flex items-center gap-2 text-2xl font-bold tracking-[-0.75px] sm:text-[30px] sm:leading-[1.25]"><span aria-hidden="true">{r.icon}</span>{r.title}</h2>
+          <h2 class="mb-1 flex items-center gap-2 text-[28px] font-extrabold leading-tight tracking-[-0.75px] sm:text-[30px] sm:font-bold sm:leading-[1.25]"><span aria-hidden="true">{r.icon}</span>{r.title}</h2>
           <p class="text-gray-500">{r.sub}</p>
         </div>
-        <a href={r.href} class="hidden shrink-0 text-base font-bold text-ink hover:text-gold sm:inline">Toutes les activités →</a>
+        <a href={r.href} class="shrink-0 text-sm font-bold text-ink hover:text-gold sm:text-base">Toutes les activités →</a>
       </div>
       <div class="relative mt-6">
         <div data-row={r.kind} set:html={rowHtml(r.kind)} class="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-6 overflow-x-auto scroll-smooth px-4 pb-6 pt-1 sm:-mx-2 sm:px-2"></div>
@@ -93,7 +86,7 @@ const rows = [
 
 <script>
   import { fetchActivities, fetchCars, activityCard, carCard, paintFavs, live } from '../lib/app';
-  const W = 'w-[78vw] shrink-0 snap-start sm:w-[270px]';
+  const W = 'w-[76vw] max-w-[300px] shrink-0 snap-start sm:w-[270px]';
   const rows = document.querySelectorAll<HTMLElement>('[data-row]');
   live('acts', fetchActivities, (acts) => rows.forEach((r) => {
     const k = r.dataset.row!; if (k === 'cars') return;

@@ -15,6 +15,7 @@ import Layout from '../../layouts/Layout.astro';
             <button class="side" data-tab="dashboard"><span>📊</span>Tableau de bord</button>
             <button class="side" data-tab="account"><span>👤</span>Mon compte</button>
             <button class="side" data-tab="activities"><span>🏜️</span>Catalogue activités</button>
+            <button class="side" data-tab="categories"><span>🗂️</span>Catégories</button>
             <button class="side" data-tab="cars"><span>🏎️</span>Catalogue voitures</button>
             <button class="side" data-tab="orders"><span>📋</span>Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
             <button class="side" data-tab="clients"><span>👥</span>Clients</button>
@@ -77,7 +78,8 @@ import Layout from '../../layouts/Layout.astro';
   const dlg = document.getElementById('dlg') as HTMLDialogElement;
   const form = document.getElementById('edit') as HTMLFormElement;
   const STATUS: Record<string, string> = { pending: '⏳ En attente', confirmed: '✅ Confirmée', cancelled: '❌ Annulée', done: '🏁 Terminée' };
-  const CATS: [string, string][] = [['desert', '🏜️ Désert'], ['mer', '🛥️ Mer & yacht'], ['ciel', '🎈 Dans les airs'], ['incontournables', '🏙️ Incontournables'], ['excursions', '🧭 Excursions'], ['famille', '👨‍👩‍👧 En famille']];
+  let CATS: [string, string][] = [];
+  const loadCats = async () => { const { data } = await sb.from('categories').select('slug,label,icon').order('position'); CATS = (data ?? []).map((c: any) => [c.slug, `${c.icon ?? ''} ${c.label}`.trim()]); };
   const CAR_CATS: [string, string][] = [['supercar', 'Supercar'], ['prestige', 'Prestige'], ['suv', 'SUV de luxe'], ['sport', 'Sportive / berline']];
   const UNITS: [string, string, string][] = [['/ pers.', 'Par personne', 'Personnes'], ['/ heure', 'Par heure', 'Heures'], ['', 'Pour le groupe', 'Personnes'], ['/ jour', 'Par jour', 'Jours']];
   const BADGES = ['', 'Populaire', 'Nouveau', 'Coup de cœur', 'Promo', 'Best-seller'];
@@ -259,7 +261,8 @@ import Layout from '../../layouts/Layout.astro';
     posts: { build: postForm, read: readPost, name: 'l’article' },
   };
 
-  function openEdit(tab: string, id: number | null) {
+  async function openEdit(tab: string, id: number | null) {
+    if (tab === 'activities') await loadCats();
     const F = FORMS[tab];
     const r = id ? rows.find((x) => x.id === id) : {};
     form.innerHTML = `
@@ -321,6 +324,7 @@ import Layout from '../../layouts/Layout.astro';
     orders: ['Commandes', 'Les réservations envoyées par vos clients.'],
     clients: ['Clients', 'Les personnes qui ont créé un compte.'],
     posts: ['Blog', 'Vos articles de conseils.'],
+    categories: ['Catégories', 'Les catégories d’activités du menu, de l’accueil et des filtres.'],
     calendar: ['Calendrier', 'Vos réservations jour par jour, et les dates complètes.'],
     promos: ['Codes promo', 'Créez des réductions pour vos clients (Instagram, fidélité…).'],
     stats: ['Statistiques', 'Les 30 derniers jours : visites, activités vues, provenance.'],
@@ -650,6 +654,80 @@ import Layout from '../../layouts/Layout.astro';
     }
   }
 
+
+  // ═════════ Catégories ═════════
+  async function publishSite(msgEl?: Element | null) {
+    const { data } = await sb.from('admin_settings').select('deploy_hook').eq('id', 1).maybeSingle();
+    if (!data?.deploy_hook) { if (msgEl) { msgEl.textContent = 'Enregistré ✓ — pour que la nouvelle page apparaisse, ajoutez le lien Deploy Hook dans ⚙️ Réglages du site.'; msgEl.className = 'text-sm text-amber-700'; } return; }
+    try { await fetch(data.deploy_hook, { method: 'POST', mode: 'no-cors' }); if (msgEl) { msgEl.textContent = 'Enregistré ✓ — le site se met à jour (≈ 1 min)'; msgEl.className = 'text-sm text-emerald-700'; } } catch {}
+  }
+  async function showCategories() {
+    const { data } = await sb.from('categories').select('*').order('position');
+    const cats = data ?? [];
+    const { data: acts } = await sb.from('activities').select('categories');
+    const n = (sl: string) => (acts ?? []).filter((a: any) => a.categories.includes(sl)).length;
+    panel.innerHTML = `
+      <button id="cat-new" class="btn-gold mb-4">+ Ajouter une catégorie</button>
+      <p id="cat-msg" class="mb-3 text-sm"></p>
+      <div class="space-y-2">${cats.map((c: any, i: number) => `
+        <div class="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
+          <img src="${esc(thumb(c.image_url))}" alt="" class="h-14 w-14 shrink-0 rounded-xl bg-sand object-cover">
+          <div class="min-w-0 flex-1"><p class="font-semibold">${esc(c.icon ?? '')} ${esc(c.label)} ${c.active ? '' : '<span class="text-xs text-red-600">(masquée)</span>'}</p>
+            <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · 📌 menu' : ''}${c.on_home ? ' · 🏠 accueil' : ''}</p></div>
+          <div class="flex flex-col"><button data-mv="${esc(c.slug)}" data-d="-1" ${i === 0 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▲</button><button data-mv="${esc(c.slug)}" data-d="1" ${i === cats.length - 1 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▼</button></div>
+          <button data-cedit="${esc(c.slug)}" class="btn-outline !px-4 !py-2 text-sm">✏️ Modifier</button>
+        </div>`).join('')}</div>`;
+    const msg = panel.querySelector('#cat-msg');
+    panel.querySelector('#cat-new')!.addEventListener('click', () => catForm(null, cats.length ? cats[cats.length - 1].position + 10 : 10));
+    panel.querySelectorAll<HTMLElement>('[data-cedit]').forEach((b) => b.addEventListener('click', () => catForm(cats.find((c: any) => c.slug === b.dataset.cedit), 0)));
+    panel.querySelectorAll<HTMLElement>('[data-mv]').forEach((b) => b.addEventListener('click', async () => {
+      const i = cats.findIndex((c: any) => c.slug === b.dataset.mv), j = i + +b.dataset.d!;
+      const a = cats[i], c = cats[j]; if (!c) return;
+      await Promise.all([sb.from('categories').update({ position: c.position }).eq('slug', a.slug), sb.from('categories').update({ position: a.position === c.position ? c.position + 1 : a.position }).eq('slug', c.slug)]);
+      await showCategories(); publishSite(panel.querySelector('#cat-msg'));
+    }));
+    void msg;
+  }
+  function catForm(c: any, pos: number) {
+    form.innerHTML = `
+      <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
+        <h2 class="text-lg font-bold">${c ? 'Modifier' : 'Ajouter'} une catégorie</h2>
+        <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">💾 Enregistrer</button></div>
+      </div>
+      <div class="space-y-4 p-4 sm:p-5">
+        ${block('🗂️', 'La catégorie', '', `<div class="grid gap-4 sm:grid-cols-[110px_1fr]">${input('icon', 'Emoji', c?.icon, 'Ex. 🏜️')}${input('label', 'Nom', c?.label, 'Ex. Désert')}</div>${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
+        ${block('📸', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
+        ${block('👁️', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible sur le site', c?.active ?? true))}
+        <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
+        ${c ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">🗑️ Supprimer la catégorie</button>` : ''}
+      </div>`;
+    form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
+    form.onclick = (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); };
+    form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
+      const file = inp.files?.[0]; if (!file) return;
+      const path = `categories/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+      const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+      if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
+      form.querySelector('[data-photos="main"] .photos')!.innerHTML = photoItem(sb.storage.from('images').getPublicUrl(path).data.publicUrl);
+    }));
+    form.querySelector('[data-delete]')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette catégorie ? Les activités ne sont pas supprimées.')) return;
+      await sb.from('categories').delete().eq('slug', c.slug); dlg.close(); await showCategories(); publishSite(panel.querySelector('#cat-msg'));
+    });
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const v = (k: string) => (form.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
+      const chk = (k: string) => (form.querySelector('#f_' + k) as HTMLInputElement).checked;
+      const err = form.querySelector('#ferr')!;
+      if (!v('label')) { err.textContent = 'Indiquez un nom.'; err.classList.remove('hidden'); return; }
+      const row = { label: v('label'), icon: v('icon') || null, subtitle: v('subtitle') || null, image_url: getPhotos('main')[0] ?? null, in_menu: chk('in_menu'), on_home: chk('on_home'), active: chk('active') };
+      const { error } = c ? await sb.from('categories').update(row).eq('slug', c.slug) : await sb.from('categories').insert({ ...row, slug: slugify(v('label')), position: pos });
+      if (error) { err.textContent = error.message.includes('duplicate') ? 'Cette catégorie existe déjà.' : error.message; err.classList.remove('hidden'); return; }
+      dlg.close(); await showCategories(); publishSite(panel.querySelector('#cat-msg'));
+    };
+    dlg.showModal();
+  }
+
   const paintMe = (name?: string | null) => {
     document.getElementById('me-name')!.textContent = name || user?.email || 'Administrateur';
     document.getElementById('me-initial')!.textContent = (name || user?.email || 'A')[0].toUpperCase();
@@ -668,7 +746,7 @@ import Layout from '../../layouts/Layout.astro';
     document.getElementById('view-sub')!.textContent = TITLES[t][1];
     panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
     history.replaceState(null, '', '#' + t);
-    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
+    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, categories: showCategories, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
     if (t === 'orders' || t === 'dashboard') paintPending();
   };
   tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab!)));

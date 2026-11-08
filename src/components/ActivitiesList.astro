@@ -1,14 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Icon from './Icon.astro';
-import { getActivities } from '../lib/data';
+import { getActivities, getCategories } from '../lib/data';
 import { activityCard, setBase } from '../lib/cards';
 
 interface Props { cat?: string }
 const { cat = '' } = Astro.props;
 setBase(import.meta.env.BASE_URL);
 const acts = await getActivities();
-const cats = [['', 'Toutes', 'Activités à Dubaï'], ['desert', '🏜️ Désert', 'Désert'], ['mer', '🛥️ Mer & yacht', 'Mer & yacht'], ['ciel', '🎈 Dans les airs', 'Dans les airs'], ['incontournables', '🏙️ Incontournables', 'Incontournables'], ['excursions', '🧭 Excursions', 'Excursions'], ['famille', '👨‍👩‍👧 En famille', 'En famille']];
+const cats = [['', 'Toutes', 'Activités à Dubaï'], ...(await getCategories()).map((c) => [c.slug, `${c.icon ?? ''} ${c.label}`.trim(), c.label])];
 const title = cats.find((c) => c[0] === cat)?.[2] ?? 'Activités';
 const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
 ---
