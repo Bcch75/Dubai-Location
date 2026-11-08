@@ -59,9 +59,9 @@ const ICON = {
 export { ICON };
 
 const priceBlock = (price: string, old?: number | null, from = true) => `
-  <div class="text-right leading-tight">
+  <div class="shrink-0 text-right leading-tight">
     ${from ? '<span class="block text-[11px] font-medium leading-[1.5] text-gray-400">à partir de</span>' : ''}
-    ${old ? `<span class="mr-1 text-xs text-muted line-through">${esc(aed(old))}</span><span class="text-lg font-bold leading-7 text-red-500">${esc(price)}</span>` : `<span class="text-lg font-bold leading-7 text-ink">${esc(price)}</span>`}
+    ${old ? `<span class="mr-1 text-xs text-muted line-through">${esc(aed(old))}</span><span class="whitespace-nowrap text-lg font-bold leading-7 text-red-500">${esc(price)}</span>` : `<span class="whitespace-nowrap ${/demande/i.test(price) ? 'text-sm font-semibold leading-7 text-ink' : 'text-lg font-bold leading-7 text-ink'}">${esc(price)}</span>`}
   </div>`;
 
 
@@ -75,7 +75,7 @@ const topBadges = (badge: string | null | undefined, video: string | null | unde
       </div>`;
 const footLeft = (rating?: number | null, count?: number | null) => rating
   ? `<span class="flex items-center gap-1 text-sm font-semibold text-ink">${ICON.star}${Number(rating).toFixed(1)}${count ? ` <span class="font-normal text-gray-400">(${count})</span>` : ''}</span>`
-  : `<span class="text-sm font-semibold text-emerald-600">Réservation gratuite</span>`;
+  : `<span class="min-w-0 text-xs font-semibold leading-tight text-emerald-600">Réservation gratuite</span>`;
 
 export function activityCard(a: Activity, cls = '') {
   return `
@@ -89,9 +89,9 @@ export function activityCard(a: Activity, cls = '') {
     <div class="flex flex-1 flex-col px-4 pb-4 pt-4">
       <h3 class="mb-2 line-clamp-2 text-[17px] font-semibold leading-[1.375] text-ink"><a href="${url('activite/?s=' + encodeURIComponent(a.slug))}" class="after:absolute after:inset-0">${esc(a.title)}</a></h3>
       <p class="mb-3 line-clamp-2 text-sm leading-[1.625] text-gray-500">${esc(a.tagline)}</p>
-      ${a.perk ? `<p class="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold leading-tight text-emerald-700">${ICON.gift}${esc(a.perk)}</p>` : ''}
+      ${a.perk ? `<p class="flex items-start gap-1.5 self-start rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-emerald-700">${ICON.gift}${esc(a.perk)}</p>` : ''}
       <div class="flex-1"></div>
-      <div class="mt-4 flex items-end justify-between border-t border-gray-100 pt-3">
+      <div class="mt-4 flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
         ${footLeft(a.rating, a.reviews_count)}
         ${priceBlock(aed(a.price), a.old_price, a.price_from)}
       </div>
@@ -111,10 +111,10 @@ export function carCard(c: Car, cls = '') {
     <div class="flex flex-1 flex-col px-4 pb-4 pt-4">
       <p class="text-xs font-medium text-gray-400">${esc(c.brand)}</p>
       <h3 class="mb-2 text-[17px] font-semibold leading-[1.375] text-ink"><a href="${url('voiture/?s=' + encodeURIComponent(c.slug))}" class="after:absolute after:inset-0">${esc(c.model)}</a></h3>
-      <p class="mt-1.5 flex flex-wrap gap-x-3 text-xs text-muted"><span class="flex items-center gap-1">${ICON.users}${c.seats ?? '-'} places</span><span>${esc(c.engine ?? '')}</span><span>Boîte auto</span></p>
-      ${c.perk ? `<p class="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold leading-tight text-emerald-700">${ICON.gift}${esc(c.perk)}</p>` : ''}
+      <p class="mb-3 mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500"><span class="flex items-center gap-1">${ICON.users}${c.seats ?? '-'} places</span><span>${esc(c.engine ?? '')}</span><span>Boîte auto</span></p>
+      ${c.perk ? `<p class="flex items-start gap-1.5 self-start rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold leading-snug text-emerald-700">${ICON.gift}${esc(c.perk)}</p>` : ''}
       <div class="flex-1"></div>
-      <div class="mt-4 flex items-end justify-between border-t border-gray-100 pt-3">
+      <div class="mt-4 flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
         ${footLeft(c.rating, c.reviews_count)}
         ${priceBlock(carPrice(c), c.old_price, !!c.price_per_day)}
       </div>
