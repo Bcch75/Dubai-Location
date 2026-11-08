@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import { ap } from '../../lib/admin-icons';
 ---
 <Layout title="Espace admin">
   <section class="container-x pb-20 pt-28 sm:pt-32">
@@ -12,20 +13,20 @@ import Layout from '../../layouts/Layout.astro';
             <span class="min-w-0"><b id="me-name" class="block truncate text-sm text-ink">Administrateur</b><span class="text-xs text-gray-500">Espace admin</span></span>
           </div>
           <nav class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 lg:mx-0 lg:grid lg:gap-1.5 lg:overflow-visible lg:px-0" aria-label="Espace admin">
-            <button class="side" data-tab="dashboard"><span>📊</span>Tableau de bord</button>
-            <button class="side" data-tab="account"><span>👤</span>Mon compte</button>
-            <button class="side" data-tab="activities"><span>🏜️</span>Catalogue activités</button>
-            <button class="side" data-tab="categories"><span>🗂️</span>Catégories</button>
-            <button class="side" data-tab="cars"><span>🏎️</span>Catalogue voitures</button>
-            <button class="side" data-tab="orders"><span>📋</span>Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
-            <button class="side" data-tab="clients"><span>👥</span>Clients</button>
-            <button class="side" data-tab="calendar"><span>🗓️</span>Calendrier</button>
-            <button class="side" data-tab="promos"><span>🏷️</span>Codes promo</button>
-            <button class="side" data-tab="stats"><span>📈</span>Statistiques</button>
-            <button class="side" data-tab="posts"><span>📝</span>Blog</button>
-            <button class="side" data-tab="settings"><span>⚙️</span>Réglages du site</button>
-            <a class="side" href="/" target="_blank"><span>🌐</span>Voir le site ↗</a>
-            <button class="side !text-red-600" id="logout"><span>🚪</span>Se déconnecter</button>
+            <button class="side" data-tab="dashboard"><Fragment set:html={ap('dashboard', '#0171eb', 17)} />Tableau de bord</button>
+            <button class="side" data-tab="account"><Fragment set:html={ap('user', '#0ea5e9', 17)} />Mon compte</button>
+            <button class="side" data-tab="activities"><Fragment set:html={ap('sunset', '#f59e0b', 17)} />Catalogue activités</button>
+            <button class="side" data-tab="categories"><Fragment set:html={ap('folder', '#8b5cf6', 17)} />Catégories</button>
+            <button class="side" data-tab="cars"><Fragment set:html={ap('car', '#c9a227', 17)} />Catalogue voitures</button>
+            <button class="side" data-tab="orders"><Fragment set:html={ap('list', '#0171eb', 17)} />Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
+            <button class="side" data-tab="clients"><Fragment set:html={ap('users', '#ec4899', 17)} />Clients</button>
+            <button class="side" data-tab="calendar"><Fragment set:html={ap('calendar', '#10b981', 17)} />Calendrier</button>
+            <button class="side" data-tab="promos"><Fragment set:html={ap('tag', '#059669', 17)} />Codes promo</button>
+            <button class="side" data-tab="stats"><Fragment set:html={ap('stats', '#6366f1', 17)} />Statistiques</button>
+            <button class="side" data-tab="posts"><Fragment set:html={ap('blog', '#0ea5e9', 17)} />Blog</button>
+            <button class="side" data-tab="settings"><Fragment set:html={ap('settings', '#6b7280', 17)} />Réglages du site</button>
+            <a class="side" href="/" target="_blank"><Fragment set:html={ap('world', '#0171eb', 17)} />Voir le site ↗</a>
+            <button class="side !text-red-600" id="logout"><Fragment set:html={ap('logout', '#dc2626', 17)} />Se déconnecter</button>
           </nav>
         </div>
       </aside>
@@ -61,7 +62,8 @@ import Layout from '../../layouts/Layout.astro';
   .side { display: flex; align-items: center; gap: 10px; white-space: nowrap; border-radius: 14px; padding: 11px 14px; font-size: 0.95rem; font-weight: 600; color: #374151; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .05); outline: 1px solid #f3f4f6; text-align: left; transition: all .15s; }
   .side:hover { background: #f8fafc; }
   .side[aria-pressed='true'] { background: #0171eb; color: #fff; outline-color: #0171eb; box-shadow: 0 6px 16px -6px rgb(1 113 235 / .6); }
-  .side span { font-size: 1.1rem; }
+  .side[aria-pressed='true'] span[style] { background: rgb(255 255 255 / .2) !important; }
+  .side[aria-pressed='true'] svg { color: #fff !important; }
   .stat { background: #fff; border-radius: 18px; padding: 18px 20px; box-shadow: 0 4px 20px rgb(0 0 0 / .06); }
   .stat b { display: block; font-size: 1.9rem; font-weight: 800; color: #111827; line-height: 1.1; margin-top: 6px; }
   .stat span { font-size: .85rem; color: #6b7280; }
@@ -69,6 +71,7 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
+  import { ap, ai } from '../../lib/admin-icons';
   import { pill, iconKey, ICON_COLORS } from '../../lib/icons';
   import { ICON_LIB } from '../../lib/icon-library';
   const user = await getUser();
@@ -79,7 +82,7 @@ import Layout from '../../layouts/Layout.astro';
   const panel = document.getElementById('panel')!;
   const dlg = document.getElementById('dlg') as HTMLDialogElement;
   const form = document.getElementById('edit') as HTMLFormElement;
-  const STATUS: Record<string, string> = { pending: '⏳ En attente', confirmed: '✅ Confirmée', cancelled: '❌ Annulée', done: '🏁 Terminée' };
+  const STATUS: Record<string, string> = { pending: '● En attente', confirmed: '● Confirmée', cancelled: '● Annulée', done: '● Terminée' };
   let CATS: [string, string][] = [];
   const loadCats = async () => { const { data } = await sb.from('categories').select('slug,label,icon').order('position'); CATS = (data ?? []).map((c: any) => [c.slug, `${c.icon ?? ''} ${c.label}`.trim()]); };
   const CAR_CATS: [string, string][] = [['supercar', 'Supercar'], ['prestige', 'Prestige'], ['suv', 'SUV de luxe'], ['sport', 'Sportive / berline']];
@@ -94,12 +97,12 @@ import Layout from '../../layouts/Layout.astro';
       <div class="blk mb-3">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div><p class="font-semibold">Réservation n°${o.id} · ${esc(o.contact_name)}</p>
-          <p class="text-sm text-gray-500">${new Date(o.created_at).toLocaleString('fr-FR')} · <a class="text-gold" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}" target="_blank">📱 ${esc(o.contact_phone)}</a> · ${esc(o.contact_email)}</p></div>
+          <p class="text-sm text-gray-500">${new Date(o.created_at).toLocaleString('fr-FR')} · <a class="text-gold" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}" target="_blank">${esc(o.contact_phone)}</a> · ${esc(o.contact_email)}</p></div>
           <select data-status="${o.id}" class="field !w-auto !py-2">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v}</option>`).join('')}</select>
         </div>
         <ul class="mt-3 space-y-1 text-sm">${o.order_items.map((i: any) => `<li>• <b>${esc(i.item_title)}</b>${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
-        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b>${o.promo_code ? ` · 🏷️ ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>` : ''}
-        ${o.notes ? `<p class="mt-2 rounded-lg bg-sand p-2 text-sm">💬 Client : ${esc(o.notes)}</p>` : ''}
+        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b>${o.promo_code ? ` · ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>` : ''}
+        ${o.notes ? `<p class="mt-2 rounded-lg bg-sand p-2 text-sm">Client : ${esc(o.notes)}</p>` : ''}
         <label class="lab mt-4">Message pour le client <small>(il le voit dans « Mon compte »)</small></label>
         <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Ex. Prise en charge à 15h à votre hôtel. Prix final : 1 200 AED." value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-gold !px-4 !py-2 text-sm">Envoyer</button></div>
       </div>`).join('') : '<p class="blk text-gray-500">Aucune réservation pour l’instant.</p>';
@@ -123,7 +126,7 @@ import Layout from '../../layouts/Layout.astro';
       <div class="mb-2 flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
         <img src="${esc(thumb(r.image_url ?? r.cover_url))}" class="h-16 w-24 shrink-0 rounded-xl bg-sand object-cover" alt="">
         <div class="min-w-0 flex-1"><p class="truncate font-semibold">${esc(name(r))}</p><p class="text-sm text-gray-500">${esc(sub(r))}${r.active === false || r.published === false ? ' · <span class="text-red-600">masqué</span>' : ''}${r.featured ? ' · ⭐ populaire' : ''}</p></div>
-        <button data-edit="${r.id}" class="btn-outline !px-4 !py-2 text-sm">✏️ Modifier</button>
+        <button data-edit="${r.id}" class="btn-outline !px-4 !py-2 text-sm">Modifier</button>
       </div>`).join('');
   }
   panel.addEventListener('click', async (e) => {
@@ -144,55 +147,55 @@ import Layout from '../../layouts/Layout.astro';
   const picks = (name: string, opts: [string, string][], selected: string[], type = 'checkbox') =>
     `<div class="flex flex-wrap gap-2">${opts.map(([v, l]) => `<label class="pick"><input type="${type}" name="${name}" value="${esc(v)}" ${selected.includes(v) ? 'checked' : ''}>${l}</label>`).join('')}</div>`;
   const block = (icon: string, title: string, hint: string, body: string, open = true) =>
-    open ? `<section class="blk"><h3>${icon} ${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}<div class="mt-4 space-y-4">${body}</div></section>`
-         : `<details class="blk"><summary class="cursor-pointer list-none"><h3>${icon} ${title} <span class="ml-auto text-sm font-normal text-gold">Afficher ▾</span></h3>${hint ? `<p class="hint">${hint}</p>` : ''}</summary><div class="mt-4 space-y-4">${body}</div></details>`;
+    open ? `<section class="blk"><h3>${icon}${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}<div class="mt-4 space-y-4">${body}</div></section>`
+         : `<details class="blk"><summary class="cursor-pointer list-none"><h3>${icon}${title} <span class="ml-auto text-sm font-normal text-gold">Afficher ▾</span></h3>${hint ? `<p class="hint">${hint}</p>` : ''}</summary><div class="mt-4 space-y-4">${body}</div></details>`;
 
   // Photos avec aperçu
   const photoBox = (k: string, urls: string[], multiple: boolean) => `
     <div data-photos="${k}" data-multiple="${multiple ? 1 : 0}">
       <div class="photos grid grid-cols-3 gap-2 sm:grid-cols-4">${urls.map((u) => photoItem(u)).join('')}</div>
-      <label class="drop mt-2 block">📷 ${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'} <span class="block text-xs">depuis votre ordinateur ou téléphone</span>
+      <label class="drop mt-2 block">${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'} <span class="block text-xs">depuis votre ordinateur ou téléphone</span>
         <input type="file" accept="image/*" ${multiple ? 'multiple' : ''} class="hidden" data-upload="${k}"></label>
     </div>`;
-  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sm shadow" aria-label="Retirer">✕</button></div>`;
+  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/90 text-sm shadow" aria-label="Retirer"></button></div>`;
   const getPhotos = (k: string) => [...form.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!);
 
   // Formules : lignes à remplir
-  const optRow = (o: any = {}) => `<div class="opt grid grid-cols-[1fr_1fr_110px_32px] gap-2"><input class="field !py-2 text-sm" data-o="name" placeholder="Nom (ex. Snow Premium)" value="${esc(o.name ?? '')}"><input class="field !py-2 text-sm" data-o="detail" placeholder="Détail (facultatif)" value="${esc(o.detail ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix AED" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="text-gray-400 hover:text-red-600" aria-label="Retirer">✕</button></div>`;
+  const optRow = (o: any = {}) => `<div class="opt grid grid-cols-[1fr_1fr_110px_32px] gap-2"><input class="field !py-2 text-sm" data-o="name" placeholder="Nom (ex. Snow Premium)" value="${esc(o.name ?? '')}"><input class="field !py-2 text-sm" data-o="detail" placeholder="Détail (facultatif)" value="${esc(o.detail ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix AED" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="text-gray-400 hover:text-red-600" aria-label="Retirer"></button></div>`;
 
   // ═════════ Formulaire : Activité ═════════
   function activityForm(r: any) {
     const unit = UNITS.find((u) => u[0] === (r.price_unit ?? ''))?.[0] ?? '/ pers.';
     return [
-      block('📝', 'L’essentiel', 'Ce que les clients voient en premier.', [
+      block(ap('blog', '#0ea5e9', 16), 'L’essentiel', 'Ce que les clients voient en premier.', [
         input('title', 'Nom de l’activité', r.title, 'Ex. Safari dans le désert en quad'),
         `<div><span class="lab">Catégories <small>(cochez une ou plusieurs)</small></span>${picks('cats', CATS, r.categories ?? [])}</div>`,
         input('tagline', 'Petite phrase sous le titre', r.tagline, 'Ex. 100 % adrénaline sur les dunes dorées de Dubaï.', 'text', '(une ligne)'),
         area('description', 'Description complète', r.description, 'Décrivez l’expérience. Laissez une ligne vide pour faire un nouveau paragraphe.', 6),
       ].join('')),
-      block('📸', 'Photos', 'La première photo est celle de la carte. Les autres s’affichent sur la page de l’activité.', [
+      block(ap('camera', '#8b5cf6', 16), 'Photos', 'La première photo est celle de la carte. Les autres s’affichent sur la page de l’activité.', [
         `<div><span class="lab">Photo principale</span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
         `<div><span class="lab">Autres photos <small>(facultatif)</small></span>${photoBox('gallery', r.gallery ?? [], true)}</div>`,
       ].join('')),
-      block('💰', 'Prix', '', [
+      block(ap('money', '#059669', 16), 'Prix', '', [
         `<div class="grid gap-4 sm:grid-cols-2">${input('price', 'Prix (AED)', r.price, 'Ex. 350', 'number')}${input('old_price', 'Ancien prix barré', r.old_price, 'Ex. 450', 'number', '(seulement pour une promo)')}</div>`,
         `<div><span class="lab">Le prix est…</span>${picks('unit', UNITS.map((u) => [u[0], u[1]] as [string, string]), [unit], 'radio')}</div>`,
         toggle('price_from', 'Afficher « à partir de » devant le prix', r.price_from ?? true, 'À cocher si le prix change selon la formule choisie.'),
       ].join('')),
       block('⏱️', 'Infos pratiques', '', `<div class="grid gap-4 sm:grid-cols-2">${input('duration', 'Durée', r.duration, 'Ex. 2 heures')}${input('location', 'Lieu', r.location, 'Ex. Désert de Dubaï')}</div>`),
-      block('✨', 'Mise en avant', 'Pour attirer l’œil sur la carte.', [
+      block(ap('sparkle', '#f59e0b', 16), 'Mise en avant', 'Pour attirer l’œil sur la carte.', [
         `<div><span class="lab">Étiquette bleue sur la photo</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
         input('perk', 'Avantage en vert', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
         `<div class="grid gap-4 sm:grid-cols-2">${input('rating', '⭐ Note sur 5', r.rating, 'Ex. 4.9', 'number', '(vos vrais avis Google)')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, 'Ex. 23', 'number')}</div>`,
-        input('video_url', '🎬 Lien d’une vidéo', r.video_url, 'Ex. https://www.instagram.com/reel/…', 'url', '(Instagram ou TikTok, facultatif)'),
+        input('video_url', 'Lien d’une vidéo', r.video_url, 'Ex. https://www.instagram.com/reel/…', 'url', '(Instagram ou TikTok, facultatif)'),
       ].join('')),
-      block('📋', 'Détails de la page', 'Facultatif : points forts, inclus, formules…', [
+      block(ap('list', '#0171eb', 16), 'Détails de la page', 'Facultatif : points forts, inclus, formules…', [
         area('highlights', 'Points forts', (r.highlights ?? []).join('\n'), 'Un par ligne, ex. :\nGuide professionnel\nÉquipement fourni', 3),
-        `<div class="grid gap-4 sm:grid-cols-2">${area('included', '✅ Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 4)}${area('excluded', '❌ Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 4)}</div>`,
-        area('important', '⚠️ Information importante', r.important, 'Ex. Passeport obligatoire.', 2),
+        `<div class="grid gap-4 sm:grid-cols-2">${area('included', 'Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 4)}${area('excluded', 'Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 4)}</div>`,
+        area('important', 'Information importante', r.important, 'Ex. Passeport obligatoire.', 2),
         `<div><span class="lab">Formules au choix <small>(ex. Snow Classique, Snow Plus…)</small></span><div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="mt-2 text-sm font-semibold text-gold">+ Ajouter une formule</button></div>`,
       ].join(''), !!r.id && false),
-      block('👁️', 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true, 'Désactivez pour cacher l’activité sans la supprimer.') + toggle('featured', 'Dans « Les plus populaires »', !!r.featured, 'Affichée en premier sur la page d’accueil.')),
+      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true, 'Désactivez pour cacher l’activité sans la supprimer.') + toggle('featured', 'Dans « Les plus populaires »', !!r.featured, 'Affichée en premier sur la page d’accueil.')),
     ].join('');
   }
   function readActivity(r: any) {
@@ -221,15 +224,15 @@ import Layout from '../../layouts/Layout.astro';
   // ═════════ Formulaire : Voiture ═════════
   function carForm(r: any) {
     return [
-      block('🏎️', 'La voiture', '', `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>
+      block(ap('car', '#c9a227', 16), 'La voiture', '', `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>
         <div><span class="lab">Type</span>${picks('ccat', CAR_CATS, [r.category ?? 'supercar'], 'radio')}</div>
         <div class="grid gap-4 sm:grid-cols-2">${input('seats', 'Nombre de places', r.seats, 'Ex. 2', 'number')}${input('engine', 'Moteur', r.engine, 'Ex. V10')}</div>
         ${area('description', 'Description', r.description, 'Facultatif', 3)}`),
-      block('📸', 'Photo', '', photoBox('main', r.image_url ? [r.image_url] : [], false)),
-      block('💰', 'Prix par jour', 'Laissez vide pour afficher « Prix sur demande ».', `<div class="grid gap-4 sm:grid-cols-2">${input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Ex. 2500', 'number')}${input('old_price', 'Ancien prix barré', r.old_price, '', 'number', '(promo)')}</div>`),
-      block('✨', 'Mise en avant', '', input('tag', 'Étiquette bleue', r.tag, 'Ex. Best-seller', 'text', '(facultatif)') + input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel ou aéroport', 'text', '(facultatif)')
-        + `<div class="grid gap-4 sm:grid-cols-2">${input('rating', '⭐ Note sur 5', r.rating, 'Ex. 4.9', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, 'Ex. 12', 'number')}</div>` + input('video_url', '🎬 Lien d’une vidéo', r.video_url, 'https://…', 'url', '(facultatif)')),
-      block('👁️', 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true)),
+      block(ap('camera', '#8b5cf6', 16), 'Photo', '', photoBox('main', r.image_url ? [r.image_url] : [], false)),
+      block(ap('money', '#059669', 16), 'Prix par jour', 'Laissez vide pour afficher « Prix sur demande ».', `<div class="grid gap-4 sm:grid-cols-2">${input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Ex. 2500', 'number')}${input('old_price', 'Ancien prix barré', r.old_price, '', 'number', '(promo)')}</div>`),
+      block(ap('sparkle', '#f59e0b', 16), 'Mise en avant', '', input('tag', 'Étiquette bleue', r.tag, 'Ex. Best-seller', 'text', '(facultatif)') + input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel ou aéroport', 'text', '(facultatif)')
+        + `<div class="grid gap-4 sm:grid-cols-2">${input('rating', '⭐ Note sur 5', r.rating, 'Ex. 4.9', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, 'Ex. 12', 'number')}</div>` + input('video_url', 'Lien d’une vidéo', r.video_url, 'https://…', 'url', '(facultatif)')),
+      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true)),
     ].join('');
   }
   function readCar(r: any) {
@@ -247,9 +250,9 @@ import Layout from '../../layouts/Layout.astro';
   // ═════════ Formulaire : Article ═════════
   function postForm(r: any) {
     return [
-      block('📝', 'Article', '', input('title', 'Titre', r.title, 'Ex. Que faire à Dubaï en famille ?') + area('excerpt', 'Résumé', r.excerpt, 'Une ou deux phrases', 2) + area('content', 'Texte', r.content, 'Laissez une ligne vide entre les paragraphes. Commencez une ligne par ## pour un sous-titre.', 10)),
-      block('📸', 'Image de couverture', '', photoBox('main', r.cover_url ? [r.cover_url] : [], false)),
-      block('👁️', 'Affichage', '', toggle('published', 'Publié sur le site', r.published ?? true)),
+      block(ap('blog', '#0ea5e9', 16), 'Article', '', input('title', 'Titre', r.title, 'Ex. Que faire à Dubaï en famille ?') + area('excerpt', 'Résumé', r.excerpt, 'Une ou deux phrases', 2) + area('content', 'Texte', r.content, 'Laissez une ligne vide entre les paragraphes. Commencez une ligne par ## pour un sous-titre.', 10)),
+      block(ap('camera', '#8b5cf6', 16), 'Image de couverture', '', photoBox('main', r.cover_url ? [r.cover_url] : [], false)),
+      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('published', 'Publié sur le site', r.published ?? true)),
     ].join('');
   }
   function readPost(r: any) {
@@ -270,11 +273,11 @@ import Layout from '../../layouts/Layout.astro';
     form.innerHTML = `
       <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
         <h2 class="text-lg font-bold">${id ? 'Modifier' : 'Ajouter'} ${F.name}</h2>
-        <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">💾 Enregistrer</button></div>
+        <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">Enregistrer</button></div>
       </div>
       <div class="space-y-4 p-4 sm:p-5">${F.build(r)}
         <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
-        ${id ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">🗑️ Supprimer ${F.name}</button>` : ''}
+        ${id ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">Supprimer ${F.name}</button>` : ''}
       </div>`;
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     form.querySelector('#add-opt')?.addEventListener('click', () => form.querySelector('#opts')!.insertAdjacentHTML('beforeend', optRow()));
@@ -353,20 +356,20 @@ import Layout from '../../layouts/Layout.astro';
     panel.innerHTML = `
       <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <button data-go="orders" class="stat text-left ${pending ? 'ring-2 ring-red-400' : ''}"><span>⏳ À traiter</span><b>${pending}</b><span>commande${pending > 1 ? 's' : ''} en attente</span></button>
-        <div class="stat"><span>📅 Ce mois-ci</span><b>${thisMonth.length}</b><span>réservation${thisMonth.length > 1 ? 's' : ''}</span></div>
-        <div class="stat"><span>💰 Chiffre confirmé</span><b>${aed(ca) || '0 AED'}</b><span>commandes confirmées</span></div>
-        <button data-go="clients" class="stat text-left"><span>👥 Clients</span><b>${nClients ?? 0}</b><span>comptes créés</span></button>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('calendar', '#10b981', 14)} Ce mois-ci</span><b>${thisMonth.length}</b><span>réservation${thisMonth.length > 1 ? 's' : ''}</span></div>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('money', '#059669', 14)} Chiffre confirmé</span><b>${aed(ca) || '0 AED'}</b><span>commandes confirmées</span></div>
+        <button data-go="clients" class="stat text-left"><span class="flex items-center gap-1.5">${ap('users', '#ec4899', 14)} Clients</span><b>${nClients ?? 0}</b><span>comptes créés</span></button>
       </div>
       <div class="mt-4 grid gap-4 sm:grid-cols-3">
-        <button data-go="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">🏜️</span><span><b class="block">${nActs ?? 0} activités</b><span class="text-sm text-gray-500">visibles sur le site</span></span></button>
-        <button data-go="cars" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">🏎️</span><span><b class="block">${nCars ?? 0} voitures</b><span class="text-sm text-gray-500">dans la flotte</span></span></button>
-        <button data-new="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold"><span class="text-2xl">➕</span><span><b class="block">Nouvelle activité</b><span class="text-sm text-gray-500">l’ajouter en 2 minutes</span></span></button>
+        <button data-go="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('sunset', '#f59e0b', 22)}<span><b class="block">${nActs ?? 0} activités</b><span class="text-sm text-gray-500">visibles sur le site</span></span></button>
+        <button data-go="cars" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('car', '#c9a227', 22)}<span><b class="block">${nCars ?? 0} voitures</b><span class="text-sm text-gray-500">dans la flotte</span></span></button>
+        <button data-new="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('plus', '#0171eb', 22)}<span><b class="block">Nouvelle activité</b><span class="text-sm text-gray-500">l’ajouter en 2 minutes</span></span></button>
       </div>
       <div class="mt-6 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-        <section class="blk"><h3>📋 Dernières commandes</h3>
+        <section class="blk"><h3>${ap('list', '#0171eb', 16)} Dernières commandes</h3>
           ${o.length ? `<ul class="mt-3 divide-y divide-gray-100">${o.slice(0, 6).map((x: any) => `<li class="flex items-center justify-between gap-3 py-3 text-sm"><span class="min-w-0"><b>n°${x.id} · ${esc(x.contact_name ?? '')}</b><span class="block truncate text-gray-500">${esc(x.order_items.map((i: any) => i.item_title).join(', '))}</span></span><span class="shrink-0 text-right"><span class="block">${STATUS[x.status] ?? x.status}</span><span class="text-xs text-gray-400">${fmtDate(x.created_at)}</span></span></li>`).join('')}</ul><button data-go="orders" class="mt-2 text-sm font-semibold text-gold">Voir toutes les commandes →</button>` : '<p class="mt-3 text-sm text-gray-500">Aucune commande pour l’instant. Elles apparaîtront ici dès qu’un client réservera.</p>'}
         </section>
-        <section class="blk"><h3>🔥 Les plus réservées</h3>
+        <section class="blk"><h3>${ap('fire', '#f97316', 16)} Les plus réservées</h3>
           ${top.length ? `<ol class="mt-3 space-y-2 text-sm">${top.map(([t, n], i) => `<li class="flex justify-between gap-3"><span>${i + 1}. ${esc(t)}</span><b>${n}</b></li>`).join('')}</ol>` : '<p class="mt-3 text-sm text-gray-500">Pas encore de données.</p>'}
         </section>
       </div>`;
@@ -377,13 +380,13 @@ import Layout from '../../layouts/Layout.astro';
     const { data: p } = await sb.from('profiles').select('*').eq('id', user!.id).maybeSingle();
     panel.innerHTML = `
       <form id="acc" class="blk max-w-2xl space-y-4">
-        <h3>👤 Mes informations</h3>
+        <h3>${ap('user', '#0ea5e9', 16)} Mes informations</h3>
         <div class="grid gap-4 sm:grid-cols-2">${input('full_name', 'Nom complet', p?.full_name, 'Votre nom')}${input('phone', 'Téléphone WhatsApp', p?.phone, '+971…', 'tel')}</div>
         <div><span class="lab">Email de connexion</span><p class="rounded-xl bg-sand px-4 py-3 text-sm">${esc(user!.email)}</p></div>
-        <button class="btn-gold !py-2.5">💾 Enregistrer</button><span id="acc-ok" class="ml-3 hidden text-sm text-emerald-700">Enregistré ✓</span>
+        <button class="btn-gold !py-2.5">Enregistrer</button><span id="acc-ok" class="ml-3 hidden text-sm text-emerald-700">Enregistré ✓</span>
       </form>
       <form id="pwd" class="blk mt-4 max-w-2xl space-y-4">
-        <h3>🔒 Changer mon mot de passe</h3>
+        <h3>${ap('lock', '#6b7280', 16)} Changer mon mot de passe</h3>
         ${input('pw1', 'Nouveau mot de passe', '', '6 caractères minimum', 'password')}
         ${input('pw2', 'Confirmer le mot de passe', '', '', 'password')}
         <button class="btn-outline !py-2.5">Changer le mot de passe</button><span id="pwd-msg" class="ml-3 text-sm"></span>
@@ -417,7 +420,7 @@ import Layout from '../../layouts/Layout.astro';
       <thead class="bg-gray-50 text-xs uppercase text-gray-500"><tr><th class="p-3">Client</th><th class="hidden p-3 sm:table-cell">Contact</th><th class="p-3">Commandes</th><th class="hidden p-3 md:table-cell">Inscrit le</th></tr></thead>
       <tbody class="divide-y divide-gray-100">${(people ?? []).map((p: any) => `<tr>
         <td class="p-3"><b>${esc(p.full_name || '—')}</b>${p.is_admin ? ' <span class="rounded bg-blue-50 px-1.5 text-xs text-gold">admin</span>' : ''}<span class="block text-gray-500 sm:hidden">${esc(p.email ?? '')}</span></td>
-        <td class="hidden p-3 sm:table-cell">${esc(p.email ?? '')}${p.phone ? `<br><a class="text-gold" target="_blank" href="https://wa.me/${esc(p.phone.replace(/\D/g, ''))}">📱 ${esc(p.phone)}</a>` : ''}</td>
+        <td class="hidden p-3 sm:table-cell">${esc(p.email ?? '')}${p.phone ? `<br><a class="text-gold" target="_blank" href="https://wa.me/${esc(p.phone.replace(/\D/g, ''))}">${esc(p.phone)}</a>` : ''}</td>
         <td class="p-3">${n[p.id] ?? 0}</td><td class="hidden p-3 md:table-cell">${fmtDate(p.created_at)}</td></tr>`).join('')}</tbody></table></div>`
       : '<p class="blk text-gray-500">Aucun client pour l’instant.</p>';
   }
@@ -469,7 +472,7 @@ import Layout from '../../layouts/Layout.astro';
             <b class="text-sm ${k === today ? 'text-gold' : 'text-ink'}">${d.getDate()}</b>
             ${its.slice(0, 2).map((it: any) => `<span class="mt-0.5 block truncate rounded px-1 ${it.orders.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">${esc(it.item_title)}</span>`).join('')}
             ${its.length > 2 ? `<span class="block text-gray-400">+${its.length - 2}</span>` : ''}
-            ${bls.length ? `<span class="mt-0.5 block truncate rounded bg-red-500 px-1 text-white">🚫 ${bls.length} complet</span>` : ''}
+            ${bls.length ? `<span class="mt-0.5 block truncate rounded bg-red-500 px-1 text-white">${bls.length} complet</span>` : ''}
           </button>`;
         }).join('')}</div>
         <p class="mt-3 flex flex-wrap gap-3 text-xs text-gray-500"><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-amber-300"></span>En attente</span><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-emerald-400"></span>Confirmée</span><span><span class="mr-1 inline-block h-2.5 w-2.5 rounded bg-red-500"></span>Date complète</span></p>
@@ -481,12 +484,12 @@ import Layout from '../../layouts/Layout.astro';
   function dayDetail(day: string, its: any[], bls: any[], nameOf: (t: string, s: string) => string) {
     const box = panel.querySelector('#day-detail')!;
     box.innerHTML = `<div class="blk">
-      <h3 class="capitalize">📅 ${new Date(day + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
+      <h3 class="capitalize">${new Date(day + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>
       ${its.length ? `<ul class="mt-3 space-y-1 text-sm">${its.map((it: any) => `<li>• <b>${esc(it.item_title)}</b> · ${esc(it.orders.contact_name ?? '')} · n°${it.orders.id} · ${STATUS[it.orders.status]}${it.item_type === 'activity' ? ' · ' + it.people + ' pers.' : ''}</li>`).join('')}</ul>` : '<p class="mt-2 text-sm text-gray-500">Aucune réservation ce jour-là.</p>'}
-      <h4 class="mt-5 font-semibold">🚫 Dates complètes</h4>
+      <h4 class="mt-5 font-semibold">Dates complètes</h4>
       ${bls.length ? `<ul class="mt-2 space-y-1 text-sm">${bls.map((b: any) => `<li class="flex items-center justify-between gap-2 rounded-lg bg-red-50 px-3 py-2"><span>${esc(nameOf(b.item_type, b.item_slug))}${b.note ? ' — ' + esc(b.note) : ''}</span><button data-unblock="${b.id}" class="text-sm font-semibold text-red-600">Débloquer</button></li>`).join('')}</ul>` : ''}
       <div class="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <select id="blk-item" class="field !py-2 text-sm">${catalog.map((c) => `<option value="${c.type}|${esc(c.slug)}">${c.type === 'car' ? '🏎️' : '🏜️'} ${esc(c.name)}</option>`).join('')}</select>
+        <select id="blk-item" class="field !py-2 text-sm">${catalog.map((c) => `<option value="${c.type}|${esc(c.slug)}">${c.type === 'car' ? '' : ''} ${esc(c.name)}</option>`).join('')}</select>
         <input id="blk-note" class="field !py-2 text-sm" placeholder="Note (facultatif, ex. yacht déjà loué)">
         <button id="blk-add" class="btn-gold !py-2 text-sm">Marquer complet</button>
       </div>
@@ -509,7 +512,7 @@ import Layout from '../../layouts/Layout.astro';
     const { data } = await sb.from('promo_codes').select('*').order('created_at', { ascending: false });
     panel.innerHTML = `
       <form id="promo-new" class="blk">
-        <h3>➕ Nouveau code</h3>
+        <h3>${ap('plus', '#0171eb', 16)} Nouveau code</h3>
         <div class="mt-4 grid gap-3 sm:grid-cols-4">
           ${input('pcode', 'Code', '', 'Ex. DUBAI10')}
           ${input('ppct', 'Réduction (%)', '', 'Ex. 10', 'number')}
@@ -524,7 +527,7 @@ import Layout from '../../layouts/Layout.astro';
           <b>-${c.percent} %</b>
           <span class="text-sm text-gray-500">${c.uses} utilisation${c.uses > 1 ? 's' : ''}${c.max_uses ? ' / ' + c.max_uses : ''}${c.expires_on ? ' · jusqu’au ' + new Date(c.expires_on + 'T12:00').toLocaleDateString('fr-FR') : ''}</span>
           <label class="sw ml-auto !py-0"><span class="mr-2 text-sm">${c.active ? 'Actif' : 'Désactivé'}</span><input type="checkbox" data-ptoggle="${esc(c.code)}" ${c.active ? 'checked' : ''}></label>
-          <button data-pdel="${esc(c.code)}" class="text-sm text-gray-400 hover:text-red-600">🗑️</button>
+          <button data-pdel="${esc(c.code)}" class="text-sm text-gray-400 hover:text-red-600"></button>
         </div>`).join('') || '<p class="blk text-sm text-gray-500">Aucun code pour l’instant.</p>'}</div>`;
     panel.querySelector('#promo-new')!.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -559,18 +562,18 @@ import Layout from '../../layouts/Layout.astro';
     const bars = (rows: [string, number][], label: (k: string) => string) => rows.length ? rows.map(([k, n]) => `<li><div class="flex justify-between text-sm"><span class="truncate">${esc(label(k))}</span><b>${n}</b></div><div class="mt-1 h-2 rounded-full bg-gray-100"><div class="h-2 rounded-full bg-gold" style="width:${Math.max(3, (n / rows[0][1]) * 100)}%"></div></div></li>`).join('') : '<li class="text-sm text-gray-500">Pas encore de données.</li>';
     panel.innerHTML = `
       <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <div class="stat"><span>👀 Visites (30 j)</span><b>${v.length}</b><span>pages vues</span></div>
-        <div class="stat"><span>📅 Aujourd’hui</span><b>${days[iso(new Date())] ?? 0}</b><span>pages vues</span></div>
-        <div class="stat"><span>🏜️ Fiches consultées</span><b>${v.filter((x: any) => x.item_slug).length}</b><span>activités et voitures</span></div>
-        <div class="stat"><span>📸 Depuis les réseaux</span><b>${pct(v.filter((x: any) => ['Instagram', 'TikTok', 'Facebook', 'Snapchat'].includes(x.source)).length)} %</b><span>Instagram, TikTok…</span></div>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('eye', '#6366f1', 14)} Visites (30 j)</span><b>${v.length}</b><span>pages vues</span></div>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('calendar', '#10b981', 14)} Aujourd’hui</span><b>${days[iso(new Date())] ?? 0}</b><span>pages vues</span></div>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('sunset', '#f59e0b', 14)} Fiches consultées</span><b>${v.filter((x: any) => x.item_slug).length}</b><span>activités et voitures</span></div>
+        <div class="stat"><span class="flex items-center gap-1.5">${ap('camera', '#8b5cf6', 14)} Depuis les réseaux</span><b>${pct(v.filter((x: any) => ['Instagram', 'TikTok', 'Facebook', 'Snapchat'].includes(x.source)).length)} %</b><span>Instagram, TikTok…</span></div>
       </div>
-      <section class="blk mt-4"><h3>📊 Visites par jour</h3>
+      <section class="blk mt-4"><h3>${ap('dashboard', '#0171eb', 16)} Visites par jour</h3>
         <div class="mt-4 flex h-32 items-end gap-1">${Object.entries(days).map(([d, n]) => `<div class="flex-1 rounded-t bg-gold/80 hover:bg-gold" style="height:${Math.max(2, (n / max) * 100)}%" title="${new Date(d + 'T12:00').toLocaleDateString('fr-FR')} : ${n}"></div>`).join('')}</div>
       </section>
       <div class="mt-4 grid gap-4 lg:grid-cols-3">
-        <section class="blk"><h3>🔥 Les plus vues</h3><ul class="mt-3 space-y-3">${bars(topItems, nameOf)}</ul></section>
-        <section class="blk"><h3>🔗 D’où viennent-ils</h3><ul class="mt-3 space-y-3">${bars(sources, (k) => k)}</ul></section>
-        <section class="blk"><h3>🌍 Région (fuseau horaire)</h3><ul class="mt-3 space-y-3">${bars(regions, (k) => k)}</ul></section>
+        <section class="blk"><h3>${ap('fire', '#f97316', 16)} Les plus vues</h3><ul class="mt-3 space-y-3">${bars(topItems, nameOf)}</ul></section>
+        <section class="blk"><h3>${ap('link', '#0171eb', 16)} D’où viennent-ils</h3><ul class="mt-3 space-y-3">${bars(sources, (k) => k)}</ul></section>
+        <section class="blk"><h3>${ap('globe', '#10b981', 16)} Région (fuseau horaire)</h3><ul class="mt-3 space-y-3">${bars(regions, (k) => k)}</ul></section>
       </div>
       <p class="mt-4 text-xs text-gray-400">Statistiques anonymes : aucune donnée personnelle n’est enregistrée. Pour les pays exacts, activez aussi « Analytics » dans votre projet Vercel.</p>`;
   }
@@ -582,14 +585,14 @@ import Layout from '../../layouts/Layout.astro';
     form.innerHTML = '';
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
-        ${block('📞', 'Coordonnées', 'Affichées dans le pied de page, la page Contact et les boutons WhatsApp.', `
+        ${block(ap('phone', '#10b981', 16), 'Coordonnées', 'Affichées dans le pied de page, la page Contact et les boutons WhatsApp.', `
           <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'Numéro WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone affiché', d.phone, '+971 56 973 6810')}</div>
           <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email de contact', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
-        ${block('🏠', 'Page d’accueil', '', `
+        ${block(ap('home', '#0171eb', 16), 'Page d’accueil', '', `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
           ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
           <p class="text-sm text-gray-500">La grande photo se change dans le bloc « Images du site » ci-dessous.</p>`)}
-        ${block('🖼️', 'Images du site', 'Cliquez pour remplacer une image. Laissez vide pour garder l’image actuelle.', `
+        ${block(ap('photo', '#8b5cf6', 16), 'Images du site', 'Cliquez pour remplacer une image. Laissez vide pour garder l’image actuelle.', `
           <div class="grid gap-5 sm:grid-cols-2">
             <div><span class="lab">Logo <small>(rond, image carrée de préférence)</small></span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
             <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
@@ -597,12 +600,12 @@ import Layout from '../../layouts/Layout.astro';
             <div><span class="lab">Grande photo de la page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
           </div>
           <p class="text-sm text-gray-500">Les tuiles « Nos univers » se changent dans <b>Catégories</b> ; les photos des activités et des voitures dans leurs catalogues.</p>`)}
-        ${block('🚀', 'Publication', 'Le site est republié automatiquement après l’enregistrement (environ 1 minute).', `
+        ${block(ap('rocket', '#ef4444', 16), 'Publication', 'Le site est republié automatiquement après l’enregistrement (environ 1 minute).', `
           ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
           <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
         <div class="sticky bottom-4 flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lift">
-          <button class="btn-gold">💾 Enregistrer et publier</button>
-          <button type="button" id="publish-now" class="btn-outline !py-3 text-sm">🚀 Republier le site</button>
+          <button class="btn-gold">Enregistrer et publier</button>
+          <button type="button" id="publish-now" class="btn-outline !py-3 text-sm">Republier le site</button>
           <span id="set-msg" class="text-sm"></span>
         </div>
       </form>`;
@@ -646,20 +649,20 @@ import Layout from '../../layouts/Layout.astro';
     sb.channel('admin-orders').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, (payload: any) => {
       const o = payload.new;
       beep(); paintPending();
-      document.title = '🔔 Nouvelle commande ! | Dubai Location';
+      document.title = 'Nouvelle commande ! | Dubai Location';
       const t = document.createElement('div');
       t.className = 'fixed right-4 top-24 z-[70] w-80 rounded-2xl bg-white p-4 shadow-lift ring-2 ring-gold';
-      t.innerHTML = `<p class="font-bold">🔔 Nouvelle réservation n°${o.id}</p><p class="text-sm text-gray-600">${esc(o.contact_name ?? '')} · ${esc(o.contact_phone ?? '')}</p><div class="mt-3 flex gap-2"><button class="btn-gold !px-4 !py-2 text-sm" data-open>Voir</button><button class="btn-outline !px-4 !py-2 text-sm" data-x>Fermer</button></div>`;
+      t.innerHTML = `<p class="font-bold">Nouvelle réservation n°${o.id}</p><p class="text-sm text-gray-600">${esc(o.contact_name ?? '')} · ${esc(o.contact_phone ?? '')}</p><div class="mt-3 flex gap-2"><button class="btn-gold !px-4 !py-2 text-sm" data-open>Voir</button><button class="btn-outline !px-4 !py-2 text-sm" data-x>Fermer</button></div>`;
       document.body.append(t);
       t.querySelector('[data-open]')!.addEventListener('click', () => { t.remove(); show('orders'); });
       t.querySelector('[data-x]')!.addEventListener('click', () => t.remove());
-      if ('Notification' in window && Notification.permission === 'granted') new Notification('🔔 Nouvelle réservation n°' + o.id, { body: `${o.contact_name ?? ''} · ${o.contact_phone ?? ''}` });
+      if ('Notification' in window && Notification.permission === 'granted') new Notification('Nouvelle réservation n°' + o.id, { body: `${o.contact_name ?? ''} · ${o.contact_phone ?? ''}` });
       if (current === 'dashboard' || current === 'orders') show(current);
     }).subscribe();
     if ('Notification' in window && Notification.permission === 'default') {
       const b = document.createElement('button');
       b.className = 'side mt-2 !bg-amber-50 !text-amber-800';
-      b.innerHTML = '<span>🔔</span>Activer les alertes';
+      b.innerHTML = ap('bell', '#f59e0b', 17) + 'Activer les alertes';
       b.addEventListener('click', async () => { await Notification.requestPermission(); b.remove(); });
       document.querySelector('aside nav')!.append(b);
     }
@@ -669,7 +672,7 @@ import Layout from '../../layouts/Layout.astro';
   // ═════════ Catégories ═════════
   async function publishSite(msgEl?: Element | null) {
     const { data } = await sb.from('admin_settings').select('deploy_hook').eq('id', 1).maybeSingle();
-    if (!data?.deploy_hook) { if (msgEl) { msgEl.textContent = 'Enregistré ✓ — pour que la nouvelle page apparaisse, ajoutez le lien Deploy Hook dans ⚙️ Réglages du site.'; msgEl.className = 'text-sm text-amber-700'; } return; }
+    if (!data?.deploy_hook) { if (msgEl) { msgEl.textContent = 'Enregistré ✓ — pour que la nouvelle page apparaisse, ajoutez le lien Deploy Hook dans Réglages du site.'; msgEl.className = 'text-sm text-amber-700'; } return; }
     try { await fetch(data.deploy_hook, { method: 'POST', mode: 'no-cors' }); if (msgEl) { msgEl.textContent = 'Enregistré ✓ — le site se met à jour (≈ 1 min)'; msgEl.className = 'text-sm text-emerald-700'; } } catch {}
   }
   async function showCategories() {
