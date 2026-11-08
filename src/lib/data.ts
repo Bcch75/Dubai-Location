@@ -14,9 +14,9 @@ export const getCars = () => (cars ??= get<Car>('cars?select=*&active=eq.true&or
 
 export type Category = { slug: string; label: string; icon: string | null; subtitle: string | null; image_url: string | null; position: number; in_menu: boolean; on_home: boolean; active: boolean };
 const FALLBACK: Category[] = [
-  { slug: 'desert', label: 'Désert', icon: '🏜️', subtitle: null, image_url: '/img/desert.webp', position: 10, in_menu: true, on_home: true, active: true },
-  { slug: 'mer', label: 'Mer & yacht', icon: '🛥️', subtitle: null, image_url: '/img/yacht.webp', position: 20, in_menu: true, on_home: true, active: true },
-  { slug: 'ciel', label: 'Dans les airs', icon: '🎈', subtitle: null, image_url: '/img/montgolfiere.webp', position: 30, in_menu: true, on_home: false, active: true },
+  { slug: 'desert', label: 'Désert', icon: 'sunset', subtitle: null, image_url: '/img/desert.webp', position: 10, in_menu: true, on_home: true, active: true },
+  { slug: 'mer', label: 'Mer & yacht', icon: 'sailboat', subtitle: null, image_url: '/img/yacht.webp', position: 20, in_menu: true, on_home: true, active: true },
+  { slug: 'ciel', label: 'Dans les airs', icon: 'balloon', subtitle: null, image_url: '/img/montgolfiere.webp', position: 30, in_menu: true, on_home: false, active: true },
 ];
 let cats: Promise<Category[]> | null = null;
 export const getCategories = () => (cats ??= get<Category>('categories?select=*&active=eq.true&order=position').then((c) => (c.length ? c : FALLBACK)));

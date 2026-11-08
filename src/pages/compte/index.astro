@@ -29,14 +29,14 @@ import Layout from '../../layouts/Layout.astro';
     (document.getElementById('pn') as HTMLInputElement).value = p?.full_name ?? '';
     (document.getElementById('pp') as HTMLInputElement).value = p?.phone ?? '';
     if (p?.is_admin) { const a = document.getElementById('admin') as HTMLAnchorElement; a.href = url('admin/'); a.classList.remove('hidden'); }
-    const STATUS: Record<string, string> = { pending: '⏳ En attente de confirmation', confirmed: '✅ Confirmée', cancelled: '❌ Annulée', done: '🏁 Terminée' };
+    const STATUS: Record<string, string> = { pending: '<span class="text-amber-700">● En attente de confirmation</span>', confirmed: '<span class="text-emerald-700">● Confirmée</span>', cancelled: '<span class="text-red-600">● Annulée</span>', done: '<span class="text-gray-500">● Terminée</span>' };
     const { data: orders } = await sb.from('orders').select('*, order_items(*)').eq('user_id', u.id).order('created_at', { ascending: false });
     document.getElementById('orders')!.innerHTML = (orders ?? []).length ? (orders ?? []).map((o: any) => `
       <div class="rounded-2xl border border-line bg-white p-5">
         <div class="flex flex-wrap items-center justify-between gap-2"><p class="font-semibold">Commande n°${o.id} · ${new Date(o.created_at).toLocaleDateString('fr-FR')}</p><span class="rounded-full bg-sand px-3 py-1 text-sm">${STATUS[o.status] ?? o.status}</span></div>
         <ul class="mt-3 space-y-1 text-sm text-ink-soft">${o.order_items.map((i: any) => `<li>• ${esc(i.item_title)}${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
         ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b></p>` : ''}
-        ${o.admin_note ? `<p class="mt-2 rounded-lg bg-gold-light p-3 text-sm">💬 ${esc(o.admin_note)}</p>` : ''}
+        ${o.admin_note ? `<p class="mt-2 rounded-lg bg-gold-light p-3 text-sm"><b>Message de l’équipe :</b> ${esc(o.admin_note)}</p>` : ''}
       </div>`).join('') : `<p class="rounded-2xl bg-sand p-6 text-muted">Aucune commande pour l'instant. <a class="font-semibold text-gold" href="${url('activites/')}">Découvrir les activités →</a></p>`;
     document.getElementById('prof')!.addEventListener('submit', async (e) => {
       e.preventDefault();

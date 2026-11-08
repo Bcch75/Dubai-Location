@@ -1,25 +1,26 @@
 ---
 import Icon from './Icon.astro';
 import { getCategories } from '../lib/data';
+import { pill } from '../lib/icons';
 import { site, waLink } from '../data/site';
 interface Props { transparent?: boolean }
 const path = Astro.url.pathname + Astro.url.search;
 const categories = await getCategories();
 const links = [
   ...categories.filter((c) => c.in_menu).slice(0, 4).map((c) => ({ href: `/activites/${c.slug}/`, label: c.label, icon: c.icon ?? '' })),
-  { href: '/voitures/', label: 'Voitures', icon: '🏎️' },
+  { href: '/voitures/', label: 'Voitures', icon: 'car' },
   { href: '/blog/', label: 'Blog', icon: '' },
 ];
 ---
 <header id="site-header" class="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
   <nav class="mx-auto flex h-16 max-w-[1220px] items-center justify-between gap-2 rounded-2xl bg-white pl-3 pr-1.5 shadow-[0_25px_50px_-12px_rgb(0_0_0/0.25)] ring-1 ring-gray-200/50 sm:gap-4 sm:px-6" aria-label="Navigation principale">
-    <a href="/" class="flex shrink-0 items-center gap-2" aria-label={`${site.name}, accueil`}>
-      <span class="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gold text-white min-[390px]:h-9 min-[390px]:w-9 sm:h-10 sm:w-10">
-        <svg viewBox="0 0 32 32" class="h-6 w-6" aria-hidden="true"><path d="M16 3c-.8 6-1.4 14-1.4 22h2.8C17.4 17 16.8 9 16 3z" fill="currentColor"/><path d="M8 27h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      </span>
-      <span class="leading-none">
-        <span class="block text-[17px] font-extrabold tracking-tight text-gold">DUBAI</span>
-        <span class="mt-0.5 block rounded bg-gold px-1.5 py-0.5 text-[10px] font-bold tracking-wider text-white">LOCATION</span>
+    <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label={`${site.name}, accueil`}>
+      {site.logoUrl
+        ? <img src={site.logoUrl} alt="" class="h-9 w-9 shrink-0 rounded-full object-cover ring-1 ring-black/10 min-[390px]:h-10 min-[390px]:w-10 sm:h-11 sm:w-11" />
+        : <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#0b1730] text-[#d4af37] min-[390px]:h-10 min-[390px]:w-10 sm:h-11 sm:w-11"><svg viewBox="0 0 32 32" class="h-6 w-6" aria-hidden="true"><path d="M16 3c-.8 6-1.4 14-1.4 22h2.8C17.4 17 16.8 9 16 3z" fill="currentColor"/><circle cx="16" cy="17" r="10" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>}
+      <span class="gold-text leading-none">
+        <span class="block font-serif-logo text-[17px] font-bold tracking-[0.06em] min-[390px]:text-[19px] sm:text-[21px]">DUBAI</span>
+        <span class="mt-0.5 block text-[8.5px] font-semibold tracking-[0.32em] min-[390px]:text-[9.5px] sm:text-[10px]">LOCATION</span>
       </span>
     </a>
 
@@ -27,7 +28,7 @@ const links = [
       {links.map((l) => (
         <li>
           <a href={l.href} class:list={['flex h-10 items-center gap-2 rounded-full px-4 text-base font-semibold text-black transition hover:bg-gray-100', path === l.href && 'bg-gray-100']}>
-            {l.icon && <span aria-hidden="true" class="mr-1">{l.icon}</span>}{l.label}
+            {l.icon && <Fragment set:html={pill(l.icon, 15)} />}{l.label}
           </a>
         </li>
       ))}
@@ -65,12 +66,12 @@ const links = [
     <div class="absolute inset-0 bg-ink/40" data-close></div>
     <div class="menu-panel absolute inset-x-3 top-3 -translate-y-3 rounded-2xl bg-white p-5 shadow-lift transition-transform duration-300">
       <div class="flex items-center justify-between">
-        <span class="text-lg font-extrabold text-gold">DUBAI LOCATION</span>
+        <span class="gold-text font-serif-logo text-lg font-bold tracking-[0.08em]">DUBAI LOCATION</span>
         <button class="grid h-10 w-10 place-items-center rounded-full bg-sand" aria-label="Fermer le menu" data-close><Icon name="close" class="h-5 w-5" /></button>
       </div>
       <ul class="mt-4 space-y-1">
         <li><a href="/activites/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Toutes les activités</a></li>
-        {links.map((l) => <li><a href={l.href} data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">{l.icon && <span class="mr-2">{l.icon}</span>}{l.label}</a></li>)}
+        {links.map((l) => <li><a href={l.href} data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">{l.icon && <span class="mr-2 inline-flex align-middle" set:html={pill(l.icon, 16)} />}{l.label}</a></li>)}
         <li><a href="/contact/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Contact</a></li>
         <li><a href="/compte/" data-close class="block rounded-xl px-3 py-3 text-lg font-semibold hover:bg-sand">Mon compte</a></li>
       </ul>

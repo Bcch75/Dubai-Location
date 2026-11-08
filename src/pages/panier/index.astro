@@ -51,7 +51,7 @@ import Layout from '../../layouts/Layout.astro';
       </div>`).join('');
     const sub = cart.total(), disc = promo ? Math.round((sub * promo.pct) / 100) : 0;
     document.getElementById('discount-row')!.classList.toggle('hidden', !promo); document.getElementById('discount-row')!.classList.toggle('flex', !!promo);
-    if (promo) { document.getElementById('discount-label')!.textContent = `🏷️ ${promo.code} (-${promo.pct} %)`; document.getElementById('discount-val')!.textContent = '-' + aed(disc); }
+    if (promo) { document.getElementById('discount-label')!.textContent = `Code ${promo.code} (-${promo.pct} %)`; document.getElementById('discount-val')!.textContent = '-' + aed(disc); }
     document.getElementById('total')!.textContent = aed(sub - disc) + (list.some((i) => !i.unitPrice) ? ' + sur demande' : '');
   };
   items.addEventListener('click', (e) => { const k = (e.target as HTMLElement).closest<HTMLElement>('[data-rm]')?.dataset.rm; if (k) { cart.remove(k); render(); } });
@@ -90,6 +90,6 @@ import Layout from '../../layouts/Layout.astro';
     await sb.from('profiles').update({ full_name: v('name'), phone: v('phone') }).eq('id', user.id);
     const recap = `Bonjour Dubai Location 👋 Je viens de faire la réservation n°${order.id} sur le site :\n` + list.map((i) => `• ${i.title}${i.option ? ' (' + i.option + ')' : ''} : ${i.type === 'car' ? `du ${i.date} au ${i.endDate}` : `${i.date}, ${i.qty} ${i.qtyLabel.toLowerCase()}`}`).join('\n') + `\nNom : ${v('name')}`;
     cart.clear();
-    document.querySelector('main section')!.innerHTML = `<div class="mx-auto max-w-xl rounded-3xl bg-sand p-8 text-center"><p class="text-5xl">🎉</p><h1 class="mt-3 text-3xl font-bold">Réservation envoyée !</h1><p class="mt-3 text-muted">Votre demande n°<b>${order.id}</b> est enregistrée. Nous vous confirmons la disponibilité et le prix très vite.</p><a href="${waLink(recap)}" target="_blank" rel="noopener" class="btn-wa mt-6">Accélérer sur WhatsApp</a><a href="${url('compte/')}" class="mt-4 block font-semibold text-gold">Voir mes commandes →</a></div>`;
+    document.querySelector('main section')!.innerHTML = `<div class="mx-auto max-w-xl rounded-3xl bg-sand p-8 text-center"><div class="mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-emerald-100 text-emerald-600"><svg viewBox="0 0 24 24" class="h-9 w-9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><h1 class="mt-3 text-3xl font-bold">Réservation envoyée !</h1><p class="mt-3 text-muted">Votre demande n°<b>${order.id}</b> est enregistrée. Nous vous confirmons la disponibilité et le prix très vite.</p><a href="${waLink(recap)}" target="_blank" rel="noopener" class="btn-wa mt-6">Accélérer sur WhatsApp</a><a href="${url('compte/')}" class="mt-4 block font-semibold text-gold">Voir mes commandes →</a></div>`;
   });
 </script>

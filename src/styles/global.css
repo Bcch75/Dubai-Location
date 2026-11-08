@@ -94,3 +94,7 @@
 .goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame { display: none !important; }
 body { top: 0 !important; }
 .goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+/* Texte doré du logo */
+.gold-text { background: linear-gradient(180deg, #f3d98b 0%, #d4af37 45%, #a87b1f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.font-serif-logo { font-family: "Trajan Pro", "Cinzel", "Optima", "Didot", Georgia, "Times New Roman", serif; }

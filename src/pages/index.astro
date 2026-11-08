@@ -4,6 +4,7 @@ import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
 import { getActivities, getCars, getCategories } from '../lib/data';
 import { site } from '../data/site';
+import { pill } from '../lib/icons';
 import { activityCard, carCard, setBase } from '../lib/cards';
 import hero from '../assets/img/hero.jpg';
 import carImg from '../assets/img/cars/huracan-evo.jpg';
@@ -12,7 +13,7 @@ const categories = await getCategories();
 const tileImg = (u: string | null) => (u && u.startsWith('/img/') ? u.replace('/img/', '/img/thumb/') : u ?? '');
 const tiles = [
   ...categories.map((c) => ({ href: `/activites/${c.slug}/`, title: c.label, src: tileImg(c.image_url) })),
-  { href: '/voitures/', title: 'Voitures', src: '' },
+  { href: '/voitures/', title: 'Voitures', src: site.carsTileImage },
 ];
 setBase(import.meta.env.BASE_URL);
 const acts = await getActivities();
@@ -20,9 +21,9 @@ const cars = await getCars();
 const W = 'w-[76vw] max-w-[300px] shrink-0 snap-start sm:w-[270px]';
 const rowHtml = (k: string) => k === 'cars' ? cars.map((c) => carCard(c, W)).join('') : (k === 'featured' ? acts.filter((a) => a.featured) : acts.filter((a) => a.categories.includes(k))).map((a) => activityCard(a, W)).join('');
 const rows = [
-  { id: 'populaires', icon: '🔥', title: 'Les plus populaires', sub: 'Les activités préférées de nos clients à Dubaï.', href: '/activites/', kind: 'featured' },
+  { id: 'populaires', icon: 'flame', title: 'Les plus populaires', sub: 'Les activités préférées de nos clients à Dubaï.', href: '/activites/', kind: 'featured' },
   ...categories.filter((c) => c.on_home).map((c) => ({ id: c.slug, icon: c.icon ?? '', title: c.label, sub: c.subtitle ?? '', href: `/activites/${c.slug}/`, kind: c.slug })),
-  { id: 'voitures', icon: '🏎️', title: 'Location de voitures', sub: 'Supercars et SUV de luxe livrés à votre hôtel.', href: '/voitures/', kind: 'cars' },
+  { id: 'voitures', icon: 'car', title: 'Location de voitures', sub: 'Supercars et SUV de luxe livrés à votre hôtel.', href: '/voitures/', kind: 'cars' },
 ];
 ---
 <Layout>
@@ -59,7 +60,7 @@ const rows = [
     <section id={r.id} class="container-x scroll-mt-28 pt-16">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
         <div>
-          <h2 class="mb-1 flex items-center gap-2 text-[28px] font-extrabold leading-tight tracking-[-0.75px] sm:text-[30px] sm:font-bold sm:leading-[1.25]"><span aria-hidden="true">{r.icon}</span>{r.title}</h2>
+          <h2 class="mb-1 flex items-center gap-2 text-[28px] font-extrabold leading-tight tracking-[-0.75px] sm:text-[30px] sm:font-bold sm:leading-[1.25]"><Fragment set:html={pill(r.icon, 22)} />{r.title}</h2>
           <p class="text-gray-500">{r.sub}</p>
         </div>
         <a href={r.href} class="shrink-0 text-sm font-bold text-ink hover:text-gold sm:text-base">Toutes les activités →</a>

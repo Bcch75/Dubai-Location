@@ -69,6 +69,7 @@ import Layout from '../../layouts/Layout.astro';
 
 <script>
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
+  import { ICONS, pill, iconKey } from '../../lib/icons';
   const user = await getUser();
   if (!user) goLogin();
   else if (!(await isAdmin())) document.getElementById('deny')!.classList.remove('hidden');
@@ -586,7 +587,15 @@ import Layout from '../../layouts/Layout.astro';
         ${block('🏠', 'Page d’accueil', '', `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
           ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
-          <div><span class="lab">Grande photo <small>(laissez vide pour garder la photo actuelle)</small></span><div data-photos-settings>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div></div>`)}
+          <p class="text-sm text-gray-500">La grande photo se change dans le bloc « Images du site » ci-dessous.</p>`)}
+        ${block('🖼️', 'Images du site', 'Cliquez pour remplacer une image. Laissez vide pour garder l’image actuelle.', `
+          <div class="grid gap-5 sm:grid-cols-2">
+            <div><span class="lab">Logo <small>(rond, image carrée de préférence)</small></span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
+            <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
+            <div><span class="lab">Tuile « Voitures » (Nos univers)</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
+            <div><span class="lab">Grande photo de la page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
+          </div>
+          <p class="text-sm text-gray-500">Les tuiles « Nos univers » se changent dans <b>Catégories</b> ; les photos des activités et des voitures dans leurs catalogues.</p>`)}
         ${block('🚀', 'Publication', 'Le site est republié automatiquement après l’enregistrement (environ 1 minute).', `
           ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
           <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
@@ -605,7 +614,7 @@ import Layout from '../../layouts/Layout.astro';
       const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
       if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
       const u = sb.storage.from('images').getPublicUrl(path).data.publicUrl;
-      f.querySelector('[data-photos="hero"] .photos')!.innerHTML = photoItem(u);
+      f.querySelector(`[data-photos="${inp.dataset.upload}"] .photos`)!.innerHTML = photoItem(u);
     }));
     f.addEventListener('click', (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); });
     const msg = f.querySelector('#set-msg')!;
@@ -618,8 +627,9 @@ import Layout from '../../layouts/Layout.astro';
     f.querySelector('#publish-now')!.addEventListener('click', publish);
     f.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const hero = [...f.querySelectorAll<HTMLElement>('[data-photos="hero"] .photo')].map((p) => p.dataset.url!)[0] ?? '';
-      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero };
+      const ph = (k: string) => [...f.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!)[0] ?? '';
+      const hero = ph('hero');
+      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero, logo_url: ph('logo'), cars_tile_image: ph('cars_tile'), cars_hero_image: ph('cars_hero') };
       const [{ error: e1 }, { error: e2 }] = await Promise.all([
         sb.from('settings').update({ data }).eq('id', 1),
         sb.from('admin_settings').update({ deploy_hook: v('deploy_hook') || null }).eq('id', 1),
@@ -672,7 +682,7 @@ import Layout from '../../layouts/Layout.astro';
       <div class="space-y-2">${cats.map((c: any, i: number) => `
         <div class="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
           <img src="${esc(thumb(c.image_url))}" alt="" class="h-14 w-14 shrink-0 rounded-xl bg-sand object-cover">
-          <div class="min-w-0 flex-1"><p class="font-semibold">${esc(c.icon ?? '')} ${esc(c.label)} ${c.active ? '' : '<span class="text-xs text-red-600">(masquée)</span>'}</p>
+          <div class="min-w-0 flex-1"><p class="flex items-center gap-2 font-semibold">${pill(c.icon, 16)} ${esc(c.label)} ${c.active ? '' : '<span class="text-xs text-red-600">(masquée)</span>'}</p>
             <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · 📌 menu' : ''}${c.on_home ? ' · 🏠 accueil' : ''}</p></div>
           <div class="flex flex-col"><button data-mv="${esc(c.slug)}" data-d="-1" ${i === 0 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▲</button><button data-mv="${esc(c.slug)}" data-d="1" ${i === cats.length - 1 ? 'disabled' : ''} class="px-2 text-gray-400 hover:text-ink disabled:opacity-30">▼</button></div>
           <button data-cedit="${esc(c.slug)}" class="btn-outline !px-4 !py-2 text-sm">✏️ Modifier</button>
@@ -695,7 +705,7 @@ import Layout from '../../layouts/Layout.astro';
         <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">💾 Enregistrer</button></div>
       </div>
       <div class="space-y-4 p-4 sm:p-5">
-        ${block('🗂️', 'La catégorie', '', `<div class="grid gap-4 sm:grid-cols-[110px_1fr]">${input('icon', 'Emoji', c?.icon, 'Ex. 🏜️')}${input('label', 'Nom', c?.label, 'Ex. Désert')}</div>${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
+        ${block('🗂️', 'La catégorie', '', `${input('label', 'Nom', c?.label, 'Ex. Désert')}<div><span class="lab">Icône</span><div class="flex flex-wrap gap-2">${Object.entries(ICONS).filter(([k]) => !['pin', 'warn', 'ticket', 'photos', 'ban', 'tag'].includes(k)).map(([k, i]) => `<label class="pick !p-1.5" title="${esc(i.l)}"><input type="radio" name="cicon" value="${k}" ${iconKey(c?.icon) === k ? 'checked' : ''}>${pill(k, 20)}</label>`).join('')}</div></div>${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
         ${block('📸', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
         ${block('👁️', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible sur le site', c?.active ?? true))}
         <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
@@ -720,7 +730,7 @@ import Layout from '../../layouts/Layout.astro';
       const chk = (k: string) => (form.querySelector('#f_' + k) as HTMLInputElement).checked;
       const err = form.querySelector('#ferr')!;
       if (!v('label')) { err.textContent = 'Indiquez un nom.'; err.classList.remove('hidden'); return; }
-      const row = { label: v('label'), icon: v('icon') || null, subtitle: v('subtitle') || null, image_url: getPhotos('main')[0] ?? null, in_menu: chk('in_menu'), on_home: chk('on_home'), active: chk('active') };
+      const row = { label: v('label'), icon: form.querySelector<HTMLInputElement>('input[name="cicon"]:checked')?.value ?? null, subtitle: v('subtitle') || null, image_url: getPhotos('main')[0] ?? null, in_menu: chk('in_menu'), on_home: chk('on_home'), active: chk('active') };
       const { error } = c ? await sb.from('categories').update(row).eq('slug', c.slug) : await sb.from('categories').insert({ ...row, slug: slugify(v('label')), position: pos });
       if (error) { err.textContent = error.message.includes('duplicate') ? 'Cette catégorie existe déjà.' : error.message; err.classList.remove('hidden'); return; }
       dlg.close(); await showCategories(); publishSite(panel.querySelector('#cat-msg'));

@@ -15,12 +15,12 @@ import ski from '../assets/img/ski.jpg';
 export type CategoryId = 'desert' | 'mer' | 'ciel' | 'incontournables' | 'excursions' | 'famille';
 
 export const categories: { id: CategoryId; label: string; icon: string }[] = [
-  { id: 'desert', label: 'Désert', icon: '🏜️' },
-  { id: 'mer', label: 'Mer & yacht', icon: '🛥️' },
-  { id: 'ciel', label: 'Dans les airs', icon: '🎈' },
-  { id: 'incontournables', label: 'Incontournables', icon: '🏙️' },
-  { id: 'excursions', label: 'Excursions', icon: '🧭' },
-  { id: 'famille', label: 'En famille', icon: '👨‍👩‍👧' },
+  { id: 'desert', label: 'Désert', icon: 'sunset' },
+  { id: 'mer', label: 'Mer & yacht', icon: 'sailboat' },
+  { id: 'ciel', label: 'Dans les airs', icon: 'balloon' },
+  { id: 'incontournables', label: 'Incontournables', icon: 'city' },
+  { id: 'excursions', label: 'Excursions', icon: 'compass' },
+  { id: 'famille', label: 'En famille', icon: 'family' },
 ];
 
 export interface Option { name: string; detail?: string; price?: string }

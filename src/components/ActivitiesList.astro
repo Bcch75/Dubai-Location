@@ -2,20 +2,21 @@
 import Layout from '../layouts/Layout.astro';
 import Icon from './Icon.astro';
 import { getActivities, getCategories } from '../lib/data';
+import { pill } from '../lib/icons';
 import { activityCard, setBase } from '../lib/cards';
 
 interface Props { cat?: string }
 const { cat = '' } = Astro.props;
 setBase(import.meta.env.BASE_URL);
 const acts = await getActivities();
-const cats = [['', 'Toutes', 'Activités à Dubaï'], ...(await getCategories()).map((c) => [c.slug, `${c.icon ?? ''} ${c.label}`.trim(), c.label])];
+const cats = [['', 'Toutes', 'Activités à Dubaï'], ...(await getCategories()).map((c) => [c.slug, c.label, c.label, c.icon ?? ''])];
 const title = cats.find((c) => c[0] === cat)?.[2] ?? 'Activités';
 const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
 ---
 <Layout title={`${title} à Dubaï`} description="Nos activités à Dubaï : désert, yacht, montgolfière, hélicoptère, Burj Khalifa, Oman, Abu Dhabi. Réservez en ligne.">
   <section class="container-x pb-6 pt-28 sm:pt-32">
     <nav class="text-xs text-muted"><a href="/" class="hover:text-ink">Accueil</a> › <a href="/activites/" class="hover:text-ink">Activités</a>{cat && ` › ${title}`}</nav>
-    <h1 class="mt-2 text-3xl font-bold sm:text-4xl">🇦🇪 {cat ? title : 'Activités à Dubaï'}</h1>
+    <h1 class="mt-2 flex items-center gap-3 text-3xl font-bold sm:text-4xl">{cat && <Fragment set:html={pill(cats.find((c) => c[0] === cat)?.[3], 24)} />}{cat ? title : 'Activités à Dubaï'}</h1>
     <p class="mt-1 text-gray-500">Découvrez notre sélection d'activités à Dubaï, préparées avec soin par notre équipe.</p>
     <form action="/activites/" method="get" class="mt-6 flex max-w-xl items-center gap-2 rounded-full border border-line bg-white p-1.5 pl-5 shadow-sm" role="search">
       <Icon name="search" class="h-5 w-5 shrink-0 text-muted" />
@@ -24,7 +25,7 @@ const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
       <button class="shrink-0 rounded-full bg-gold px-5 py-2 font-semibold text-white">OK</button>
     </form>
     <div class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" aria-label="Catégories">
-      {cats.map(([id, label]) => <a href={id ? `/activites/${id}/` : '/activites/'} class="chip" aria-pressed={id === cat ? 'true' : 'false'}>{label}</a>)}
+      {cats.map(([id, label, , ic]) => <a href={id ? `/activites/${id}/` : '/activites/'} class="chip" aria-pressed={id === cat ? 'true' : 'false'}>{ic && <Fragment set:html={pill(ic, 14, true)} />}{label}</a>)}
     </div>
   </section>
   <section class="container-x pb-20">

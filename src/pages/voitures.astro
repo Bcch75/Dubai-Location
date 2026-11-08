@@ -5,6 +5,7 @@ import { rentalConditions } from '../data/cars';
 import Icon from '../components/Icon.astro';
 import hero from '../assets/img/cars/hero-cars.jpg';
 import { getCars } from '../lib/data';
+import { site } from '../data/site';
 import { carCard, setBase } from '../lib/cards';
 setBase(import.meta.env.BASE_URL);
 const cars = await getCars();
@@ -12,7 +13,7 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
 ---
 <Layout title="Location de voitures de luxe à Dubaï" description="Louez une Lamborghini, une Ferrari, une Rolls-Royce ou un G63 à Dubaï, livrés à votre hôtel ou à l'aéroport." ogImage={hero}>
   <section class="relative isolate flex h-[420px] items-center justify-center overflow-hidden">
-    <Image src={hero} alt="Lamborghini avec une plaque de Dubaï" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" class="absolute inset-0 -z-20 h-full w-full object-cover" />
+{site.carsHeroImage ? <img src={site.carsHeroImage} alt="Voiture de luxe à Dubaï" loading="eager" class="absolute inset-0 -z-20 h-full w-full object-cover" /> : <Image src={hero} alt="Lamborghini avec une plaque de Dubaï" widths={[800, 1280, 1920]} sizes="100vw" loading="eager" class="absolute inset-0 -z-20 h-full w-full object-cover" />}
     <div class="absolute inset-0 -z-10 bg-black/40"></div>
     <div class="container-x pt-16 text-center text-white">
       <h1 class="text-4xl font-extrabold !text-white drop-shadow-[0_2px_12px_rgb(0_0_0/0.4)] sm:text-6xl">Location de voitures de luxe</h1>

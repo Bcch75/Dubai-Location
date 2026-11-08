@@ -15,9 +15,12 @@ export const site = {
   heroTitle: 'Trouvez et réservez des activités',
   searchPlaceholder: 'Destination ou une activité...',
   heroImage: '', // vide = photo par défaut du site
+  logoUrl: '',      // logo rond (vide = logo par défaut)
+  carsTileImage: '', // tuile « Voitures » de l'accueil
+  carsHeroImage: '', // grande photo de la page Voitures
 };
 
-// Les réglages modifiés dans l'espace admin (⚙️ Réglages du site) remplacent les valeurs ci-dessus
+// Les réglages modifiés dans l'espace admin (Réglages du site) remplacent les valeurs ci-dessus
 try {
   const r = await fetch(`${import.meta.env.PUBLIC_SUPABASE_URL}/rest/v1/settings?id=eq.1&select=data`, {
     headers: { apikey: import.meta.env.PUBLIC_SUPABASE_ANON_KEY, Authorization: `Bearer ${import.meta.env.PUBLIC_SUPABASE_ANON_KEY}` },
@@ -31,6 +34,9 @@ try {
     if (d.hero_title) site.heroTitle = d.hero_title;
     if (d.search_placeholder) site.searchPlaceholder = d.search_placeholder;
     if (d.hero_image) site.heroImage = d.hero_image;
+    if (d.logo_url) site.logoUrl = d.logo_url;
+    if (d.cars_tile_image) site.carsTileImage = d.cars_tile_image;
+    if (d.cars_hero_image) site.carsHeroImage = d.cars_hero_image;
   }
 } catch { /* hors ligne : valeurs par défaut */ }
 
