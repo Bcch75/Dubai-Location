@@ -73,6 +73,7 @@ export const cart = {
   set(items: CartItem[]) { try { localStorage.setItem(CART, JSON.stringify(items)); } catch {} window.dispatchEvent(new Event('cart:change')); },
   add(item: Omit<CartItem, 'key'>) { this.set([...this.get(), { ...item, key: crypto.randomUUID() }]); },
   remove(key: string) { this.set(this.get().filter((i) => i.key !== key)); },
+  setQty(key: string, qty: number) { this.set(this.get().map((i) => (i.key === key ? { ...i, qty: Math.max(1, Math.min(50, qty)) } : i))); },
   clear() { this.set([]); },
   total() { return this.get().reduce((s, i) => s + (i.unitPrice ?? 0) * (i.type === 'car' ? nights(i) : i.qty), 0); },
 };
