@@ -103,3 +103,7 @@ body { top: 0 !important; }
 /* Texte doré du logo */
 .gold-text { background: linear-gradient(180deg, #f3d98b 0%, #d4af37 45%, #a87b1f 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .font-serif-logo { font-family: "Trajan Pro", "Cinzel", "Optima", "Didot", Georgia, "Times New Roman", serif; }
+
+/* iPhone : les champs date ne débordent plus de leur case */
+input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-width: 0; width: 100%; display: block; min-height: 48px; text-align: left; }
+input[type="date"]::-webkit-date-and-time-value { text-align: left; }
