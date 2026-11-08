@@ -79,6 +79,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     </a>
 
     <script>
+      // Toujours ouvrir la page en haut (sauf lien vers une section précise)
+      if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+      if (!location.hash) window.scrollTo(0, 0);
       import { initHeader, logVisit } from '../lib/app';
       initHeader();
       logVisit();
