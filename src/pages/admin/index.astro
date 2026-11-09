@@ -32,7 +32,6 @@ import { ap, ai } from '../../lib/admin-icons';
       </aside>
       <div>
         <h1 id="view-title" class="text-2xl font-bold sm:text-3xl">Tableau de bord</h1>
-        <p id="view-sub" class="mt-1 text-sm text-gray-500"></p>
         <div id="panel" class="mt-6"></div>
       </div>
     </div></div>
@@ -164,7 +163,7 @@ import { ap, ai } from '../../lib/admin-icons';
             ${o.status === 'confirmed' ? `<button data-set="${o.id}" data-s="done" class="btn-outline !px-4 !py-2 text-sm">Marquer terminée</button>` : ''}
             <select data-status="${o.id}" class="field !w-auto !py-2 text-sm">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v.replace('● ', '')}</option>`).join('')}</select>
           </div>
-          <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Message pour le client (prix final, heure de prise en charge…)" value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-outline !px-4 !py-2 text-sm">Envoyer</button></div>
+          <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Message au client" value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-outline !px-4 !py-2 text-sm">Envoyer</button></div>
         </div>
       </details>`).join('') : `<p class="blk text-gray-500">Aucune commande ${orderFilter === 'pending' ? 'à traiter' : 'ici'}.</p>`}`;
     panel.querySelectorAll<HTMLElement>('[data-of]').forEach((b) => b.addEventListener('click', () => { orderFilter = b.dataset.of!; showOrders(); }));
@@ -230,15 +229,15 @@ import { ap, ai } from '../../lib/admin-icons';
 
   // ═════════ Petits composants du formulaire ═════════
   const input = (k: string, label: string, v: unknown, ph = '', type = 'text', hint = '') =>
-    `<div><label class="lab" for="f_${k}">${label}${hint ? ` <small>${hint}</small>` : ''}</label><input id="f_${k}" type="${type}" ${type === 'number' ? 'step="any"' : ''} class="field" placeholder="${esc(ph)}" value="${esc(v ?? '')}"></div>`;
+    `<div><label class="lab" for="f_${k}">${label}</label><input id="f_${k}" type="${type}" ${type === 'number' ? 'step="any"' : ''} class="field"  value="${esc(v ?? '')}"></div>`;
   const area = (k: string, label: string, v: unknown, ph = '', rows = 3, hint = '') =>
-    `<div><label class="lab" for="f_${k}">${label}${hint ? ` <small>${hint}</small>` : ''}</label><textarea id="f_${k}" rows="${rows}" class="field" placeholder="${esc(ph)}">${esc(v ?? '')}</textarea></div>`;
+    `<div><label class="lab" for="f_${k}">${label}</label><textarea id="f_${k}" rows="${rows}" class="field" >${esc(v ?? '')}</textarea></div>`;
   const toggle = (k: string, label: string, on: boolean, hint = '') =>
-    `<label class="sw"><span><b class="block text-sm">${label}</b>${hint ? `<span class="text-xs text-gray-500">${hint}</span>` : ''}</span><input type="checkbox" id="f_${k}" ${on ? 'checked' : ''}></label>`;
+    `<label class="sw"><span><b class="block text-sm">${label}</b></span><input type="checkbox" id="f_${k}" ${on ? 'checked' : ''}></label>`;
   const picks = (name: string, opts: [string, string][], selected: string[], type = 'checkbox') =>
     `<div class="flex flex-wrap gap-2">${opts.map(([v, l]) => `<label class="pick"><input type="${type}" name="${name}" value="${esc(v)}" ${selected.includes(v) ? 'checked' : ''}>${l}</label>`).join('')}</div>`;
   const block = (icon: string, title: string, hint: string, body: string, open = true) =>
-    open ? `<section class="blk"><h3>${icon}${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}<div class="mt-4 space-y-4">${body}</div></section>`
+    open ? `<section class="blk"><h3>${icon}${title}</h3><div class="mt-4 space-y-4">${body}</div></section>`
          : `<details class="blk"><summary class="cursor-pointer list-none"><h3>${icon}${title} <span class="ml-auto text-sm font-normal text-gold">Afficher ▾</span></h3>${hint ? `<p class="hint">${hint}</p>` : ''}</summary><div class="mt-4 space-y-4">${body}</div></details>`;
 
   /** Section repliable : titre + résumé quand elle est fermée */
@@ -250,14 +249,14 @@ import { ap, ai } from '../../lib/admin-icons';
   const photoBox = (k: string, urls: string[], multiple: boolean) => `
     <div data-photos="${k}" data-multiple="${multiple ? 1 : 0}">
       <div class="photos grid grid-cols-3 gap-2 sm:grid-cols-4">${urls.map((u) => photoItem(u)).join('')}</div>
-      <label class="drop mt-2 block">${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'} <span class="block text-xs">depuis votre ordinateur ou téléphone</span>
+      <label class="drop mt-2 block">${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'}
         <input type="file" accept="image/*" ${multiple ? 'multiple' : ''} class="hidden" data-upload="${k}"></label>
     </div>`;
   const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/95 text-gray-700 shadow hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
   const getPhotos = (k: string) => [...form.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!);
 
   // Formules : lignes à remplir
-  const optRow = (o: any = {}) => `<div class="opt grid grid-cols-[1fr_1fr_110px_32px] gap-2"><input class="field !py-2 text-sm" data-o="name" placeholder="Nom (ex. Snow Premium)" value="${esc(o.name ?? '')}"><input class="field !py-2 text-sm" data-o="detail" placeholder="Détail (facultatif)" value="${esc(o.detail ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix AED" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="text-gray-400 hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  const optRow = (o: any = {}) => `<div class="opt grid grid-cols-[1fr_1fr_110px_32px] gap-2"><input class="field !py-2 text-sm" data-o="name" placeholder="Nom" value="${esc(o.name ?? '')}"><input class="field !py-2 text-sm" data-o="detail" placeholder="Détail" value="${esc(o.detail ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="text-gray-400 hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
 
   // ═════════ Formulaire : Activité ═════════
   function activityForm(r: any) {
@@ -268,32 +267,32 @@ import { ap, ai } from '../../lib/admin-icons';
     const flags = [r.active === false ? 'Masquée' : 'Visible', r.featured ? 'Populaire' : '', r.badge ?? ''].filter(Boolean).join(' · ');
     return [
       grp('Informations') + sec(ap('blog', '#0ea5e9', 16), 'L’essentiel', `${aed(r.price ?? 0)} ${r.price_unit ?? ''}`, [
-        input('title', 'Nom de l’activité', r.title, 'Ex. Safari dans le désert en quad'),
+        input('title', 'Nom', r.title, 'Ex. Safari dans le désert en quad'),
         `<div><span class="lab">Catégories</span>${picks('cats', CATS, r.categories ?? [])}</div>`,
         `<div class="grid gap-4 sm:grid-cols-2">${input('price', 'Prix (AED)', r.price, 'Ex. 350', 'number')}<div><span class="lab">Le prix est…</span>${picks('unit', UNITS.map((u) => [u[0], u[1]] as [string, string]), [unit], 'radio')}</div></div>`,
         `<div class="grid gap-4 sm:grid-cols-2">${input('duration', 'Durée', r.duration, 'Ex. 2 heures')}${input('location', 'Lieu', r.location, 'Ex. Désert de Dubaï')}</div>`,
-        input('tagline', 'Petite phrase sous le titre', r.tagline, 'Ex. 100 % adrénaline sur les dunes dorées.'),
+        input('tagline', 'Sous-titre', r.tagline, 'Ex. 100 % adrénaline sur les dunes dorées.'),
       ].join(''), true),
       sec(ap('camera', '#8b5cf6', 16), 'Photos', nPhotos ? `${nPhotos} photo${nPhotos > 1 ? 's' : ''}` : 'Aucune photo', [
-        `<div><span class="lab">Photo principale <small>(celle de la carte)</small></span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
+        `<div><span class="lab">Photo principale</span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
         `<div><span class="lab">Autres photos</span>${photoBox('gallery', r.gallery ?? [], true)}</div>`,
       ].join(''), isNew),
       sec(ap('list', '#0171eb', 16), 'Description et détails', r.description ? 'Rempli' : 'À compléter', [
         area('description', 'Description', r.description, 'Laissez une ligne vide pour un nouveau paragraphe.', 5),
         area('highlights', 'Points forts', (r.highlights ?? []).join('\n'), 'Un par ligne', 3),
         `<div class="grid gap-4 sm:grid-cols-2">${area('included', 'Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 3)}${area('excluded', 'Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 3)}</div>`,
-        area('important', 'Information importante', r.important, 'Ex. Passeport obligatoire.', 2),
+        area('important', 'Important', r.important, 'Ex. Passeport obligatoire.', 2),
       ].join('')),
       grp('Vente et affichage') + sec(ap('tag', '#0171eb', 16), 'Formules', nOpts ? `${nOpts} formule${nOpts > 1 ? 's' : ''}` : 'Aucune',
-        `<p class="text-sm text-gray-500">Si l’activité a plusieurs choix (ex. Snow Classique, Snow Plus…). Sinon, laissez vide.</p><div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
+        `<div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
       sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
-        toggle('active', 'Visible sur le site', r.active ?? true) + toggle('featured', 'Dans « Les plus populaires »', !!r.featured),
+        toggle('active', 'Visible', r.active ?? true) + toggle('featured', 'Populaire', !!r.featured),
         `<div><span class="lab">Étiquette sur la photo</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
-        input('perk', 'Avantage en vert', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
+        input('perk', 'Avantage', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
         `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
-          ${toggle('price_from', 'Afficher « à partir de » devant le prix', r.price_from ?? true)}
+          ${toggle('price_from', '« À partir de »', r.price_from ?? true)}
           <div class="grid gap-4 sm:grid-cols-3">${input('old_price', 'Prix barré (promo)', r.old_price, '', 'number')}${input('rating', 'Note /5', r.rating, 'Ex. 4.9', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, '', 'number')}</div>
-          ${input('video_url', 'Lien vidéo Instagram ou TikTok', r.video_url, 'https://…', 'url')}
+          ${input('video_url', 'Lien vidéo', r.video_url, 'https://…', 'url')}
         </div></details>`,
       ].join('')),
     ].join('');
@@ -328,7 +327,7 @@ import { ap, ai } from '../../lib/admin-icons';
       grp('La voiture') + sec(ap('car', '#c9a227', 16), 'L’essentiel', r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Prix sur demande', [
         `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>`,
         `<div><span class="lab">Type</span>${picks('ccat', CAR_CATS, [r.category ?? 'supercar'], 'radio')}</div>`,
-        input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Vide = « Prix sur demande »', 'number'),
+        input('price_per_day', 'Prix / jour (AED)', r.price_per_day, 'Vide = « Prix sur demande »', 'number'),
         `<div><span class="lab">Photo</span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
       ].join(''), true),
       sec(ap('list', '#0171eb', 16), 'Caractéristiques', [r.seats ? r.seats + ' places' : '', r.engine ?? ''].filter(Boolean).join(' · ') || 'À compléter', [
@@ -336,11 +335,11 @@ import { ap, ai } from '../../lib/admin-icons';
         area('description', 'Description', r.description, 'Facultatif', 3),
       ].join('')),
       grp('Affichage') + sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
-        toggle('active', 'Visible sur le site', r.active ?? true),
-        `<div class="grid gap-4 sm:grid-cols-2">${input('tag', 'Étiquette sur la photo', r.tag, 'Ex. Best-seller')}${input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel')}</div>`,
+        toggle('active', 'Visible', r.active ?? true),
+        `<div class="grid gap-4 sm:grid-cols-2">${input('tag', 'Étiquette', r.tag, 'Ex. Best-seller')}${input('perk', 'Avantage', r.perk, 'Ex. Livraison hôtel')}</div>`,
         `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
           <div class="grid gap-4 sm:grid-cols-3">${input('old_price', 'Prix barré (promo)', r.old_price, '', 'number')}${input('rating', 'Note /5', r.rating, '', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, '', 'number')}</div>
-          ${input('video_url', 'Lien vidéo Instagram ou TikTok', r.video_url, 'https://…', 'url')}
+          ${input('video_url', 'Lien vidéo', r.video_url, 'https://…', 'url')}
         </div></details>`,
       ].join('')),
     ].join('');
@@ -629,7 +628,7 @@ import { ap, ai } from '../../lib/admin-icons';
           ${input('pcode', 'Code', '', 'Ex. DUBAI10')}
           ${input('ppct', 'Réduction (%)', '', 'Ex. 10', 'number')}
           ${input('pexp', 'Valable jusqu’au', '', '', 'date', '(facultatif)')}
-          ${input('pmax', 'Nombre max. d’utilisations', '', 'Illimité', 'number', '(facultatif)')}
+          ${input('pmax', 'Utilisations max.', '', 'Illimité', 'number', '(facultatif)')}
         </div>
         <button class="btn-gold mt-4 !py-2.5">Créer le code</button><span id="perr" class="ml-3 text-sm text-red-600"></span>
       </form>
@@ -698,23 +697,22 @@ import { ap, ai } from '../../lib/admin-icons';
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
         ${grp('Entreprise')}${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
-          <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'Numéro WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone affiché', d.phone, '+971 56 973 6810')}</div>
-          <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email de contact', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
+          <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone', d.phone, '+971 56 973 6810')}</div>
+          <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
         ${grp('Apparence')}${sec(ap('home', '#0171eb', 16), 'Textes de l’accueil', esc(d.hero_title ?? ''), `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
-          ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
+          ${input('search_placeholder', 'Barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
           `)}
         ${sec(ap('photo', '#8b5cf6', 16), 'Images du site', 'Logo, photo d’accueil, voitures', `
           <div class="grid gap-5 sm:grid-cols-2">
-            <div><span class="lab">Logo <small>(rond, image carrée de préférence)</small></span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
+            <div><span class="lab">Logo</span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
             <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
-            <div><span class="lab">Tuile « Voitures » (Nos univers)</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
-            <div><span class="lab">Grande photo de la page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
-          </div>
-          <p class="text-sm text-gray-500">Les tuiles « Nos univers » se changent dans <b>Catégories</b> ; les photos des activités et des voitures dans leurs catalogues.</p>`)}
+            <div><span class="lab">Tuile Voitures</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
+            <div><span class="lab">Photo page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
+          </div>`)}
         ${grp('Avancé')}${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
-          ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
-          <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
+          ${input('deploy_hook', 'Lien de publication', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
+          `)}
         <div class="sticky bottom-[84px] flex items-center gap-2 rounded-2xl bg-white p-2.5 shadow-lift lg:bottom-4">
           <button class="btn-gold !px-4 !py-2.5 text-sm">Enregistrer</button>
           <button type="button" id="publish-now" class="btn-outline !px-4 !py-2.5 text-sm">Republier</button>
@@ -795,7 +793,7 @@ import { ap, ai } from '../../lib/admin-icons';
     panel.innerHTML = `
       <div class="mb-4 flex flex-wrap items-center gap-3">
         <button id="cat-new" class="btn-gold">+ Ajouter une catégorie</button>
-        <p class="text-sm text-gray-500">Cliquez sur une catégorie pour la modifier · faites-la <b>glisser</b> pour changer l’ordre.</p>
+        
       </div>
       <p id="cat-msg" class="mb-3 text-sm"></p>
       <div id="cat-list" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">${cats.map((c: any) => `
@@ -842,7 +840,7 @@ import { ap, ai } from '../../lib/admin-icons';
       box.querySelector('#ip-preview')!.innerHTML = sel ? pill(sel, 26, false, col || null) : '<span class="text-sm text-gray-400">Aucune</span>';
     };
     box.innerHTML = `
-      <div class="flex items-center gap-3"><div id="ip-preview"></div><input id="ip-q" class="field !py-2" placeholder="Rechercher : soleil, bateau, voiture, famille…"></div>
+      <div class="flex items-center gap-3"><div id="ip-preview"></div><input id="ip-q" class="field !py-2" placeholder="Rechercher"></div>
       <div class="mt-3"><span class="lab">Couleur</span><div id="ip-cols" class="flex flex-wrap gap-2">${['', ...ICON_COLORS].map((c) => `<button type="button" data-ic="${c}" class="h-8 w-8 rounded-full ring-2 ring-offset-2 ${c === col ? 'ring-gold' : 'ring-transparent'}" style="background:${c || 'conic-gradient(#f59e0b,#ef4444,#8b5cf6,#0171eb,#10b981,#f59e0b)'}" title="${c ? c : 'Couleur automatique'}"></button>`).join('')}</div></div>
       <div id="ip-grid" class="mt-3 grid max-h-72 grid-cols-6 gap-1 overflow-y-auto rounded-xl border border-gray-100 p-2 sm:grid-cols-8"></div>`;
     box.querySelector('#ip-q')!.addEventListener('input', (e) => draw((e.target as HTMLInputElement).value));
@@ -864,9 +862,9 @@ import { ap, ai } from '../../lib/admin-icons';
       </div>
       <div class="space-y-4 p-4 sm:p-5">
         ${block('', 'La catégorie', '', `${input('label', 'Nom', c?.label, 'Ex. Désert')}${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
-        <section class="blk"><h3>Icône</h3><p class="hint">${Object.keys(ICON_LIB).length} icônes : cherchez un mot, puis choisissez la couleur.</p><div id="ip-slot" class="mt-4"></div></section>
+        <section class="blk"><h3>Icône</h3><div id="ip-slot" class="mt-4"></div></section>
         ${block('', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
-        ${block('', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible sur le site', c?.active ?? true))}
+        ${block('', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible', c?.active ?? true))}
         <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
         ${c ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">Supprimer la catégorie</button>` : ''}
       </div>`;
@@ -939,7 +937,6 @@ import { ap, ai } from '../../lib/admin-icons';
     document.querySelectorAll<HTMLElement>('[data-bn]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.covers ?? '').split(' ').includes(t))));
     window.scrollTo(0, 0);
     document.getElementById('view-title')!.textContent = TITLES[t][0];
-    document.getElementById('view-sub')!.textContent = TITLES[t][1];
     panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
     history.replaceState(null, '', '#' + t);
     ({ 'hub-catalog': () => showHub('hub-catalog'), 'hub-more': () => showHub('hub-more'), dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, categories: showCategories, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
