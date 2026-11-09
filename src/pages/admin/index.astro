@@ -35,12 +35,12 @@ import { ap, ai } from '../../lib/admin-icons';
         <div id="panel" class="mt-6"></div>
       </div>
     </div></div>
-    <nav id="admin-bn" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-gray-200 bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5 backdrop-blur lg:hidden" aria-label="Navigation admin">
+    <nav id="admin-bn" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 items-start border-t border-gray-200 bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5 backdrop-blur lg:hidden" aria-label="Navigation admin">
       <button class="bn" data-bn="dashboard" data-covers="dashboard"><span class="bn-ic"><Fragment set:html={ai('dashboard', 22)} /></span>Accueil</button>
-      <button class="bn" data-bn="orders" data-covers="orders calendar"><span class="bn-ic"><Fragment set:html={ai('list', 22)} /><em id="bn-badge" class="hidden"></em></span>Commandes</button>
+      <button class="bn" data-bn="orders" data-covers="orders calendar"><span class="bn-ic"><Fragment set:html={ai('list', 22)} /><em id="bn-badge" class="hidden"></em></span>Réservations</button>
       <button class="bn" data-bn="hub-catalog" data-covers="hub-catalog activities cars categories"><span class="bn-ic"><Fragment set:html={ai('sunset', 22)} /></span>Catalogue</button>
-      <button class="bn" data-bn="settings" data-covers="settings"><span class="bn-ic"><Fragment set:html={ai('home', 22)} /></span>Mon site</button>
-      <button class="bn" data-bn="hub-more" data-covers="hub-more account clients promos stats posts"><span class="bn-ic"><Fragment set:html={ai('user', 22)} /></span>Plus</button>
+      <button class="bn" data-bn="settings" data-covers="settings"><span class="bn-ic"><Fragment set:html={ai('home', 22)} /></span>Apparence</button>
+      <button class="bn" data-bn="hub-more" data-covers="hub-more account clients promos stats posts"><span class="bn-ic"><Fragment set:html={ai('user', 22)} /></span>Profil</button>
     </nav>
   </section>
   <dialog id="dlg" class="m-auto w-[min(760px,96vw)] rounded-2xl bg-sand p-0 backdrop:bg-black/50">
@@ -63,6 +63,8 @@ import { ap, ai } from '../../lib/admin-icons';
   .hub-row:hover { outline-color: #0171eb; }
   .bn { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 10.5px; font-weight: 600; color: #6b7280; padding: 4px 0; }
   .bn-ic { position: relative; display: grid; place-items: center; width: 56px; height: 32px; border-radius: 12px; transition: background .15s; }
+  .bn { min-width: 0; height: 52px; line-height: 1; white-space: nowrap; letter-spacing: -0.01em; }
+  .bn-ic { flex-shrink: 0; }
   .bn[aria-pressed='true'] { color: #0171eb; }
   .bn[aria-pressed='true'] .bn-ic { background: #e8f1fe; }
   .bn-ic em.hidden { display: none; }
@@ -460,7 +462,7 @@ import { ap, ai } from '../../lib/admin-icons';
     clients: ['Clients', 'Les personnes qui ont créé un compte.'],
     posts: ['Blog', 'Vos articles de conseils.'],
     'hub-catalog': ['Catalogue', 'Vos activités, voitures et catégories.'],
-    'hub-more': ['Plus', 'Votre compte, vos clients et les outils.'],
+    'hub-more': ['Profil', 'Votre compte, vos clients et les outils.'],
     categories: ['Catégories', 'Les catégories d’activités du menu, de l’accueil et des filtres.'],
     calendar: ['Calendrier', 'Vos réservations jour par jour, et les dates complètes.'],
     promos: ['Codes promo', 'Créez des réductions pour vos clients (Instagram, fidélité…).'],
