@@ -107,3 +107,6 @@ body { top: 0 !important; }
 /* iPhone : les champs date ne débordent plus de leur case */
 input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-width: 0; width: 100%; display: block; min-height: 48px; text-align: left; }
 input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+
+/* Interface plus compacte : tout le site est légèrement réduit sur téléphone */
+@media (max-width: 640px) { html { font-size: 15px; } }
