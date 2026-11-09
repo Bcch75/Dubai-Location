@@ -45,6 +45,18 @@ import { ap } from '../../lib/admin-icons';
 <style is:global>
   .blk { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgb(0 0 0 / 0.06); }
   .blk h3 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .acc { padding: 0; }
+  .acc > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 16px 18px; cursor: pointer; user-select: none; }
+  .acc > summary::-webkit-details-marker { display: none; }
+  .acc > summary h3 { flex: 1; min-width: 0; margin: 0; }
+  .acc .acc-sum { font-size: .85rem; color: #6b7280; max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acc .chev { color: #9ca3af; font-size: 1.3rem; line-height: 1; transition: transform .2s; }
+  .acc[open] .chev { transform: rotate(90deg); }
+  .acc > .acc-body { padding: 0 18px 18px; }
+  .acc[open] > summary { border-bottom: 1px solid #f3f4f6; margin-bottom: 16px; }
+  .row-btn { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: #fff; border-radius: 16px; padding: 10px 14px 10px 10px; box-shadow: 0 1px 3px rgb(0 0 0 / .06); outline: 1px solid #f3f4f6; transition: box-shadow .15s, outline-color .15s; }
+  .row-btn:hover { outline-color: #0171eb; box-shadow: 0 6px 18px -8px rgb(1 113 235 / .4); }
+  .badge { font-size: .75rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
   .blk .hint { font-size: 0.85rem; color: #6b7280; margin-top: 2px; }
   .lab { display: block; font-size: 0.9rem; font-weight: 600; color: #111827; margin-bottom: 6px; }
   .lab small { font-weight: 400; color: #9ca3af; }
@@ -84,50 +96,99 @@ import { ap } from '../../lib/admin-icons';
   const form = document.getElementById('edit') as HTMLFormElement;
   const STATUS: Record<string, string> = { pending: '● En attente', confirmed: '● Confirmée', cancelled: '● Annulée', done: '● Terminée' };
   let CATS: [string, string][] = [];
-  const loadCats = async () => { const { data } = await sb.from('categories').select('slug,label,icon').order('position'); CATS = (data ?? []).map((c: any) => [c.slug, `${c.icon ?? ''} ${c.label}`.trim()]); };
+  const loadCats = async () => { const { data } = await sb.from('categories').select('slug,label,icon,icon_color').order('position'); CATS = (data ?? []).map((c: any) => [c.slug, `<span class="inline-flex items-center gap-1.5">${pill(c.icon, 13, true, c.icon_color)}${esc(c.label)}</span>`]); };
   const CAR_CATS: [string, string][] = [['supercar', 'Supercar'], ['prestige', 'Prestige'], ['suv', 'SUV de luxe'], ['sport', 'Sportive / berline']];
   const UNITS: [string, string, string][] = [['/ pers.', 'Par personne', 'Personnes'], ['/ heure', 'Par heure', 'Heures'], ['', 'Pour le groupe', 'Personnes'], ['/ jour', 'Par jour', 'Jours']];
   const BADGES = ['', 'Populaire', 'Nouveau', 'Coup de cœur', 'Promo', 'Best-seller'];
   const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   // ═════════ Réservations ═════════
+  let orderFilter = 'pending';
   async function showOrders() {
     const { data } = await sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
-    panel.innerHTML = (data ?? []).length ? (data ?? []).map((o: any) => `
-      <div class="blk mb-3">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div><p class="font-semibold">Réservation n°${o.id} · ${esc(o.contact_name)}</p>
-          <p class="text-sm text-gray-500">${new Date(o.created_at).toLocaleString('fr-FR')} · <a class="text-gold" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}" target="_blank">${esc(o.contact_phone)}</a> · ${esc(o.contact_email)}</p></div>
-          <select data-status="${o.id}" class="field !w-auto !py-2">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    const all = data ?? [];
+    const count = (k: string) => all.filter((o: any) => o.status === k).length;
+    const TABS: [string, string][] = [['pending', 'À traiter'], ['confirmed', 'Confirmées'], ['done', 'Terminées'], ['cancelled', 'Annulées'], ['all', 'Toutes']];
+    const list = orderFilter === 'all' ? all : all.filter((o: any) => o.status === orderFilter);
+    const COL: Record<string, string> = { pending: 'bg-amber-50 text-amber-800', confirmed: 'bg-emerald-50 text-emerald-700', done: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-50 text-red-700' };
+    const fd = (d: string | null) => (d ? new Date(d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '');
+    panel.innerHTML = `
+      <div class="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">${TABS.map(([k, l]) => `<button data-of="${k}" class="chip" aria-pressed="${k === orderFilter}">${l}${k !== 'all' ? ` <span class="opacity-70">${count(k)}</span>` : ''}</button>`).join('')}</div>
+      ${list.length ? list.map((o: any) => `
+      <details class="blk acc mb-2">
+        <summary>
+          <div class="min-w-0 flex-1">
+            <p class="truncate font-semibold">${esc(o.contact_name ?? 'Client')} <span class="font-normal text-gray-400">· n°${o.id}</span></p>
+            <p class="truncate text-sm text-gray-500">${esc(o.order_items.map((i: any) => i.item_title).join(', '))} · ${fd(o.order_items[0]?.date)}</p>
+          </div>
+          ${o.total_estimate ? `<b class="hidden text-sm sm:block">${aed(o.total_estimate)}</b>` : ''}
+          <span class="badge ${COL[o.status] ?? ''}">${(STATUS[o.status] ?? o.status).replace('● ', '')}</span><span class="chev">›</span>
+        </summary>
+        <div class="acc-body space-y-3 text-sm">
+          <ul class="space-y-1">${o.order_items.map((i: any) => `<li><b>${esc(i.item_title)}</b>${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${fd(i.date)}${i.end_date ? ' → ' + fd(i.end_date) : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
+          <p class="text-gray-500">${esc(o.contact_email ?? '')}${o.total_estimate ? ` · Total estimé <b class="text-ink">${aed(o.total_estimate)}</b>` : ''}${o.promo_code ? ` · code ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>
+          ${o.notes ? `<p class="rounded-lg bg-sand p-2">Note du client : ${esc(o.notes)}</p>` : ''}
+          <div class="flex flex-wrap gap-2">
+            ${o.contact_phone ? `<a class="btn-wa !px-4 !py-2 text-sm" target="_blank" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}">WhatsApp</a>` : ''}
+            ${o.status === 'pending' ? `<button data-set="${o.id}" data-s="confirmed" class="btn-gold !px-4 !py-2 text-sm">Confirmer</button><button data-set="${o.id}" data-s="cancelled" class="btn-outline !px-4 !py-2 text-sm">Refuser</button>` : ''}
+            ${o.status === 'confirmed' ? `<button data-set="${o.id}" data-s="done" class="btn-outline !px-4 !py-2 text-sm">Marquer terminée</button>` : ''}
+            <select data-status="${o.id}" class="field !w-auto !py-2 text-sm">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v.replace('● ', '')}</option>`).join('')}</select>
+          </div>
+          <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Message pour le client (prix final, heure de prise en charge…)" value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-outline !px-4 !py-2 text-sm">Envoyer</button></div>
         </div>
-        <ul class="mt-3 space-y-1 text-sm">${o.order_items.map((i: any) => `<li>• <b>${esc(i.item_title)}</b>${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
-        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b>${o.promo_code ? ` · ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>` : ''}
-        ${o.notes ? `<p class="mt-2 rounded-lg bg-sand p-2 text-sm">Client : ${esc(o.notes)}</p>` : ''}
-        <label class="lab mt-4">Message pour le client <small>(il le voit dans « Mon compte »)</small></label>
-        <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Ex. Prise en charge à 15h à votre hôtel. Prix final : 1 200 AED." value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-gold !px-4 !py-2 text-sm">Envoyer</button></div>
-      </div>`).join('') : '<p class="blk text-gray-500">Aucune réservation pour l’instant.</p>';
+      </details>`).join('') : `<p class="blk text-gray-500">Aucune commande ${orderFilter === 'pending' ? 'à traiter' : 'ici'}.</p>`}`;
+    panel.querySelectorAll<HTMLElement>('[data-of]').forEach((b) => b.addEventListener('click', () => { orderFilter = b.dataset.of!; showOrders(); }));
+    panel.querySelectorAll<HTMLElement>('[data-set]').forEach((b) => b.addEventListener('click', async () => { await sb.from('orders').update({ status: b.dataset.s }).eq('id', +b.dataset.set!); paintPending(); showOrders(); }));
   }
   panel.addEventListener('change', async (e) => {
     const s = (e.target as HTMLElement).closest<HTMLSelectElement>('[data-status]');
-    if (s) await sb.from('orders').update({ status: s.value }).eq('id', +s.dataset.status!);
+    if (s) { await sb.from('orders').update({ status: s.value }).eq('id', +s.dataset.status!); paintPending(); showOrders(); }
   });
 
   // ═════════ Listes ═════════
   let current = 'orders';
   let rows: any[] = [];
+  let listFilter = 'all';
   async function showTable(tab: string) {
     const order = tab === 'posts' ? 'published_at' : 'position';
     const { data } = await sb.from(tab).select('*').order(order, { ascending: tab !== 'posts' });
     rows = data ?? [];
+    if (tab === 'activities') await loadCats();
     const name = (r: any) => tab === 'cars' ? `${r.brand} ${r.model}` : r.title;
     const sub = (r: any) => tab === 'activities' ? `${aed(r.price)} ${r.price_unit ?? ''}` : tab === 'cars' ? (r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Prix sur demande') : new Date(r.published_at).toLocaleDateString('fr-FR');
+    const hidden = (r: any) => r.active === false || r.published === false;
     const label = tab === 'activities' ? 'une activité' : tab === 'cars' ? 'une voiture' : 'un article';
-    panel.innerHTML = `<button data-edit="new" class="btn-gold mb-4">+ Ajouter ${label}</button>` + rows.map((r) => `
-      <div class="mb-2 flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">
-        <img src="${esc(thumb(r.image_url ?? r.cover_url))}" class="h-16 w-24 shrink-0 rounded-xl bg-sand object-cover" alt="">
-        <div class="min-w-0 flex-1"><p class="truncate font-semibold">${esc(name(r))}</p><p class="text-sm text-gray-500">${esc(sub(r))}${r.active === false || r.published === false ? ' · <span class="text-red-600">masqué</span>' : ''}${r.featured ? ' · ⭐ populaire' : ''}</p></div>
-        <button data-edit="${r.id}" class="btn-outline !px-4 !py-2 text-sm">Modifier</button>
-      </div>`).join('');
+    const filters: [string, string][] = [['all', 'Tout'], ['visible', 'En ligne'], ['hidden', 'Masqués'], ...(tab === 'activities' ? CATS : [])];
+    const nVis = rows.filter((r) => !hidden(r)).length;
+    panel.innerHTML = `
+      <div class="mb-4 flex flex-wrap items-center gap-3">
+        <button data-edit="new" class="btn-gold !py-2.5">+ Ajouter ${label}</button>
+        <span class="text-sm text-gray-500">${rows.length} au total · ${nVis} en ligne</span>
+      </div>
+      <input id="list-q" type="search" class="field mb-3" placeholder="Rechercher…">
+      <div class="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">${filters.map(([k, l]) => `<button data-lf="${k}" class="chip" aria-pressed="${k === listFilter}">${l}</button>`).join('')}</div>
+      <div id="list" class="space-y-2">${rows.map((r) => `
+        <button type="button" data-edit="${r.id}" data-q="${esc((name(r) + ' ' + sub(r)).toLowerCase())}" data-st="${hidden(r) ? 'hidden' : 'visible'}" data-cats="${esc((r.categories ?? []).join(' '))}" class="row-btn">
+          <img src="${esc(thumb(r.image_url ?? r.cover_url))}" class="h-14 w-20 shrink-0 rounded-xl bg-sand object-cover" alt="">
+          <span class="min-w-0 flex-1"><b class="block truncate">${esc(name(r))}</b><span class="text-sm text-gray-500">${esc(sub(r))}</span></span>
+          ${hidden(r) ? '<span class="badge bg-red-50 text-red-700">Masqué</span>' : r.featured ? '<span class="badge bg-blue-50 text-blue-700">Populaire</span>' : '<span class="badge bg-emerald-50 text-emerald-700">En ligne</span>'}
+          <span class="text-xl text-gray-300">›</span>
+        </button>`).join('')}</div>
+      <p id="list-empty" class="hidden blk text-sm text-gray-500">Aucun résultat.</p>`;
+    const norm = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const apply = () => {
+      const q = norm((panel.querySelector('#list-q') as HTMLInputElement).value);
+      let n = 0;
+      panel.querySelectorAll<HTMLElement>('#list [data-edit]').forEach((el) => {
+        const okF = listFilter === 'all' || el.dataset.st === listFilter || (el.dataset.cats ?? '').split(' ').includes(listFilter);
+        const ok = okF && (!q || norm(el.dataset.q ?? '').includes(q));
+        el.style.display = ok ? '' : 'none'; if (ok) n++;
+      });
+      panel.querySelector('#list-empty')!.classList.toggle('hidden', n > 0);
+    };
+    panel.querySelector('#list-q')!.addEventListener('input', apply);
+    panel.querySelectorAll<HTMLElement>('[data-lf]').forEach((b) => b.addEventListener('click', () => { listFilter = b.dataset.lf!; panel.querySelectorAll('[data-lf]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); apply(); }));
+    apply();
   }
   panel.addEventListener('click', async (e) => {
     const t = e.target as HTMLElement;
@@ -150,6 +211,10 @@ import { ap } from '../../lib/admin-icons';
     open ? `<section class="blk"><h3>${icon}${title}</h3>${hint ? `<p class="hint">${hint}</p>` : ''}<div class="mt-4 space-y-4">${body}</div></section>`
          : `<details class="blk"><summary class="cursor-pointer list-none"><h3>${icon}${title} <span class="ml-auto text-sm font-normal text-gold">Afficher ▾</span></h3>${hint ? `<p class="hint">${hint}</p>` : ''}</summary><div class="mt-4 space-y-4">${body}</div></details>`;
 
+  /** Section repliable : titre + résumé quand elle est fermée */
+  const sec = (icon: string, title: string, summary: string, body: string, open = false) =>
+    `<details class="blk acc" ${open ? 'open' : ''}><summary><h3>${icon}${title}</h3><span class="acc-sum">${summary}</span><span class="chev">›</span></summary><div class="acc-body space-y-4">${body}</div></details>`;
+
   // Photos avec aperçu
   const photoBox = (k: string, urls: string[], multiple: boolean) => `
     <div data-photos="${k}" data-multiple="${multiple ? 1 : 0}">
@@ -166,36 +231,40 @@ import { ap } from '../../lib/admin-icons';
   // ═════════ Formulaire : Activité ═════════
   function activityForm(r: any) {
     const unit = UNITS.find((u) => u[0] === (r.price_unit ?? ''))?.[0] ?? '/ pers.';
+    const isNew = !r.id;
+    const nPhotos = (r.image_url ? 1 : 0) + (r.gallery ?? []).length;
+    const nOpts = (r.options ?? []).length;
+    const flags = [r.active === false ? 'Masquée' : 'Visible', r.featured ? 'Populaire' : '', r.badge ?? ''].filter(Boolean).join(' · ');
     return [
-      block(ap('blog', '#0ea5e9', 16), 'L’essentiel', 'Ce que les clients voient en premier.', [
+      sec(ap('blog', '#0ea5e9', 16), 'L’essentiel', `${aed(r.price ?? 0)} ${r.price_unit ?? ''}`, [
         input('title', 'Nom de l’activité', r.title, 'Ex. Safari dans le désert en quad'),
-        `<div><span class="lab">Catégories <small>(cochez une ou plusieurs)</small></span>${picks('cats', CATS, r.categories ?? [])}</div>`,
-        input('tagline', 'Petite phrase sous le titre', r.tagline, 'Ex. 100 % adrénaline sur les dunes dorées de Dubaï.', 'text', '(une ligne)'),
-        area('description', 'Description complète', r.description, 'Décrivez l’expérience. Laissez une ligne vide pour faire un nouveau paragraphe.', 6),
-      ].join('')),
-      block(ap('camera', '#8b5cf6', 16), 'Photos', 'La première photo est celle de la carte. Les autres s’affichent sur la page de l’activité.', [
-        `<div><span class="lab">Photo principale</span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
-        `<div><span class="lab">Autres photos <small>(facultatif)</small></span>${photoBox('gallery', r.gallery ?? [], true)}</div>`,
-      ].join('')),
-      block(ap('money', '#059669', 16), 'Prix', '', [
-        `<div class="grid gap-4 sm:grid-cols-2">${input('price', 'Prix (AED)', r.price, 'Ex. 350', 'number')}${input('old_price', 'Ancien prix barré', r.old_price, 'Ex. 450', 'number', '(seulement pour une promo)')}</div>`,
-        `<div><span class="lab">Le prix est…</span>${picks('unit', UNITS.map((u) => [u[0], u[1]] as [string, string]), [unit], 'radio')}</div>`,
-        toggle('price_from', 'Afficher « à partir de » devant le prix', r.price_from ?? true, 'À cocher si le prix change selon la formule choisie.'),
-      ].join('')),
-      block('⏱️', 'Infos pratiques', '', `<div class="grid gap-4 sm:grid-cols-2">${input('duration', 'Durée', r.duration, 'Ex. 2 heures')}${input('location', 'Lieu', r.location, 'Ex. Désert de Dubaï')}</div>`),
-      block(ap('sparkle', '#f59e0b', 16), 'Mise en avant', 'Pour attirer l’œil sur la carte.', [
-        `<div><span class="lab">Étiquette bleue sur la photo</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
-        input('perk', 'Avantage en vert', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
-        `<div class="grid gap-4 sm:grid-cols-2">${input('rating', '⭐ Note sur 5', r.rating, 'Ex. 4.9', 'number', '(vos vrais avis Google)')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, 'Ex. 23', 'number')}</div>`,
-        input('video_url', 'Lien d’une vidéo', r.video_url, 'Ex. https://www.instagram.com/reel/…', 'url', '(Instagram ou TikTok, facultatif)'),
-      ].join('')),
-      block(ap('list', '#0171eb', 16), 'Détails de la page', 'Facultatif : points forts, inclus, formules…', [
-        area('highlights', 'Points forts', (r.highlights ?? []).join('\n'), 'Un par ligne, ex. :\nGuide professionnel\nÉquipement fourni', 3),
-        `<div class="grid gap-4 sm:grid-cols-2">${area('included', 'Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 4)}${area('excluded', 'Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 4)}</div>`,
+        `<div><span class="lab">Catégories</span>${picks('cats', CATS, r.categories ?? [])}</div>`,
+        `<div class="grid gap-4 sm:grid-cols-2">${input('price', 'Prix (AED)', r.price, 'Ex. 350', 'number')}<div><span class="lab">Le prix est…</span>${picks('unit', UNITS.map((u) => [u[0], u[1]] as [string, string]), [unit], 'radio')}</div></div>`,
+        `<div class="grid gap-4 sm:grid-cols-2">${input('duration', 'Durée', r.duration, 'Ex. 2 heures')}${input('location', 'Lieu', r.location, 'Ex. Désert de Dubaï')}</div>`,
+        input('tagline', 'Petite phrase sous le titre', r.tagline, 'Ex. 100 % adrénaline sur les dunes dorées.'),
+      ].join(''), true),
+      sec(ap('camera', '#8b5cf6', 16), 'Photos', nPhotos ? `${nPhotos} photo${nPhotos > 1 ? 's' : ''}` : 'Aucune photo', [
+        `<div><span class="lab">Photo principale <small>(celle de la carte)</small></span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
+        `<div><span class="lab">Autres photos</span>${photoBox('gallery', r.gallery ?? [], true)}</div>`,
+      ].join(''), isNew),
+      sec(ap('list', '#0171eb', 16), 'Description et détails', r.description ? 'Rempli' : 'À compléter', [
+        area('description', 'Description', r.description, 'Laissez une ligne vide pour un nouveau paragraphe.', 5),
+        area('highlights', 'Points forts', (r.highlights ?? []).join('\n'), 'Un par ligne', 3),
+        `<div class="grid gap-4 sm:grid-cols-2">${area('included', 'Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 3)}${area('excluded', 'Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 3)}</div>`,
         area('important', 'Information importante', r.important, 'Ex. Passeport obligatoire.', 2),
-        `<div><span class="lab">Formules au choix <small>(ex. Snow Classique, Snow Plus…)</small></span><div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="mt-2 text-sm font-semibold text-gold">+ Ajouter une formule</button></div>`,
-      ].join(''), !!r.id && false),
-      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true, 'Désactivez pour cacher l’activité sans la supprimer.') + toggle('featured', 'Dans « Les plus populaires »', !!r.featured, 'Affichée en premier sur la page d’accueil.')),
+      ].join('')),
+      sec(ap('tag', '#0171eb', 16), 'Formules', nOpts ? `${nOpts} formule${nOpts > 1 ? 's' : ''}` : 'Aucune',
+        `<p class="text-sm text-gray-500">Si l’activité a plusieurs choix (ex. Snow Classique, Snow Plus…). Sinon, laissez vide.</p><div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
+      sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
+        toggle('active', 'Visible sur le site', r.active ?? true) + toggle('featured', 'Dans « Les plus populaires »', !!r.featured),
+        `<div><span class="lab">Étiquette sur la photo</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
+        input('perk', 'Avantage en vert', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
+        `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
+          ${toggle('price_from', 'Afficher « à partir de » devant le prix', r.price_from ?? true)}
+          <div class="grid gap-4 sm:grid-cols-3">${input('old_price', 'Prix barré (promo)', r.old_price, '', 'number')}${input('rating', 'Note /5', r.rating, 'Ex. 4.9', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, '', 'number')}</div>
+          ${input('video_url', 'Lien vidéo Instagram ou TikTok', r.video_url, 'https://…', 'url')}
+        </div></details>`,
+      ].join('')),
     ].join('');
   }
   function readActivity(r: any) {
@@ -223,16 +292,26 @@ import { ap } from '../../lib/admin-icons';
 
   // ═════════ Formulaire : Voiture ═════════
   function carForm(r: any) {
+    const flags = [r.active === false ? 'Masquée' : 'Visible', r.tag ?? ''].filter(Boolean).join(' · ');
     return [
-      block(ap('car', '#c9a227', 16), 'La voiture', '', `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>
-        <div><span class="lab">Type</span>${picks('ccat', CAR_CATS, [r.category ?? 'supercar'], 'radio')}</div>
-        <div class="grid gap-4 sm:grid-cols-2">${input('seats', 'Nombre de places', r.seats, 'Ex. 2', 'number')}${input('engine', 'Moteur', r.engine, 'Ex. V10')}</div>
-        ${area('description', 'Description', r.description, 'Facultatif', 3)}`),
-      block(ap('camera', '#8b5cf6', 16), 'Photo', '', photoBox('main', r.image_url ? [r.image_url] : [], false)),
-      block(ap('money', '#059669', 16), 'Prix par jour', 'Laissez vide pour afficher « Prix sur demande ».', `<div class="grid gap-4 sm:grid-cols-2">${input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Ex. 2500', 'number')}${input('old_price', 'Ancien prix barré', r.old_price, '', 'number', '(promo)')}</div>`),
-      block(ap('sparkle', '#f59e0b', 16), 'Mise en avant', '', input('tag', 'Étiquette bleue', r.tag, 'Ex. Best-seller', 'text', '(facultatif)') + input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel ou aéroport', 'text', '(facultatif)')
-        + `<div class="grid gap-4 sm:grid-cols-2">${input('rating', '⭐ Note sur 5', r.rating, 'Ex. 4.9', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, 'Ex. 12', 'number')}</div>` + input('video_url', 'Lien d’une vidéo', r.video_url, 'https://…', 'url', '(facultatif)')),
-      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('active', 'Visible sur le site', r.active ?? true)),
+      sec(ap('car', '#c9a227', 16), 'L’essentiel', r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Prix sur demande', [
+        `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>`,
+        `<div><span class="lab">Type</span>${picks('ccat', CAR_CATS, [r.category ?? 'supercar'], 'radio')}</div>`,
+        input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Vide = « Prix sur demande »', 'number'),
+        `<div><span class="lab">Photo</span>${photoBox('main', r.image_url ? [r.image_url] : [], false)}</div>`,
+      ].join(''), true),
+      sec(ap('list', '#0171eb', 16), 'Caractéristiques', [r.seats ? r.seats + ' places' : '', r.engine ?? ''].filter(Boolean).join(' · ') || 'À compléter', [
+        `<div class="grid gap-4 sm:grid-cols-2">${input('seats', 'Nombre de places', r.seats, 'Ex. 2', 'number')}${input('engine', 'Moteur', r.engine, 'Ex. V10')}</div>`,
+        area('description', 'Description', r.description, 'Facultatif', 3),
+      ].join('')),
+      sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
+        toggle('active', 'Visible sur le site', r.active ?? true),
+        `<div class="grid gap-4 sm:grid-cols-2">${input('tag', 'Étiquette sur la photo', r.tag, 'Ex. Best-seller')}${input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel')}</div>`,
+        `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
+          <div class="grid gap-4 sm:grid-cols-3">${input('old_price', 'Prix barré (promo)', r.old_price, '', 'number')}${input('rating', 'Note /5', r.rating, '', 'number')}${input('reviews_count', 'Nombre d’avis', r.reviews_count, '', 'number')}</div>
+          ${input('video_url', 'Lien vidéo Instagram ou TikTok', r.video_url, 'https://…', 'url')}
+        </div></details>`,
+      ].join('')),
     ].join('');
   }
   function readCar(r: any) {
@@ -250,9 +329,9 @@ import { ap } from '../../lib/admin-icons';
   // ═════════ Formulaire : Article ═════════
   function postForm(r: any) {
     return [
-      block(ap('blog', '#0ea5e9', 16), 'Article', '', input('title', 'Titre', r.title, 'Ex. Que faire à Dubaï en famille ?') + area('excerpt', 'Résumé', r.excerpt, 'Une ou deux phrases', 2) + area('content', 'Texte', r.content, 'Laissez une ligne vide entre les paragraphes. Commencez une ligne par ## pour un sous-titre.', 10)),
-      block(ap('camera', '#8b5cf6', 16), 'Image de couverture', '', photoBox('main', r.cover_url ? [r.cover_url] : [], false)),
-      block(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('published', 'Publié sur le site', r.published ?? true)),
+      sec(ap('blog', '#0ea5e9', 16), 'Article', '', input('title', 'Titre', r.title, 'Ex. Que faire à Dubaï en famille ?') + area('excerpt', 'Résumé', r.excerpt, 'Une ou deux phrases', 2) + area('content', 'Texte', r.content, 'Laissez une ligne vide entre les paragraphes. Commencez une ligne par ## pour un sous-titre.', 10), true),
+      sec(ap('camera', '#8b5cf6', 16), 'Image de couverture', '', photoBox('main', r.cover_url ? [r.cover_url] : [], false)),
+      sec(ap('eye', '#6366f1', 16), 'Affichage', '', toggle('published', 'Publié sur le site', r.published ?? true)),
     ].join('');
   }
   function readPost(r: any) {
@@ -585,14 +664,14 @@ import { ap } from '../../lib/admin-icons';
     form.innerHTML = '';
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
-        ${block(ap('phone', '#10b981', 16), 'Coordonnées', 'Affichées dans le pied de page, la page Contact et les boutons WhatsApp.', `
+        ${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
           <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'Numéro WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone affiché', d.phone, '+971 56 973 6810')}</div>
           <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email de contact', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
-        ${block(ap('home', '#0171eb', 16), 'Page d’accueil', '', `
+        ${sec(ap('home', '#0171eb', 16), 'Textes de l’accueil', esc(d.hero_title ?? ''), `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
           ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
-          <p class="text-sm text-gray-500">La grande photo se change dans le bloc « Images du site » ci-dessous.</p>`)}
-        ${block(ap('photo', '#8b5cf6', 16), 'Images du site', 'Cliquez pour remplacer une image. Laissez vide pour garder l’image actuelle.', `
+          `)}
+        ${sec(ap('photo', '#8b5cf6', 16), 'Images du site', 'Logo, photo d’accueil, voitures', `
           <div class="grid gap-5 sm:grid-cols-2">
             <div><span class="lab">Logo <small>(rond, image carrée de préférence)</small></span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
             <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
@@ -600,7 +679,7 @@ import { ap } from '../../lib/admin-icons';
             <div><span class="lab">Grande photo de la page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
           </div>
           <p class="text-sm text-gray-500">Les tuiles « Nos univers » se changent dans <b>Catégories</b> ; les photos des activités et des voitures dans leurs catalogues.</p>`)}
-        ${block(ap('rocket', '#ef4444', 16), 'Publication', 'Le site est republié automatiquement après l’enregistrement (environ 1 minute).', `
+        ${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
           ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
           <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
         <div class="sticky bottom-4 flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lift">
@@ -610,6 +689,7 @@ import { ap } from '../../lib/admin-icons';
         </div>
       </form>`;
     const f = panel.querySelector('#set-form') as HTMLFormElement;
+    f.querySelector('details.acc')?.setAttribute('open', '');
     const v = (k: string) => (f.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
     // envoi de la photo d'accueil (même composant que le catalogue)
     f.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
@@ -799,6 +879,7 @@ import { ap } from '../../lib/admin-icons';
   document.getElementById('logout')?.addEventListener('click', async () => { await sb.auth.signOut(); location.href = '/'; });
   const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
   const show = (t: string) => {
+    if (t !== current) listFilter = 'all';
     current = t;
     tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
     document.getElementById('view-title')!.textContent = TITLES[t][0];
