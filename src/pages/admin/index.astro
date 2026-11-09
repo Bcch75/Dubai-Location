@@ -131,6 +131,8 @@ import { ap, ai } from '../../lib/admin-icons';
   #view-title { font-size: 1.35rem !important; }
   .bn { font-size: 10px; } .bn-ic { height: 28px; width: 48px; } .bn-ic svg { width: 20px; height: 20px; }
   #edit .blk { padding: 12px; }
+  .promo-grid .field { height: 44px; }
+  .promo-grid input[type=date] { min-height: 44px; padding-top: 0; padding-bottom: 0; }
 </style>
 
 <script>
@@ -489,7 +491,7 @@ import { ap, ai } from '../../lib/admin-icons';
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     panel.innerHTML = `
       <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <button data-go="orders" class="stat text-left ${pending ? 'ring-2 ring-red-400' : ''}"><span>⏳ À traiter</span><b>${pending}</b><span>commande${pending > 1 ? 's' : ''} en attente</span></button>
+        <button data-go="orders" class="stat text-left ${pending ? 'ring-2 ring-red-400' : ''}"><span class="flex items-center gap-1.5">${ap('hourglass', '#d97706', 14)} À traiter</span><b>${pending}</b><span>commande${pending > 1 ? 's' : ''} en attente</span></button>
         <div class="stat"><span class="flex items-center gap-1.5">${ap('calendar', '#10b981', 14)} Ce mois-ci</span><b>${thisMonth.length}</b><span>réservation${thisMonth.length > 1 ? 's' : ''}</span></div>
         <div class="stat"><span class="flex items-center gap-1.5">${ap('money', '#059669', 14)} Chiffre confirmé</span><b>${aed(ca) || '0 AED'}</b><span>commandes confirmées</span></div>
         <button data-go="clients" class="stat text-left"><span class="flex items-center gap-1.5">${ap('users', '#ec4899', 14)} Clients</span><b>${nClients ?? 0}</b><span>comptes créés</span></button>
@@ -499,12 +501,9 @@ import { ap, ai } from '../../lib/admin-icons';
         <button data-go="cars" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('car', '#c9a227', 22)}<span><b class="block">${nCars ?? 0} voitures</b><span class="text-sm text-gray-500">dans la flotte</span></span></button>
         <button data-new="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('plus', '#0171eb', 22)}<span><b class="block">Nouvelle activité</b><span class="text-sm text-gray-500">l’ajouter en 2 minutes</span></span></button>
       </div>
-      <div class="mt-6 grid gap-4 xl:grid-cols-[1.5fr_1fr]">
+      <div class="mt-6">
         <section class="blk"><h3>${ap('list', '#0171eb', 16)} Dernières commandes</h3>
           ${o.length ? `<ul class="mt-3 divide-y divide-gray-100">${o.slice(0, 6).map((x: any) => `<li class="flex items-center justify-between gap-3 py-3 text-sm"><span class="min-w-0"><b>n°${x.id} · ${esc(x.contact_name ?? '')}</b><span class="block truncate text-gray-500">${esc(x.order_items.map((i: any) => i.item_title).join(', '))}</span></span><span class="shrink-0 text-right"><span class="block">${STATUS[x.status] ?? x.status}</span><span class="text-xs text-gray-400">${fmtDate(x.created_at)}</span></span></li>`).join('')}</ul><button data-go="orders" class="mt-2 text-sm font-semibold text-gold">Voir toutes les commandes →</button>` : '<p class="mt-3 text-sm text-gray-500">Aucune commande pour l’instant. Elles apparaîtront ici dès qu’un client réservera.</p>'}
-        </section>
-        <section class="blk"><h3>${ap('fire', '#f97316', 16)} Les plus réservées</h3>
-          ${top.length ? `<ol class="mt-3 space-y-2 text-sm">${top.map(([t, n], i) => `<li class="flex justify-between gap-3"><span>${i + 1}. ${esc(t)}</span><b>${n}</b></li>`).join('')}</ol>` : '<p class="mt-3 text-sm text-gray-500">Pas encore de données.</p>'}
         </section>
       </div>`;
   }
@@ -647,7 +646,7 @@ import { ap, ai } from '../../lib/admin-icons';
     panel.innerHTML = `
       <form id="promo-new" class="blk">
         <h3>${ap('plus', '#0171eb', 16)} Nouveau code</h3>
-        <div class="mt-4 grid gap-3 sm:grid-cols-4">
+        <div class="promo-grid mt-4 grid items-end gap-3 sm:grid-cols-4">
           ${input('pcode', 'Code', '', 'Ex. DUBAI10')}
           ${input('ppct', 'Réduction (%)', '', 'Ex. 10', 'number')}
           ${input('pexp', 'Valable jusqu’au', '', '', 'date', '(facultatif)')}
