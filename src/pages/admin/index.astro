@@ -1,12 +1,12 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { ap } from '../../lib/admin-icons';
+import { ap, ai } from '../../lib/admin-icons';
 ---
 <Layout title="Espace admin">
   <section class="container-x pb-20 pt-28 sm:pt-32">
     <div id="deny" class="hidden rounded-2xl bg-sand p-8 text-center"><p class="text-lg font-semibold">Accès réservé à l'administrateur.</p></div>
     <div id="app" class="hidden"><div class="lg:grid lg:grid-cols-[250px_1fr] lg:gap-8">
-      <aside class="mb-6 lg:mb-0">
+      <aside class="hidden lg:block">
         <div class="lg:sticky lg:top-28">
           <div class="mb-4 hidden items-center gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-gray-100 lg:flex">
             <span id="me-initial" class="grid h-11 w-11 place-items-center rounded-full bg-gold text-lg font-bold text-white">A</span>
@@ -36,6 +36,13 @@ import { ap } from '../../lib/admin-icons';
         <div id="panel" class="mt-6"></div>
       </div>
     </div></div>
+    <nav id="admin-bn" class="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-gray-200 bg-white/95 px-1 pb-[max(env(safe-area-inset-bottom),8px)] pt-1.5 backdrop-blur lg:hidden" aria-label="Navigation admin">
+      <button class="bn" data-bn="dashboard" data-covers="dashboard"><span class="bn-ic"><Fragment set:html={ai('dashboard', 22)} /></span>Accueil</button>
+      <button class="bn" data-bn="orders" data-covers="orders calendar"><span class="bn-ic"><Fragment set:html={ai('list', 22)} /><em id="bn-badge" class="hidden"></em></span>Commandes</button>
+      <button class="bn" data-bn="hub-catalog" data-covers="hub-catalog activities cars categories"><span class="bn-ic"><Fragment set:html={ai('sunset', 22)} /></span>Catalogue</button>
+      <button class="bn" data-bn="settings" data-covers="settings"><span class="bn-ic"><Fragment set:html={ai('home', 22)} /></span>Mon site</button>
+      <button class="bn" data-bn="hub-more" data-covers="hub-more account clients promos stats posts"><span class="bn-ic"><Fragment set:html={ai('user', 22)} /></span>Plus</button>
+    </nav>
   </section>
   <dialog id="dlg" class="m-auto w-[min(760px,96vw)] rounded-2xl bg-sand p-0 backdrop:bg-black/50">
     <form id="edit" class="max-h-[90vh] overflow-y-auto"></form>
@@ -45,7 +52,27 @@ import { ap } from '../../lib/admin-icons';
 <style is:global>
   .blk { background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 1px 3px rgb(0 0 0 / 0.06); }
   .blk h3 { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-  .acc { padding: 0; }
+  .grp-lab { font-size: .78rem; font-weight: 800; letter-spacing: .1em; color: #6b7280; text-transform: uppercase; margin: 22px 4px 10px; }
+  .grp-lab:first-child { margin-top: 4px; }
+  .acc { padding: 0; border-radius: 20px; box-shadow: 0 1px 2px rgb(0 0 0 / .04); outline: 1px solid #eceff3; }
+  .acc > summary > span:first-child, .hub-row > span:first-child { width: 46px !important; height: 46px !important; border-radius: 14px !important; }
+  .acc > summary > span:first-child svg, .hub-row > span:first-child svg { width: 22px !important; height: 22px !important; }
+  .acc-t { flex: 1; min-width: 0; }
+  .acc-t b { display: block; font-size: 1.05rem; font-weight: 700; color: #111827; }
+  .acc-t .acc-sum { display: block; max-width: 100% !important; margin-top: 2px; font-size: .9rem; }
+  .hub-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: #fff; border-radius: 20px; padding: 16px 18px; outline: 1px solid #eceff3; box-shadow: 0 1px 2px rgb(0 0 0 / .04); margin-bottom: 10px; transition: outline-color .15s; }
+  .hub-row:hover { outline-color: #0171eb; }
+  .bn { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 600; color: #6b7280; padding: 4px 0; }
+  .bn-ic { position: relative; display: grid; place-items: center; width: 56px; height: 32px; border-radius: 12px; transition: background .15s; }
+  .bn[aria-pressed='true'] { color: #0171eb; }
+  .bn[aria-pressed='true'] .bn-ic { background: #e8f1fe; }
+  .bn-ic em.hidden { display: none; }
+  .bn-ic em { position: absolute; top: -2px; right: 8px; min-width: 17px; height: 17px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 10px; font-weight: 800; font-style: normal; display: grid; place-items: center; padding: 0 4px; }
+  @media (max-width: 1023px) {
+    body:has(#admin-bn) a[aria-label="Nous écrire sur WhatsApp"] { display: none; }
+    body:has(#admin-bn) footer { padding-bottom: 80px; }
+  }
+  .acc .acc-sum-old { display: none; }
   .acc > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 16px 18px; cursor: pointer; user-select: none; }
   .acc > summary::-webkit-details-marker { display: none; }
   .acc > summary h3 { flex: 1; min-width: 0; margin: 0; }
@@ -213,7 +240,8 @@ import { ap } from '../../lib/admin-icons';
 
   /** Section repliable : titre + résumé quand elle est fermée */
   const sec = (icon: string, title: string, summary: string, body: string, open = false) =>
-    `<details class="blk acc" ${open ? 'open' : ''}><summary><h3>${icon}${title}</h3><span class="acc-sum">${summary}</span><span class="chev">›</span></summary><div class="acc-body space-y-4">${body}</div></details>`;
+    `<details class="blk acc mb-3" ${open ? 'open' : ''}><summary>${icon}<span class="acc-t"><b>${title}</b>${summary ? `<span class="acc-sum">${summary}</span>` : ''}</span><span class="chev">›</span></summary><div class="acc-body space-y-4">${body}</div></details>`;
+  const grp = (label: string) => `<p class="grp-lab">${label}</p>`;
 
   // Photos avec aperçu
   const photoBox = (k: string, urls: string[], multiple: boolean) => `
@@ -236,7 +264,7 @@ import { ap } from '../../lib/admin-icons';
     const nOpts = (r.options ?? []).length;
     const flags = [r.active === false ? 'Masquée' : 'Visible', r.featured ? 'Populaire' : '', r.badge ?? ''].filter(Boolean).join(' · ');
     return [
-      sec(ap('blog', '#0ea5e9', 16), 'L’essentiel', `${aed(r.price ?? 0)} ${r.price_unit ?? ''}`, [
+      grp('Informations') + sec(ap('blog', '#0ea5e9', 16), 'L’essentiel', `${aed(r.price ?? 0)} ${r.price_unit ?? ''}`, [
         input('title', 'Nom de l’activité', r.title, 'Ex. Safari dans le désert en quad'),
         `<div><span class="lab">Catégories</span>${picks('cats', CATS, r.categories ?? [])}</div>`,
         `<div class="grid gap-4 sm:grid-cols-2">${input('price', 'Prix (AED)', r.price, 'Ex. 350', 'number')}<div><span class="lab">Le prix est…</span>${picks('unit', UNITS.map((u) => [u[0], u[1]] as [string, string]), [unit], 'radio')}</div></div>`,
@@ -253,7 +281,7 @@ import { ap } from '../../lib/admin-icons';
         `<div class="grid gap-4 sm:grid-cols-2">${area('included', 'Inclus', (r.included ?? []).join('\n'), 'Un par ligne', 3)}${area('excluded', 'Non inclus', (r.excluded ?? []).join('\n'), 'Un par ligne', 3)}</div>`,
         area('important', 'Information importante', r.important, 'Ex. Passeport obligatoire.', 2),
       ].join('')),
-      sec(ap('tag', '#0171eb', 16), 'Formules', nOpts ? `${nOpts} formule${nOpts > 1 ? 's' : ''}` : 'Aucune',
+      grp('Vente et affichage') + sec(ap('tag', '#0171eb', 16), 'Formules', nOpts ? `${nOpts} formule${nOpts > 1 ? 's' : ''}` : 'Aucune',
         `<p class="text-sm text-gray-500">Si l’activité a plusieurs choix (ex. Snow Classique, Snow Plus…). Sinon, laissez vide.</p><div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
       sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
         toggle('active', 'Visible sur le site', r.active ?? true) + toggle('featured', 'Dans « Les plus populaires »', !!r.featured),
@@ -294,7 +322,7 @@ import { ap } from '../../lib/admin-icons';
   function carForm(r: any) {
     const flags = [r.active === false ? 'Masquée' : 'Visible', r.tag ?? ''].filter(Boolean).join(' · ');
     return [
-      sec(ap('car', '#c9a227', 16), 'L’essentiel', r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Prix sur demande', [
+      grp('La voiture') + sec(ap('car', '#c9a227', 16), 'L’essentiel', r.price_per_day ? aed(r.price_per_day) + ' / jour' : 'Prix sur demande', [
         `<div class="grid gap-4 sm:grid-cols-2">${input('brand', 'Marque', r.brand, 'Ex. Lamborghini')}${input('model', 'Modèle', r.model, 'Ex. Huracán EVO')}</div>`,
         `<div><span class="lab">Type</span>${picks('ccat', CAR_CATS, [r.category ?? 'supercar'], 'radio')}</div>`,
         input('price_per_day', 'Prix par jour (AED)', r.price_per_day, 'Vide = « Prix sur demande »', 'number'),
@@ -304,7 +332,7 @@ import { ap } from '../../lib/admin-icons';
         `<div class="grid gap-4 sm:grid-cols-2">${input('seats', 'Nombre de places', r.seats, 'Ex. 2', 'number')}${input('engine', 'Moteur', r.engine, 'Ex. V10')}</div>`,
         area('description', 'Description', r.description, 'Facultatif', 3),
       ].join('')),
-      sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
+      grp('Affichage') + sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
         toggle('active', 'Visible sur le site', r.active ?? true),
         `<div class="grid gap-4 sm:grid-cols-2">${input('tag', 'Étiquette sur la photo', r.tag, 'Ex. Best-seller')}${input('perk', 'Avantage en vert', r.perk, 'Ex. Livraison hôtel')}</div>`,
         `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
@@ -408,6 +436,8 @@ import { ap } from '../../lib/admin-icons';
     orders: ['Commandes', 'Les réservations envoyées par vos clients.'],
     clients: ['Clients', 'Les personnes qui ont créé un compte.'],
     posts: ['Blog', 'Vos articles de conseils.'],
+    'hub-catalog': ['Catalogue', 'Vos activités, voitures et catégories.'],
+    'hub-more': ['Plus', 'Votre compte, vos clients et les outils.'],
     categories: ['Catégories', 'Les catégories d’activités du menu, de l’accueil et des filtres.'],
     calendar: ['Calendrier', 'Vos réservations jour par jour, et les dates complètes.'],
     promos: ['Codes promo', 'Créez des réductions pour vos clients (Instagram, fidélité…).'],
@@ -664,10 +694,10 @@ import { ap } from '../../lib/admin-icons';
     form.innerHTML = '';
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
-        ${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
+        ${grp('Entreprise')}${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
           <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'Numéro WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone affiché', d.phone, '+971 56 973 6810')}</div>
           <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email de contact', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
-        ${sec(ap('home', '#0171eb', 16), 'Textes de l’accueil', esc(d.hero_title ?? ''), `
+        ${grp('Apparence')}${sec(ap('home', '#0171eb', 16), 'Textes de l’accueil', esc(d.hero_title ?? ''), `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
           ${input('search_placeholder', 'Texte de la barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
           `)}
@@ -679,17 +709,16 @@ import { ap } from '../../lib/admin-icons';
             <div><span class="lab">Grande photo de la page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
           </div>
           <p class="text-sm text-gray-500">Les tuiles « Nos univers » se changent dans <b>Catégories</b> ; les photos des activités et des voitures dans leurs catalogues.</p>`)}
-        ${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
+        ${grp('Avancé')}${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
           ${input('deploy_hook', 'Lien « Deploy Hook » de Vercel', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
           <details class="text-sm text-gray-500"><summary class="cursor-pointer font-semibold text-gold">Comment obtenir ce lien ?</summary><ol class="mt-2 list-decimal space-y-1 pl-5"><li>Vercel → votre projet → <b>Settings</b> → <b>Git</b>.</li><li>Section <b>Deploy Hooks</b> : nom « admin », branche <b>main</b>, cliquez <b>Create Hook</b>.</li><li>Copiez le lien et collez-le ici.</li></ol></details>`)}
-        <div class="sticky bottom-4 flex items-center gap-3 rounded-2xl bg-white p-3 shadow-lift">
+        <div class="sticky bottom-[84px] flex flex-wrap items-center gap-3 rounded-2xl bg-white p-3 shadow-lift lg:bottom-4">
           <button class="btn-gold">Enregistrer et publier</button>
           <button type="button" id="publish-now" class="btn-outline !py-3 text-sm">Republier le site</button>
           <span id="set-msg" class="text-sm"></span>
         </div>
       </form>`;
     const f = panel.querySelector('#set-form') as HTMLFormElement;
-    f.querySelector('details.acc')?.setAttribute('open', '');
     const v = (k: string) => (f.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
     // envoi de la photo d'accueil (même composant que le catalogue)
     f.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
@@ -867,6 +896,27 @@ import { ap } from '../../lib/admin-icons';
     dlg.showModal();
   }
 
+
+  // ═════════ Pages de rubriques (téléphone) ═════════
+  async function showHub(kind: string) {
+    const [{ count: nA }, { count: nC }, { count: nK }, { count: nCl }, { count: nP }] = await Promise.all([
+      sb.from('activities').select('id', { count: 'exact', head: true }),
+      sb.from('cars').select('id', { count: 'exact', head: true }),
+      sb.from('categories').select('slug', { count: 'exact', head: true }),
+      sb.from('profiles').select('id', { count: 'exact', head: true }),
+      sb.from('promo_codes').select('code', { count: 'exact', head: true }),
+    ]);
+    const row = (go: string, k: string, c: string, t: string, sub: string) => `<button class="hub-row" data-go="${go}">${ap(k, c, 16)}<span class="acc-t"><b>${t}</b><span class="acc-sum">${sub}</span></span><span class="chev">›</span></button>`;
+    const pl = (n: number | null, w: string) => `${n ?? 0} ${w}${(n ?? 0) > 1 ? 's' : ''}`;
+    panel.innerHTML = kind === 'hub-catalog'
+      ? grp('Catalogue') + row('activities', 'sunset', '#f59e0b', 'Activités', pl(nA, 'activité')) + row('cars', 'car', '#c9a227', 'Voitures', pl(nC, 'voiture')) + row('categories', 'folder', '#8b5cf6', 'Catégories', pl(nK, 'catégorie'))
+      : grp('Ventes') + row('calendar', 'calendar', '#10b981', 'Calendrier', 'Réservations et dates complètes') + row('clients', 'users', '#ec4899', 'Clients', pl(nCl, 'compte')) + row('promos', 'tag', '#059669', 'Codes promo', pl(nP, 'code'))
+        + grp('Site') + row('stats', 'stats', '#6366f1', 'Statistiques', '30 derniers jours') + row('posts', 'blog', '#0ea5e9', 'Blog', 'Articles de conseils')
+        + grp('Compte') + row('account', 'user', '#0ea5e9', 'Mon compte', esc(user?.email ?? '')) + `<a class="hub-row" href="/" target="_blank">${ap('world', '#0171eb', 16)}<span class="acc-t"><b>Voir le site</b><span class="acc-sum">S’ouvre dans un nouvel onglet</span></span><span class="chev">›</span></a>`
+        + `<button class="hub-row" data-logout>${ap('logout', '#dc2626', 16)}<span class="acc-t"><b class="!text-red-600">Se déconnecter</b></span></button>`;
+    panel.querySelector('[data-logout]')?.addEventListener('click', async () => { await sb.auth.signOut(); location.href = '/'; });
+  }
+
   const paintMe = (name?: string | null) => {
     document.getElementById('me-name')!.textContent = name || user?.email || 'Administrateur';
     document.getElementById('me-initial')!.textContent = (name || user?.email || 'A')[0].toUpperCase();
@@ -874,6 +924,7 @@ import { ap } from '../../lib/admin-icons';
   async function paintPending() {
     const { count } = await sb.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending');
     const b = document.getElementById('pending-badge')!; b.textContent = String(count ?? 0); b.classList.toggle('hidden', !count);
+    const bb = document.getElementById('bn-badge'); if (bb) { bb.textContent = String(count ?? 0); bb.classList.toggle('hidden', !count); }
   }
 
   document.getElementById('logout')?.addEventListener('click', async () => { await sb.auth.signOut(); location.href = '/'; });
@@ -882,14 +933,17 @@ import { ap } from '../../lib/admin-icons';
     if (t !== current) listFilter = 'all';
     current = t;
     tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
+    document.querySelectorAll<HTMLElement>('[data-bn]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.covers ?? '').split(' ').includes(t))));
+    window.scrollTo(0, 0);
     document.getElementById('view-title')!.textContent = TITLES[t][0];
     document.getElementById('view-sub')!.textContent = TITLES[t][1];
     panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
     history.replaceState(null, '', '#' + t);
-    ({ dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, categories: showCategories, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
+    ({ 'hub-catalog': () => showHub('hub-catalog'), 'hub-more': () => showHub('hub-more'), dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, categories: showCategories, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
     if (t === 'orders' || t === 'dashboard') paintPending();
   };
   tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab!)));
+  document.querySelectorAll<HTMLElement>('[data-bn]').forEach((b) => b.addEventListener('click', () => show(b.dataset.bn!)));
   panel.addEventListener('click', (e) => {
     const g = (e.target as HTMLElement).closest<HTMLElement>('[data-go]'); if (g) show(g.dataset.go!);
     const nw = (e.target as HTMLElement).closest<HTMLElement>('[data-new]'); if (nw) { current = nw.dataset.new!; showTable(current).then(() => openEdit(current, null)); }
