@@ -287,7 +287,7 @@ import { ap, ai } from '../../lib/admin-icons';
         `<div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
       sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
         toggle('active', 'Visible', r.active ?? true) + toggle('featured', 'Populaire', !!r.featured),
-        `<div><span class="lab">Étiquette sur la photo</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
+        `<div><span class="lab">Étiquette</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
         input('perk', 'Avantage', r.perk, 'Ex. Transfert hôtel inclus', 'text', '(facultatif)'),
         `<details class="rounded-xl bg-sand/60 p-3"><summary class="cursor-pointer text-sm font-semibold text-gray-600">Options avancées</summary><div class="mt-3 space-y-4">
           ${toggle('price_from', '« À partir de »', r.price_from ?? true)}
