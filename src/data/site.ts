@@ -13,7 +13,7 @@ export const site = {
   // Les statistiques Vercel fonctionnent sans identifiant (à activer dans Vercel → Analytics).
   googleAnalyticsId: '',
   heroTitle: 'Trouvez et réservez des activités',
-  searchPlaceholder: 'Destination ou une activité...',
+  searchPlaceholder: 'Trouver une activité',
   heroImage: '', // vide = photo par défaut du site
   logoUrl: '',      // logo rond (vide = logo par défaut)
   carsTileImage: '', // tuile « Voitures » de l'accueil
