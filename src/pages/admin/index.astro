@@ -133,6 +133,13 @@ import { ap, ai } from '../../lib/admin-icons';
   #edit .blk { padding: 12px; }
   .promo-grid .field { height: 44px; }
   .promo-grid input[type=date] { min-height: 44px; padding-top: 0; padding-bottom: 0; }
+  .day { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-width: 46px; height: 58px; border-radius: 14px; background: #fff; outline: 1px solid #eceff3; color: #111827; }
+  .day small { font-size: 10px; color: #6b7280; text-transform: capitalize; }
+  .day b { font-size: 15px; line-height: 1.1; }
+  .day i { width: 5px; height: 5px; border-radius: 50%; background: #f59e0b; }
+  .day.on { background: #0171eb; outline-color: #0171eb; color: #fff; }
+  .day.on small { color: rgb(255 255 255 / .8); }
+  .day.on i { background: #fff; }
 </style>
 
 <script>
@@ -157,41 +164,70 @@ import { ap, ai } from '../../lib/admin-icons';
   const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
   // ═════════ Réservations ═════════
-  let orderFilter = 'pending';
+  let dayFilter = '';
   async function showOrders() {
     const { data } = await sb.from('orders').select('*, order_items(*)').order('created_at', { ascending: false });
     const all = data ?? [];
-    const count = (k: string) => all.filter((o: any) => o.status === k).length;
-    const TABS: [string, string][] = [['pending', 'À traiter'], ['confirmed', 'Confirmées'], ['done', 'Terminées'], ['cancelled', 'Annulées'], ['all', 'Toutes']];
-    const list = orderFilter === 'all' ? all : all.filter((o: any) => o.status === orderFilter);
-    const COL: Record<string, string> = { pending: 'bg-amber-50 text-amber-800', confirmed: 'bg-emerald-50 text-emerald-700', done: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-50 text-red-700' };
+    const COL: Record<string, string> = { pending: 'bg-amber-50 text-amber-700', confirmed: 'bg-emerald-50 text-emerald-700', done: 'bg-gray-100 text-gray-600', cancelled: 'bg-red-50 text-red-700' };
+    const LAB: Record<string, string> = { pending: 'À confirmer', confirmed: 'Confirmée', done: 'Terminée', cancelled: 'Annulée' };
     const fd = (d: string | null) => (d ? new Date(d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : '');
-    panel.innerHTML = `
-      <div class="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0">${TABS.map(([k, l]) => `<button data-of="${k}" class="chip" aria-pressed="${k === orderFilter}">${l}${k !== 'all' ? ` <span class="opacity-70">${count(k)}</span>` : ''}</button>`).join('')}</div>
-      ${list.length ? list.map((o: any) => `
+    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    const today = iso(new Date()), tomorrow = iso(new Date(Date.now() + 864e5)), week = iso(new Date(Date.now() + 7 * 864e5));
+    const dayOf = (o: any) => o.order_items.map((i: any) => i.date).filter(Boolean).sort()[0] ?? null;
+    const groupOf = (o: any) => {
+      if (o.status === 'cancelled') return 'Annulées';
+      const d = dayOf(o);
+      if (!d) return 'Sans date';
+      if (d < today) return o.status === 'done' ? 'Passées' : 'Passées';
+      if (d === today) return 'Aujourd’hui';
+      if (d === tomorrow) return 'Demain';
+      if (d <= week) return 'Cette semaine';
+      return 'Plus tard';
+    };
+    const ORDER = ['Aujourd’hui', 'Demain', 'Cette semaine', 'Plus tard', 'Sans date', 'Passées', 'Annulées'];
+    const groups: Record<string, any[]> = {};
+    all.forEach((o: any) => (groups[groupOf(o)] ??= []).push(o));
+    Object.values(groups).forEach((g) => g.sort((a, b) => String(dayOf(a)).localeCompare(String(dayOf(b)))));
+    const iconOf = (o: any) => (o.order_items.some((i: any) => i.item_type === 'car') ? ap('car', '#c9a227', 14) : ap('sunset', '#f59e0b', 14));
+    const row = (o: any) => {
+      const it = o.order_items[0] ?? {};
+      const title = o.order_items.length > 1 ? `${esc(it.item_title)} +${o.order_items.length - 1}` : esc(it.item_title ?? 'Réservation');
+      const when = it.end_date ? `${fd(it.date)} → ${fd(it.end_date)}` : fd(it.date);
+      return `
       <details class="blk acc mb-2">
-        <summary>
-          <div class="min-w-0 flex-1">
-            <p class="truncate font-semibold">${esc(o.contact_name ?? 'Client')} <span class="font-normal text-gray-400">· n°${o.id}</span></p>
-            <p class="truncate text-sm text-gray-500">${esc(o.order_items.map((i: any) => i.item_title).join(', '))} · ${fd(o.order_items[0]?.date)}</p>
-          </div>
-          ${o.total_estimate ? `<b class="hidden text-sm sm:block">${aed(o.total_estimate)}</b>` : ''}
-          <span class="badge ${COL[o.status] ?? ''}">${(STATUS[o.status] ?? o.status).replace('● ', '')}</span><span class="chev">›</span>
-        </summary>
+        <summary>${iconOf(o)}<span class="acc-t"><b>${title}</b><span class="acc-sum">${esc(o.contact_name ?? 'Client')} · ${when}${it.item_type === 'activity' && it.people ? ' · ' + it.people + ' pers.' : ''}</span></span>
+          <span class="badge ${COL[o.status] ?? ''}">${LAB[o.status] ?? o.status}</span></summary>
         <div class="acc-body space-y-3 text-sm">
-          <ul class="space-y-1">${o.order_items.map((i: any) => `<li><b>${esc(i.item_title)}</b>${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${fd(i.date)}${i.end_date ? ' → ' + fd(i.end_date) : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
-          <p class="text-gray-500">${esc(o.contact_email ?? '')}${o.total_estimate ? ` · Total estimé <b class="text-ink">${aed(o.total_estimate)}</b>` : ''}${o.promo_code ? ` · code ${esc(o.promo_code)} (-${o.discount_percent} %)` : ''}</p>
-          ${o.notes ? `<p class="rounded-lg bg-sand p-2">Note du client : ${esc(o.notes)}</p>` : ''}
+          ${o.order_items.map((i: any) => `<p><b>${esc(i.item_title)}</b>${i.item_option ? ' · ' + esc(i.item_option) : ''} · ${fd(i.date)}${i.end_date ? ' → ' + fd(i.end_date) : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</p>`).join('')}
+          ${o.total_estimate ? `<p class="text-base font-bold">${aed(o.total_estimate)}${o.promo_code ? ` <span class="text-xs font-normal text-gray-500">code ${esc(o.promo_code)}</span>` : ''}</p>` : ''}
+          ${o.notes ? `<p class="rounded-lg bg-sand p-2">${esc(o.notes)}</p>` : ''}
           <div class="flex flex-wrap gap-2">
             ${o.contact_phone ? `<a class="btn-wa !px-4 !py-2 text-sm" target="_blank" href="https://wa.me/${esc((o.contact_phone ?? '').replace(/\D/g, ''))}">WhatsApp</a>` : ''}
             ${o.status === 'pending' ? `<button data-set="${o.id}" data-s="confirmed" class="btn-gold !px-4 !py-2 text-sm">Confirmer</button><button data-set="${o.id}" data-s="cancelled" class="btn-outline !px-4 !py-2 text-sm">Refuser</button>` : ''}
-            ${o.status === 'confirmed' ? `<button data-set="${o.id}" data-s="done" class="btn-outline !px-4 !py-2 text-sm">Marquer terminée</button>` : ''}
-            <select data-status="${o.id}" class="field !w-auto !py-2 text-sm">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === o.status ? 'selected' : ''}>${v.replace('● ', '')}</option>`).join('')}</select>
+            ${o.status === 'confirmed' ? `<button data-set="${o.id}" data-s="done" class="btn-outline !px-4 !py-2 text-sm">Terminée</button><button data-set="${o.id}" data-s="cancelled" class="btn-outline !px-4 !py-2 text-sm">Annuler</button>` : ''}
+            ${['done', 'cancelled'].includes(o.status) ? `<button data-set="${o.id}" data-s="pending" class="btn-outline !px-4 !py-2 text-sm">Remettre à confirmer</button>` : ''}
           </div>
           <div class="flex gap-2"><input data-note="${o.id}" class="field !py-2 text-sm" placeholder="Message au client" value="${esc(o.admin_note ?? '')}"><button data-save-note="${o.id}" class="btn-outline !px-4 !py-2 text-sm">Envoyer</button></div>
+          <p class="text-xs text-gray-400">n°${o.id} · ${esc(o.contact_email ?? '')}</p>
         </div>
-      </details>`).join('') : `<p class="blk text-gray-500">Aucune commande ${orderFilter === 'pending' ? 'à traiter' : 'ici'}.</p>`}`;
-    panel.querySelectorAll<HTMLElement>('[data-of]').forEach((b) => b.addEventListener('click', () => { orderFilter = b.dataset.of!; showOrders(); }));
+      </details>`;
+    };
+    // Bande de dates : « Tout » puis les 14 prochains jours
+    const covers = (o: any, d: string) => o.order_items.some((i: any) => i.date && i.date <= d && (i.end_date ?? i.date) >= d);
+    const days = Array.from({ length: 14 }, (_, k) => new Date(Date.now() + k * 864e5));
+    const strip = `<div class="no-scrollbar -mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+      <button data-day="" class="day ${dayFilter ? '' : 'on'}"><b>Tout</b><small>${all.filter((o: any) => o.status !== 'cancelled').length}</small></button>
+      ${days.map((d) => { const k = iso(d); const n = all.filter((o: any) => o.status !== 'cancelled' && covers(o, k)).length; return `<button data-day="${k}" class="day ${dayFilter === k ? 'on' : ''}"><small>${d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '')}</small><b>${d.getDate()}</b>${n ? '<i></i>' : '<i class="opacity-0"></i>'}</button>`; }).join('')}
+    </div>`;
+    if (dayFilter) {
+      const list = all.filter((o: any) => o.status !== 'cancelled' && covers(o, dayFilter));
+      panel.innerHTML = strip + grp(new Date(dayFilter + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })) + (list.length ? list.map(row).join('') : '<p class="blk text-sm text-gray-500">Aucune réservation ce jour-là.</p>');
+    } else panel.innerHTML = strip + (all.length
+      ? ORDER.filter((g) => groups[g]?.length).map((g) => g === 'Annulées' || g === 'Passées'
+          ? `<details class="mt-4"><summary class="grp-lab cursor-pointer list-none">${g} (${groups[g].length}) ›</summary>${groups[g].map(row).join('')}</details>`
+          : grp(g) + groups[g].map(row).join('')).join('')
+      : '<p class="blk text-gray-500">Aucune réservation.</p>');
+    panel.querySelectorAll<HTMLElement>('[data-day]').forEach((b) => b.addEventListener('click', () => { dayFilter = b.dataset.day!; showOrders(); }));
     panel.querySelectorAll<HTMLElement>('[data-set]').forEach((b) => b.addEventListener('click', async () => { await sb.from('orders').update({ status: b.dataset.s }).eq('id', +b.dataset.set!); paintPending(); showOrders(); }));
   }
   panel.addEventListener('change', async (e) => {
@@ -460,7 +496,7 @@ import { ap, ai } from '../../lib/admin-icons';
     account: ['Mon compte', 'Vos informations personnelles et votre mot de passe.'],
     activities: ['Catalogue activités', 'Ajoutez, modifiez ou masquez vos activités.'],
     cars: ['Catalogue voitures', 'Gérez votre flotte et vos prix par jour.'],
-    orders: ['Commandes', 'Les réservations envoyées par vos clients.'],
+    orders: ['Réservations', 'Les réservations envoyées par vos clients.'],
     clients: ['Clients', 'Les personnes qui ont créé un compte.'],
     posts: ['Blog', 'Vos articles de conseils.'],
     'hub-catalog': ['Catalogue', 'Vos activités, voitures et catégories.'],
