@@ -102,6 +102,10 @@ const rows = [
     const im = document.querySelector<HTMLImageElement>(`[data-tile="/activites/${c.slug}/"] img`);
     if (im && c.image_url && !c.image_url.startsWith('/img/') && im.getAttribute('src') !== c.image_url) im.src = c.image_url;
   }));
+  sb.from('settings').select('data').eq('id', 1).maybeSingle().then(({ data }) => {
+    const u = (data?.data as any)?.cars_tile_image; const im = document.querySelector<HTMLImageElement>('[data-tile="/voitures/"] img');
+    if (u && im && im.getAttribute('src') !== u) { im.removeAttribute('srcset'); im.src = u; }
+  });
   document.querySelectorAll<HTMLButtonElement>('[data-scroll]').forEach((b) =>
     b.addEventListener('click', () => b.previousElementSibling?.scrollBy({ left: 640, behavior: 'smooth' })));
 </script>

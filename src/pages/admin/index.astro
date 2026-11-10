@@ -926,6 +926,8 @@ import { ap, ai } from '../../lib/admin-icons';
     const cats = data ?? [];
     const { data: acts } = await sb.from('activities').select('categories');
     const n = (sl: string) => (acts ?? []).filter((a: any) => a.categories.includes(sl)).length;
+    const { data: setRow } = await sb.from('settings').select('data').eq('id', 1).maybeSingle();
+    const carTile = (setRow?.data as any)?.cars_tile_image ?? '';
     panel.innerHTML = `
       <div class="mb-4 flex flex-wrap items-center gap-3">
         <button id="cat-new" class="btn-gold">+ Ajouter une catégorie</button>
@@ -947,7 +949,40 @@ import { ap, ai } from '../../lib/admin-icons';
             <div class="min-w-0"><p class="truncate font-semibold">${esc(c.label)}</p>
               <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · dans le menu' : ''}${c.on_home ? ' · sur l’accueil' : ''}</p></div>
           </div>
-        </div>`).join('')}</div>`;
+        </div>`).join('')}</div>
+      <p class="grp-lab">Toujours en dernier dans « Nos univers »</p>
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="car-tile" class="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:shadow-lift hover:ring-gold">
+          <div class="relative h-28 bg-sand">${carTile ? `<img src="${esc(thumb(carTile))}" alt="" class="h-full w-full object-cover">` : ''}<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div></div>
+          <div class="flex items-center gap-3 p-3">${pill('car', 18, false, '#c9a227')}<div class="min-w-0"><p class="truncate font-semibold">Voitures</p><p class="text-xs text-gray-500">Toucher pour changer la photo</p></div></div>
+        </div>
+      </div>`;
+    panel.querySelector('#car-tile')!.addEventListener('click', () => {
+      form.innerHTML = `
+        <div class="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-gray-200 bg-white px-5 py-4">
+          <h2 class="text-lg font-bold">Tuile Voitures</h2>
+          <div class="flex gap-2"><button type="button" data-close class="btn-outline !px-4 !py-2 text-sm">Annuler</button><button class="btn-gold !px-5 !py-2 text-sm">Enregistrer</button></div>
+        </div>
+        <div class="p-4 sm:p-5">${block('', 'Photo de la tuile', '', photoBox('cars_tile', carTile ? [carTile] : [], false))}</div>`;
+      form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
+      form.onclick = (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); };
+      form.querySelector<HTMLInputElement>('[data-upload]')!.addEventListener('change', async (e) => {
+        const inp = e.target as HTMLInputElement, raw = inp.files?.[0]; inp.value = ''; if (!raw) return;
+        const file = await cropImage(raw, 3 / 4); if (!file) return;
+        const path = `site/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+        const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+        if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
+        form.querySelector('[data-photos="cars_tile"] .photos')!.innerHTML = photoItem(sb.storage.from('images').getPublicUrl(path).data.publicUrl);
+      });
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        const u = form.querySelector<HTMLElement>('[data-photos="cars_tile"] .photo')?.dataset.url ?? '';
+        const { data: cur } = await sb.from('settings').select('data').eq('id', 1).maybeSingle();
+        await sb.from('settings').upsert({ id: 1, data: { ...((cur?.data as any) ?? {}), cars_tile_image: u || null } });
+        dlg.close(); await showCategories(); publishSite(panel.querySelector('#cat-msg'));
+      };
+      dlg.showModal(); form.scrollTop = 0;
+    });
     panel.querySelector('#cat-new')!.addEventListener('click', () => catForm(null, cats.length ? cats[cats.length - 1].position + 10 : 10));
     panel.querySelectorAll<HTMLElement>('.cat-card').forEach((el) => el.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('[data-handle]')) return;
