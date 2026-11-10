@@ -164,6 +164,25 @@ import { ap, ai } from '../../lib/admin-icons';
   else document.getElementById('app')!.classList.remove('hidden');
 
   const panel = document.getElementById('panel')!;
+  // Recadrer une photo déjà en place
+  document.addEventListener('click', async (e) => {
+    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-recrop]'); if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    const ph = b.closest<HTMLElement>('.photo')!, key = ph.closest<HTMLElement>('[data-photos]')?.dataset.photos ?? '';
+    const inCat = !!ph.closest('form')?.querySelector('#ip-slot');
+    const ratio = key === 'logo' ? 1 : key === 'hero' || key === 'cars_hero' ? 16 / 9 : key === 'cars_tile' || inCat ? 3 / 4 : 4 / 3;
+    b.style.opacity = '.5';
+    let raw: File;
+    try { const r = await fetch(img(ph.dataset.url!)); const bl = await r.blob(); raw = new File([bl], (ph.dataset.url!.split('/').pop() || 'photo').split('?')[0], { type: bl.type || 'image/jpeg' }); }
+    catch { b.style.opacity = ''; return alert('Impossible d’ouvrir cette photo pour la recadrer.'); }
+    b.style.opacity = '';
+    const file = await cropImage(raw, ratio, key === 'logo'); if (!file) return;
+    const path = `recadre/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+    const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+    if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
+    const u = sb.storage.from('images').getPublicUrl(path).data.publicUrl;
+    ph.dataset.url = u; ph.querySelector('img')!.src = u;
+  }, true);
   const dlg = document.getElementById('dlg') as HTMLDialogElement;
   const form = document.getElementById('edit') as HTMLFormElement;
   const STATUS: Record<string, string> = { pending: '● En attente', confirmed: '● Confirmée', cancelled: '● Annulée', done: '● Terminée' };
@@ -324,7 +343,7 @@ import { ap, ai } from '../../lib/admin-icons';
       <label class="drop mt-2 block">${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'}
         <input type="file" accept="image/*" ${multiple ? 'multiple' : ''} class="hidden" data-upload="${k}"></label>
     </div>`;
-  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/95 text-gray-700 shadow hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/95 text-gray-700 shadow hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><button type="button" data-recrop class="absolute bottom-1 left-1 flex h-7 items-center gap-1 rounded-full bg-white/95 px-2 text-[11px] font-semibold text-gray-700 shadow" aria-label="Recadrer"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg>Recadrer</button></div>`;
   const getPhotos = (k: string) => [...form.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!);
 
   // Formules : lignes à remplir
