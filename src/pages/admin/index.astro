@@ -649,7 +649,7 @@ import { ap, ai } from '../../lib/admin-icons';
       e.preventDefault();
       const v = (k: string) => (panel.querySelector<HTMLInputElement>('#f_' + k)!.value || '').trim();
       await sb.from('profiles').update({ full_name: v('full_name'), phone: v('phone') }).eq('id', user!.id);
-      panel.querySelector('#acc-ok')!.classList.remove('hidden'); paintMe(v('full_name'));
+      paintMe(v('full_name'));
     });
     panel.querySelector('#pwd')!.addEventListener('submit', async (e) => {
       e.preventDefault();
