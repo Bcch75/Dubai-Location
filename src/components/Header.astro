@@ -62,7 +62,7 @@ const links = [
     </div>
   </nav>
 
-  <div id="mobile-menu" class="pointer-events-none fixed inset-0 z-50 opacity-0 transition-opacity duration-200 lg:hidden" aria-hidden="true">
+  <div id="mobile-menu" class="pointer-events-none fixed inset-0 z-50 hidden opacity-0 transition-opacity duration-200 lg:hidden" aria-hidden="true">
     <div class="absolute inset-0 bg-black/30" data-close></div>
     <div class="menu-panel absolute inset-x-4 top-3 max-h-[calc(100dvh-24px)] -translate-y-2 overflow-y-auto rounded-2xl bg-white shadow-[0_25px_50px_-12px_rgb(0_0_0/0.35)] ring-1 ring-gray-200/50 transition-transform duration-200 sm:inset-x-5 sm:top-4">
       <div class="flex h-[68px] items-center justify-between gap-2 border-b border-gray-100 pl-3 pr-1.5">
@@ -141,7 +141,9 @@ const links = [
   const menu = document.getElementById('mobile-menu')!;
   const openBtn = document.getElementById('menu-open')!;
   const setOpen = (open: boolean) => {
-    menu.classList.toggle('is-open', open);
+    clearTimeout((menu as any)._t);
+    if (open) { menu.classList.remove('hidden'); requestAnimationFrame(() => requestAnimationFrame(() => menu.classList.add('is-open'))); }
+    else { menu.classList.remove('is-open'); (menu as any)._t = setTimeout(() => menu.classList.add('hidden'), 220); }
     menu.setAttribute('aria-hidden', String(!open));
     openBtn.setAttribute('aria-expanded', String(open));
     document.body.style.overflow = open ? 'hidden' : '';
