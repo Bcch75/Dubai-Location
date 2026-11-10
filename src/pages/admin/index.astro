@@ -851,7 +851,7 @@ import { ap, ai } from '../../lib/admin-icons';
             <div><span class="lab">Logo</span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
             <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
             <div><span class="lab">Tuile Voitures</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
-            <div><span class="lab">Photo page Voitures</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
+            <div><span class="lab">Photo derrière « Location de voitures de luxe »</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
           </div>`)}
         ${grp('Avancé')}${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
           ${input('deploy_hook', 'Lien de publication', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
