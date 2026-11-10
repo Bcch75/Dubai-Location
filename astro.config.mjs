@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   // Remplacez par le vrai nom de domaine une fois en ligne
   site: 'https://dubai-location.vercel.app',
-  image: { domains: ['ieuxlvyslzitrxxnkveq.supabase.co'] },
   prefetch: { prefetchAll: true, defaultStrategy: 'hover' },
   vite: { plugins: [tailwindcss()], build: { target: 'es2022' } },
 });
