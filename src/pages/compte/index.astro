@@ -42,7 +42,6 @@ const card = (icon: keyof typeof I, title: string, sub: string, body: string, id
         <div class="border-t border-gray-200 px-3 py-3">
           <a href="#compte" data-v="compte" class="nav-i"><Fragment set:html={ic('user', 'h-6 w-6')} />Mon compte</a>
           <a href="#commandes" data-v="commandes" class="nav-i"><Fragment set:html={ic('bag', 'h-6 w-6')} />Mes commandes</a>
-          <a id="nav-admin" href="/admin/" class="nav-i hidden"><Fragment set:html={ic('grid', 'h-6 w-6')} />Espace admin</a>
           <div class="mx-2 my-2 border-t border-gray-200"></div>
           <a href="#securite" data-v="securite" class="nav-i"><Fragment set:html={ic('shield', 'h-6 w-6')} />Sécurité</a>
         </div>
@@ -132,7 +131,6 @@ const card = (icon: keyof typeof I, title: string, sub: string, body: string, id
     const { data: p } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
     const [first, ...rest] = String(p?.full_name ?? '').trim().split(/\s+/);
     $('fn').value = first ?? ''; $('ln').value = rest.join(' '); $('em').value = u.email ?? ''; $('ph').value = p?.phone ?? '';
-    if (p?.is_admin) $('nav-admin').classList.remove('hidden');
     $('f-info').addEventListener('submit', async (e) => {
       e.preventDefault();
       if (!$('fn').value.trim() || !$('ln').value.trim()) return say('info-msg', 'Indiquez votre prénom et votre nom.');

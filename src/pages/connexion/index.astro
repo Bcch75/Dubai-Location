@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-const eye = '<svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const eye = '<svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" type="password" class="inp pr-12" autocomplete="${ac}"><button type="button" data-eye="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600" aria-label="Afficher le mot de passe">${eye}</button></div>`;
 ---
 <Layout title="Connexion">
@@ -8,67 +8,67 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
     <!-- Connexion -->
     <div id="v-login">
       <form id="f-login" class="card-auth" novalidate>
-        <div class="p-6 sm:p-8">
-          <h1 class="text-[18px] font-extrabold text-[#0f1b3d]">Connectez-vous à votre compte</h1>
-          <label class="lab-auth mt-6" for="l-email">E-mail</label>
+        <div class="p-5 sm:p-7">
+          <h1 class="text-[17px] font-extrabold text-[#0f1b3d]">Connectez-vous à votre compte</h1>
+          <label class="lab-auth mt-4" for="l-email">E-mail</label>
           <input id="l-email" type="email" class="inp" placeholder="votre adresse email" autocomplete="email">
-          <label class="lab-auth mt-5" for="l-pw">Mot de passe</label>
+          <label class="lab-auth mt-3.5" for="l-pw">Mot de passe</label>
           <Fragment set:html={pw('l-pw', 'current-password')} />
-          <div class="mt-5 flex items-center justify-between gap-3">
-            <label class="flex items-center gap-2.5 text-[14px] text-gray-700"><input id="l-remember" type="checkbox" checked class="h-5 w-5 rounded border-gray-300">Se souvenir de moi</label>
-            <button type="button" id="forgot" class="text-[14px] font-bold text-sky-500">Mot de passe oublié ?</button>
+          <div class="mt-4 flex items-center justify-between gap-3">
+            <label class="flex items-center gap-2 text-[13px] text-gray-700"><input id="l-remember" type="checkbox" checked class="h-4 w-4 rounded border-gray-300">Se souvenir de moi</label>
+            <button type="button" id="forgot" class="text-[13px] font-bold text-sky-500">Mot de passe oublié ?</button>
           </div>
-          <button id="l-submit" class="btn-auth mt-6" disabled>Se connecter</button>
+          <button id="l-submit" class="btn-auth mt-5" disabled>Se connecter</button>
           <p id="l-msg" class="mt-3 hidden text-center text-sm"></p>
         </div>
-        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-3 py-4 text-center text-[13px] text-gray-600 min-[370px]:whitespace-nowrap">Vous n'avez pas encore de compte ? <a href="#inscription" class="font-bold text-sky-500">S'inscrire</a></p>
+        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-3 py-3 text-center text-[12.5px] text-gray-600 min-[370px]:whitespace-nowrap">Vous n'avez pas encore de compte ? <a href="#inscription" class="font-bold text-sky-500">S'inscrire</a></p>
       </form>
-      <p class="mt-8 flex gap-3 px-1 text-[14px] text-gray-600"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1"/></svg>Ne communiquez jamais vos identifiants Dubai Location. Vos données sont protégées et sécurisées.</p>
+      <p class="mt-5 flex gap-2.5 px-1 text-[12.5px] text-gray-500"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1"/></svg>Ne communiquez jamais vos identifiants Dubai Location. Vos données sont protégées et sécurisées.</p>
     </div>
 
     <!-- Inscription -->
     <div id="v-signup" class="hidden">
       <form id="f-signup" class="card-auth" novalidate>
-        <div class="p-6 sm:p-8">
-          <h1 class="text-[18px] font-extrabold text-[#0f1b3d]">Créer un compte Dubai Location</h1>
-          <label class="lab-auth mt-6" for="s-name">Nom complet</label>
+        <div class="p-5 sm:p-7">
+          <h1 class="text-[17px] font-extrabold text-[#0f1b3d]">Créer un compte Dubai Location</h1>
+          <label class="lab-auth mt-4" for="s-name">Nom complet</label>
           <input id="s-name" class="inp" placeholder="Prénom Nom" autocomplete="name">
           <p data-err="s-name" class="err hidden">Veuillez indiquer votre prénom et nom de famille</p>
-          <label class="lab-auth mt-5" for="s-email">E-mail</label>
+          <label class="lab-auth mt-3.5" for="s-email">E-mail</label>
           <input id="s-email" type="email" class="inp" placeholder="votre adresse email" autocomplete="email">
           <p data-err="s-email" class="err hidden">Veuillez indiquer une adresse e-mail valide</p>
-          <label class="lab-auth mt-5" for="s-pw">Mot de passe</label>
+          <label class="lab-auth mt-3.5" for="s-pw">Mot de passe</label>
           <Fragment set:html={pw('s-pw', 'new-password')} />
           <div id="strength" class="hidden">
-            <div class="mt-3 grid grid-cols-4 gap-1.5">{[0, 1, 2, 3].map(() => <span class="bar h-1 rounded-full bg-gray-200"></span>)}</div>
-            <p class="mt-2 text-sm text-gray-500">Force du mot de passe : <b id="strength-l"></b></p>
+            <div class="mt-2 grid grid-cols-4 gap-1.5">{[0, 1, 2, 3].map(() => <span class="bar h-1 rounded-full bg-gray-200"></span>)}</div>
+            <p class="mt-1.5 text-xs text-gray-500">Force du mot de passe : <b id="strength-l"></b></p>
           </div>
           <p data-err="s-pw" class="err hidden">Le mot de passe doit contenir au moins 8 caractères</p>
-          <label class="lab-auth mt-5" for="s-pw2">Confirmer le mot de passe</label>
+          <label class="lab-auth mt-3.5" for="s-pw2">Confirmer le mot de passe</label>
           <Fragment set:html={pw('s-pw2', 'new-password')} />
           <p data-err="s-pw2" class="err hidden">Les mots de passe ne correspondent pas</p>
-          <label class="mt-6 flex items-start gap-3 text-[14px] text-gray-700"><input id="s-cgu" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300"><span>J'accepte les <a href="/conditions/" target="_blank" class="font-bold text-sky-500">conditions générales d'utilisation</a> et la <a href="/conditions/#confidentialite" target="_blank" class="font-bold text-sky-500">politique de confidentialité</a></span></label>
-          <button id="s-submit" class="btn-auth mt-6" disabled>Créer mon compte</button>
+          <label class="mt-4 flex items-start gap-2.5 text-[13px] text-gray-700"><input id="s-cgu" type="checkbox" class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300"><span>J'accepte les <a href="/conditions/" target="_blank" class="font-bold text-sky-500">conditions générales d'utilisation</a> et la <a href="/conditions/#confidentialite" target="_blank" class="font-bold text-sky-500">politique de confidentialité</a></span></label>
+          <button id="s-submit" class="btn-auth mt-5" disabled>Créer mon compte</button>
           <p id="s-msg" class="mt-3 hidden text-center text-sm"></p>
         </div>
-        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-3 py-4 text-center text-[13px] text-gray-600 min-[370px]:whitespace-nowrap">Vous avez déjà un compte ? <a href="#connexion" class="font-bold text-sky-500">Se connecter</a></p>
+        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-3 py-3 text-center text-[12.5px] text-gray-600 min-[370px]:whitespace-nowrap">Vous avez déjà un compte ? <a href="#connexion" class="font-bold text-sky-500">Se connecter</a></p>
       </form>
-      <p class="mt-8 flex gap-3 px-1 text-[14px] text-gray-600"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>Vos données personnelles sont sécurisées et protégées. Nous ne partagerons jamais vos informations avec des tiers.</p>
+      <p class="mt-5 flex gap-2.5 px-1 text-[12.5px] text-gray-500"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>Vos données personnelles sont sécurisées et protégées. Nous ne partagerons jamais vos informations avec des tiers.</p>
     </div>
   </section>
 </Layout>
 <style is:global>
-  .card-auth { border-radius: 28px; border: 1px solid #e5e7eb; background: #fff; box-shadow: 0 10px 30px -12px rgb(15 27 61 / .12); }
-  .lab-auth { display: block; margin-bottom: .5rem; font-size: 14px; font-weight: 700; color: #0f1b3d; }
-  .inp { display: block; width: 100%; height: 46px; border-radius: 14px; border: 1px solid #d5dbe5; background: #fff; padding: 0 1rem; font-size: 16px; color: #0f1b3d; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .card-auth { border-radius: 22px; border: 1px solid #e5e7eb; background: #fff; box-shadow: 0 10px 30px -12px rgb(15 27 61 / .12); }
+  .lab-auth { display: block; margin-bottom: .35rem; font-size: 13px; font-weight: 700; color: #0f1b3d; }
+  .inp { display: block; width: 100%; height: 42px; border-radius: 12px; border: 1px solid #d5dbe5; background: #fff; padding: 0 1rem; font-size: 16px; color: #0f1b3d; outline: none; transition: border-color .15s, box-shadow .15s; }
   .inp::placeholder { color: #94a3b8; }
   .inp:focus { border-color: #38b2f5; box-shadow: 0 0 0 3px rgb(56 178 245 / .15); }
   .inp:read-only { background: #fff; color: #334155; }
-  .btn-auth { display: block; width: 100%; height: 46px; border-radius: 14px; background: #38b2f5; font-size: 15px; font-weight: 800; color: #fff; transition: background .15s; }
+  .btn-auth { display: block; width: 100%; height: 42px; border-radius: 12px; background: #38b2f5; font-size: 14px; font-weight: 800; color: #fff; transition: background .15s; }
   .btn-auth:disabled { background: #808080; }
-  .err { margin-top: .6rem; display: flex; gap: .6rem; font-size: 14px; color: #c8102e; }
+  .err { margin-top: .4rem; display: flex; gap: .5rem; font-size: 12.5px; color: #c8102e; }
   .err.hidden { display: none; }
-  .err::before { content: ''; flex: none; width: 18px; height: 18px; margin-top: 2px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; }
+  .err::before { content: ''; flex: none; width: 15px; height: 15px; margin-top: 1px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; }
 </style>
 <script>
   import { sb, url } from '../../lib/app';
