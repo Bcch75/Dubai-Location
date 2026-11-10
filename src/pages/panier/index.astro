@@ -3,20 +3,20 @@ import Layout from '../../layouts/Layout.astro';
 ---
 <Layout title="Panier">
   <section class="container-x pb-20 pt-24 sm:pt-32">
-    <h1 class="text-[30px] font-extrabold text-ink sm:text-4xl">Mon panier</h1>
-    <p id="count" class="mt-1 text-[22px] text-gray-500"></p>
+    <h1 class="text-[24px] font-extrabold text-ink sm:text-4xl">Mon panier</h1>
+    <p id="count" class="mt-1 text-[18px] text-gray-500"></p>
     <div class="mt-6 grid gap-8 lg:grid-cols-[1fr_400px] lg:items-start">
       <div id="items" class="space-y-6"></div>
       <aside id="recap" class="hidden lg:sticky lg:top-28">
         <div class="rounded-[28px] bg-white p-6 shadow-[0_10px_40px_-12px_rgb(15_27_61/0.18)] sm:p-7">
-          <h2 class="text-[28px] font-extrabold text-ink">Récapitulatif</h2>
-          <div class="mt-6 space-y-5 text-[18px]">
+          <h2 class="text-[22px] font-extrabold text-ink">Récapitulatif</h2>
+          <div class="mt-6 space-y-5 text-[15px]">
             <p class="flex justify-between"><span class="text-gray-600">Sous-total</span><b id="sub" class="font-bold text-ink"></b></p>
             <p id="disc-row" class="hidden justify-between text-emerald-600"><span id="disc-l"></span><b id="disc"></b></p>
-            <p class="flex justify-between text-[16px]"><span class="text-gray-600">Articles</span><span id="n" class="text-ink"></span></p>
+            <p class="flex justify-between text-[14px]"><span class="text-gray-600">Articles</span><span id="n" class="text-ink"></span></p>
           </div>
           <details class="mt-5 group">
-            <summary class="cursor-pointer list-none text-[15px] font-medium text-sky-500">Vous avez un code promo ?</summary>
+            <summary class="cursor-pointer list-none text-[14px] font-medium text-sky-500">Vous avez un code promo ?</summary>
             <div class="mt-3 flex gap-2">
               <input id="promo" class="h-12 min-w-0 flex-1 rounded-xl border border-gray-300 px-4 text-base uppercase outline-none focus:border-sky-400" placeholder="Code promo" autocomplete="off">
               <button type="button" id="promo-apply" class="h-12 shrink-0 rounded-xl bg-gray-100 px-4 font-semibold text-ink">Appliquer</button>
@@ -24,27 +24,27 @@ import Layout from '../../layouts/Layout.astro';
             <p id="promo-msg" class="mt-2 hidden text-sm"></p>
           </details>
           <div class="my-6 border-t border-gray-200"></div>
-          <p class="flex items-center justify-between"><span class="text-[20px] text-gray-700">Total</span><b id="total" class="text-[32px] font-extrabold text-ink"></b></p>
+          <p class="flex items-center justify-between"><span class="text-[17px] text-gray-700">Total</span><b id="total" class="text-[26px] font-extrabold text-ink"></b></p>
           <div class="my-6 border-t border-gray-200"></div>
-          <button type="button" id="go" class="h-14 w-full rounded-2xl bg-[#38b2f5] text-[19px] font-medium text-white">Passer la réservation</button>
-          <a href="/activites/" class="mt-6 block text-center text-[18px] font-medium text-sky-500">Continuer mes achats</a>
+          <button type="button" id="go" class="h-12 w-full rounded-2xl bg-[#38b2f5] text-[16px] font-medium text-white">Passer la réservation</button>
+          <a href="/activites/" class="mt-6 block text-center text-[15px] font-medium text-sky-500">Continuer mes achats</a>
           <div class="my-6 border-t border-gray-200"></div>
-          <p class="flex gap-3 text-[15px] text-gray-600"><svg viewBox="0 0 24 24" class="h-7 w-7 shrink-0 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>Aucun paiement en ligne : vous réglez après confirmation sur WhatsApp. Vos données sont protégées.</p>
+          <p class="flex gap-3 text-[14px] text-gray-600"><svg viewBox="0 0 24 24" class="h-6 w-6 shrink-0 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>Aucun paiement en ligne : vous réglez après confirmation sur WhatsApp. Vos données sont protégées.</p>
         </div>
       </aside>
     </div>
-    <section id="recos-wrap" class="mt-16 hidden"><h2 class="text-[28px] font-extrabold text-ink">D'après vos dernières recherches</h2><div id="recos" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>
+    <section id="recos-wrap" class="mt-16 hidden"><h2 class="text-[22px] font-extrabold text-ink">D'après vos dernières recherches</h2><div id="recos" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>
   </section>
 
   <dialog id="checkout" class="sheet">
     <form id="form" class="p-6">
-      <div class="flex items-center justify-between"><h3 class="text-[21px] font-extrabold text-ink">Vos coordonnées</h3><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-gray-100 text-gray-600" aria-label="Fermer"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+      <div class="flex items-center justify-between"><h3 class="text-[17px] font-extrabold text-ink">Vos coordonnées</h3><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-gray-100 text-gray-600" aria-label="Fermer"><svg viewBox="0 0 24 24" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
       <div class="mt-5 space-y-4">
-        <div><label class="mb-1.5 block text-[15px] font-bold text-ink" for="name">Nom complet</label><input id="name" required autocomplete="name" class="h-[52px] w-full rounded-[14px] border border-gray-300 px-4 text-base outline-none focus:border-sky-400"></div>
-        <div><label class="mb-1.5 block text-[15px] font-bold text-ink" for="phone">Téléphone WhatsApp</label><input id="phone" required type="tel" autocomplete="tel" placeholder="+33 6 12 34 56 78" class="h-[52px] w-full rounded-[14px] border border-gray-300 px-4 text-base outline-none focus:border-sky-400"></div>
-        <div><label class="mb-1.5 block text-[15px] font-bold text-ink" for="notes">Hôtel, remarques <span class="font-normal text-gray-400">(facultatif)</span></label><textarea id="notes" rows="2" class="w-full resize-none rounded-[14px] border border-gray-300 px-4 py-3 text-base outline-none focus:border-sky-400"></textarea></div>
+        <div><label class="mb-1.5 block text-[14px] font-bold text-ink" for="name">Nom complet</label><input id="name" required autocomplete="name" class="h-11 w-full rounded-[14px] border border-gray-300 px-4 text-base outline-none focus:border-sky-400"></div>
+        <div><label class="mb-1.5 block text-[14px] font-bold text-ink" for="phone">Téléphone WhatsApp</label><input id="phone" required type="tel" autocomplete="tel" placeholder="+33 6 12 34 56 78" class="h-11 w-full rounded-[14px] border border-gray-300 px-4 text-base outline-none focus:border-sky-400"></div>
+        <div><label class="mb-1.5 block text-[14px] font-bold text-ink" for="notes">Hôtel, remarques <span class="font-normal text-gray-400">(facultatif)</span></label><textarea id="notes" rows="2" class="w-full resize-none rounded-[14px] border border-gray-300 px-4 py-3 text-base outline-none focus:border-sky-400"></textarea></div>
       </div>
-      <button id="send" class="mt-6 h-14 w-full rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white">Confirmer ma réservation</button>
+      <button id="send" class="mt-6 h-12 w-full rounded-2xl bg-[#38b2f5] text-[15px] font-medium text-white">Confirmer ma réservation</button>
       <p id="err" class="mt-2 hidden text-center text-sm text-red-600"></p>
     </form>
   </dialog>
@@ -76,29 +76,29 @@ import Layout from '../../layouts/Layout.astro';
   const card = (i: CartItem) => {
     const isCar = i.type === 'car';
     const link = url(`${isCar ? 'voiture' : 'activite'}/?s=${encodeURIComponent(i.slug)}`);
-    const line = (icon: string, t: string, cls = 'text-[17px] font-extrabold text-[#0f1b3d]') => `<p class="flex gap-4">${S(icon, 'h-7 w-7 text-[#0f1b3d]')}<span class="${cls}">${t}</span></p>`;
+    const line = (icon: string, t: string, cls = 'text-[15px] font-extrabold text-[#0f1b3d]') => `<p class="flex gap-4">${S(icon, 'h-6 w-6 text-[#0f1b3d]')}<span class="${cls}">${t}</span></p>`;
     return `<article class="rounded-[28px] border border-gray-200 bg-white p-5 sm:p-6">
       ${i.image ? `<a href="${link}"><img src="${esc(img(i.image))}" alt="" class="h-44 w-full rounded-2xl object-cover sm:h-56"></a>` : ''}
-      <p class="mt-5 text-[17px] text-gray-600">${isCar ? `Du ${shortD(i.date)} au ${shortD(i.endDate)}` : cap(long(i.date))}</p>
-      <a href="${link}" class="mt-1 block text-[22px] font-extrabold leading-tight text-ink">${esc(i.title)}</a>
-      ${i.rating ? `<p class="mt-2 flex items-center gap-1 text-[17px]"><span class="flex gap-1 text-ink">${star.repeat(5)}</span><span class="ml-1 font-medium">${Number(i.rating).toFixed(1)}</span>${i.reviews ? `<span class="text-gray-400">(${i.reviews})</span>` : ''}</p>` : ''}
+      <p class="mt-5 text-[15px] text-gray-600">${isCar ? `Du ${shortD(i.date)} au ${shortD(i.endDate)}` : cap(long(i.date))}</p>
+      <a href="${link}" class="mt-1 block text-[18px] font-extrabold leading-tight text-ink">${esc(i.title)}</a>
+      ${i.rating ? `<p class="mt-2 flex items-center gap-1 text-[15px]"><span class="flex gap-1 text-ink">${star.repeat(5)}</span><span class="ml-1 font-medium">${Number(i.rating).toFixed(1)}</span>${i.reviews ? `<span class="text-gray-400">(${i.reviews})</span>` : ''}</p>` : ''}
       <div class="mt-4 space-y-4">
         ${i.tagline ? line(P.ticket, esc(i.tagline)) : ''}
         ${isCar ? line(P.car, `${nights(i)} jour${nights(i) > 1 ? 's' : ''} de location`) : line(P.clock, `${long(i.date, true)}${i.time ? ' · ' + esc(i.time) : ''}`)}
         ${isCar ? '' : line(P.people, esc(qLabel(i)))}
       </div>
       ${i.option || i.extras?.length || i.unitPrice ? `<div class="mt-5 border-t border-gray-200 pt-5">
-        <p class="flex items-center gap-3">${S(P.layers, 'h-6 w-6 text-sky-500')}<b class="text-[18px] font-extrabold text-ink">Formules choisies</b></p>
+        <p class="flex items-center gap-3">${S(P.layers, 'h-6 w-6 text-sky-500')}<b class="text-[15px] font-extrabold text-ink">Formules choisies</b></p>
         <div class="mt-3 space-y-2 pl-9">
-          <p class="flex items-start justify-between gap-3 text-[16px]"><span class="min-w-0 text-gray-600">${esc(i.option ?? i.title)}${i.duration ? ' · ' + esc(i.duration) : ''}<br><span class="text-gray-400">${isCar ? `${nights(i)} j × ${aed(i.unitPrice)}` : `${i.qty} × ${aed(i.unitPrice)} · ${shortD(i.date)}${i.time ? ' · ' + esc(i.time) : ''}`}</span></span><span class="shrink-0 font-medium text-ink">${i.unitPrice ? aed(i.unitPrice * (isCar ? nights(i) : i.qty)) : 'Sur demande'}</span></p>
-          ${(i.extras ?? []).map((x) => `<p class="flex items-start justify-between gap-3 text-[16px]"><span class="text-gray-600">+ ${esc(x.name)}<br><span class="text-gray-400">${x.qty} × ${aed(x.price)}</span></span><span class="shrink-0 font-medium text-ink">${aed(x.price * x.qty)}</span></p>`).join('')}
+          <p class="flex items-start justify-between gap-3 text-[14px]"><span class="min-w-0 text-gray-600">${esc(i.option ?? i.title)}${i.duration ? ' · ' + esc(i.duration) : ''}<br><span class="text-gray-400">${isCar ? `${nights(i)} j × ${aed(i.unitPrice)}` : `${i.qty} × ${aed(i.unitPrice)} · ${shortD(i.date)}${i.time ? ' · ' + esc(i.time) : ''}`}</span></span><span class="shrink-0 font-medium text-ink">${i.unitPrice ? aed(i.unitPrice * (isCar ? nights(i) : i.qty)) : 'Sur demande'}</span></p>
+          ${(i.extras ?? []).map((x) => `<p class="flex items-start justify-between gap-3 text-[14px]"><span class="text-gray-600">+ ${esc(x.name)}<br><span class="text-gray-400">${x.qty} × ${aed(x.price)}</span></span><span class="shrink-0 font-medium text-ink">${aed(x.price * x.qty)}</span></p>`).join('')}
         </div></div>` : ''}
-      <p class="mt-5 flex gap-4">${S(P.ok, 'h-7 w-7 text-emerald-600')}<span class="text-[17px] font-extrabold text-[#0f1b3d]">Annulation gratuite jusqu'à 24h avant</span></p>
-      ${isCar || !hasExtras(i.slug) ? '' : `<div class="mt-5 border-t border-gray-200 pt-5"><a href="${link}&edit=${i.key}&opts=1" class="inline-flex items-center gap-2.5 text-[18px] font-medium text-sky-500">${S(P.plus, 'h-6 w-6')}Ajouter des options</a></div>`}
+      <p class="mt-5 flex gap-4">${S(P.ok, 'h-6 w-6 text-emerald-600')}<span class="text-[15px] font-extrabold text-[#0f1b3d]">Annulation gratuite jusqu'à 24h avant</span></p>
+      ${isCar || !hasExtras(i.slug) ? '' : `<div class="mt-5 border-t border-gray-200 pt-5"><a href="${link}&edit=${i.key}&opts=1" class="inline-flex items-center gap-2.5 text-[15px] font-medium text-sky-500">${S(P.plus, 'h-6 w-6')}Ajouter des options</a></div>`}
       <div class="mt-5 flex items-center gap-5">
-        <a href="${link}${isCar ? '' : `&edit=${i.key}`}" class="inline-flex h-12 items-center gap-2.5 rounded-full border-2 border-[#0f1b3d] px-6 text-[17px] font-extrabold text-[#0f1b3d]">${S(P.pen, 'h-5 w-5')}Modifier</a>
-        <button type="button" data-rm="${i.key}" class="grid h-11 w-11 place-items-center rounded-full text-[#0f1b3d] hover:bg-red-50 hover:text-red-600" aria-label="Retirer du panier">${S(P.trash, 'h-7 w-7')}</button>
-        <b class="ml-auto whitespace-nowrap text-[22px] font-extrabold text-[#e5283a]">${lineTotal(i) ? aed(lineTotal(i)) : 'Sur demande'}</b>
+        <a href="${link}${isCar ? '' : `&edit=${i.key}`}" class="inline-flex h-12 items-center gap-2.5 rounded-full border-2 border-[#0f1b3d] px-6 text-[15px] font-extrabold text-[#0f1b3d]">${S(P.pen, 'h-5 w-5')}Modifier</a>
+        <button type="button" data-rm="${i.key}" class="grid h-11 w-11 place-items-center rounded-full text-[#0f1b3d] hover:bg-red-50 hover:text-red-600" aria-label="Retirer du panier">${S(P.trash, 'h-6 w-6')}</button>
+        <b class="ml-auto whitespace-nowrap text-[18px] font-extrabold text-[#e5283a]">${lineTotal(i) ? aed(lineTotal(i)) : 'Sur demande'}</b>
       </div>
     </article>`;
   };
@@ -108,7 +108,7 @@ import Layout from '../../layouts/Layout.astro';
     $('count').textContent = `${list.length} article${list.length > 1 ? 's' : ''}`;
     $('recap').classList.toggle('hidden', !list.length);
     if (!list.length) {
-      $('items').innerHTML = `<div class="py-12 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gray-100 text-gray-400"><svg viewBox="0 0 24 24" class="h-11 w-11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.6l2.4 12h11.6l2-8.5H6.2"/></svg></div><p class="mt-8 text-[24px] font-extrabold text-ink">Votre panier est vide</p><p class="mt-3 text-[17px] text-gray-600">Ajoutez une activité pour réserver.</p><a href="${url('activites/')}" class="mt-7 inline-flex h-12 items-center rounded-xl bg-[#38b2f5] px-6 text-[17px] font-medium text-white">Découvrir nos activités</a></div>`;
+      $('items').innerHTML = `<div class="py-12 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gray-100 text-gray-400"><svg viewBox="0 0 24 24" class="h-11 w-11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.3"/><circle cx="18" cy="20" r="1.3"/><path d="M2.5 3.5h2.6l2.4 12h11.6l2-8.5H6.2"/></svg></div><p class="mt-8 text-[20px] font-extrabold text-ink">Votre panier est vide</p><p class="mt-3 text-[15px] text-gray-600">Ajoutez une activité pour réserver.</p><a href="${url('activites/')}" class="mt-7 inline-flex h-12 items-center rounded-xl bg-[#38b2f5] px-6 text-[15px] font-medium text-white">Découvrir nos activités</a></div>`;
       return;
     }
     $('items').innerHTML = list.map(card).join('');
@@ -173,6 +173,6 @@ import Layout from '../../layouts/Layout.astro';
     await sb.from('profiles').update({ full_name: v('name'), phone: v('phone') }).eq('id', user.id);
     const recap = `Bonjour Dubai Location 👋 Je viens de faire la réservation n°${order.id} sur le site :\n` + list.map((i) => `• ${i.title}${optText(i) ? ' (' + optText(i) + ')' : ''} : ${i.type === 'car' ? `du ${i.date} au ${i.endDate}` : `${i.date}, ${qLabel(i)}`}`).join('\n') + `\nNom : ${v('name')}`;
     cart.clear(); dlg.close();
-    document.querySelector('main section')!.innerHTML = `<div class="mx-auto max-w-xl py-10 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-[28px] bg-emerald-50 text-emerald-600"><svg viewBox="0 0 24 24" class="h-12 w-12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><h1 class="mt-6 text-[28px] font-extrabold">Réservation envoyée !</h1><p class="mt-3 text-[17px] text-gray-600">Votre demande n°<b>${order.id}</b> est enregistrée. Nous vous confirmons la disponibilité et le prix très vite.</p><a href="${waLink(recap)}" target="_blank" rel="noopener" class="btn-wa mt-7">Accélérer sur WhatsApp</a><a href="${url('compte/#commandes')}" class="mt-5 block text-[17px] font-medium text-sky-500">Voir mes réservations</a></div>`;
+    document.querySelector('main section')!.innerHTML = `<div class="mx-auto max-w-xl py-10 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-[28px] bg-emerald-50 text-emerald-600"><svg viewBox="0 0 24 24" class="h-12 w-12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div><h1 class="mt-6 text-[22px] font-extrabold">Réservation envoyée !</h1><p class="mt-3 text-[15px] text-gray-600">Votre demande n°<b>${order.id}</b> est enregistrée. Nous vous confirmons la disponibilité et le prix très vite.</p><a href="${waLink(recap)}" target="_blank" rel="noopener" class="btn-wa mt-7">Accélérer sur WhatsApp</a><a href="${url('compte/#commandes')}" class="mt-5 block text-[15px] font-medium text-sky-500">Voir mes réservations</a></div>`;
   });
 </script>
