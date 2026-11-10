@@ -24,7 +24,7 @@ const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
       <input id="q" name="q" type="search" placeholder="Trouver des activités" class="min-w-0 flex-1 bg-transparent py-2 text-ink outline-none placeholder:text-muted" />
       <button class="shrink-0 rounded-full bg-gold px-5 py-2 font-semibold text-white">OK</button>
     </form>
-    <div class="no-scrollbar -mx-4 mt-5 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:px-0" aria-label="Catégories">
+    <div class="no-scrollbar -mx-5 mt-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0" aria-label="Catégories">
       {cats.map(([id, label, , ic, col]) => <a href={id ? `/activites/${id}/` : '/activites/'} class="chip" aria-pressed={id === cat ? 'true' : 'false'}>{ic && <Fragment set:html={pill(ic, 14, true, col)} />}{label}</a>)}
     </div>
   </section>

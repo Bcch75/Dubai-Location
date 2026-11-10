@@ -53,7 +53,7 @@ import { rentalConditions } from '../../data/cars';
           </form>
         </aside>
       </div>
-      <section class="mt-16"><h2 class="text-2xl font-bold">Autres voitures</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
+      <section class="mt-16"><h2 class="text-2xl font-bold">Autres voitures</h2><div id="related" class="no-scrollbar -mx-5 mt-5 flex snap-x gap-6 overflow-x-auto px-5 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
     const d1 = document.getElementById('d1') as HTMLInputElement, d2 = document.getElementById('d2') as HTMLInputElement;
     const blocked = new Set<string>();
     sb.from('blocked_dates').select('day').eq('item_type', 'car').eq('item_slug', c.slug).gte('day', today).order('day').then(({ data }) => {

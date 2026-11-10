@@ -12,7 +12,7 @@ const links = [
   { href: '/blog/', label: 'Blog', icon: '', color: null },
 ];
 ---
-<header id="site-header" class="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
+<header id="site-header" class="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-5 sm:pt-4">
   <nav class="mx-auto flex h-[68px] max-w-[1220px] sm:h-[72px] items-center justify-between gap-2 rounded-2xl bg-white pl-3 pr-1.5 shadow-[0_25px_50px_-12px_rgb(0_0_0/0.25)] ring-1 ring-gray-200/50 sm:gap-4 sm:px-6" aria-label="Navigation principale">
     <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label={`${site.name}, accueil`}>
       {site.logoUrl
@@ -64,7 +64,7 @@ const links = [
 
   <div id="mobile-menu" class="pointer-events-none fixed inset-0 z-50 opacity-0 transition-opacity duration-200 lg:hidden" aria-hidden="true">
     <div class="absolute inset-0 bg-black/30" data-close></div>
-    <div class="menu-panel absolute inset-x-3 top-3 max-h-[calc(100dvh-24px)] -translate-y-2 overflow-y-auto rounded-2xl bg-white shadow-[0_25px_50px_-12px_rgb(0_0_0/0.35)] ring-1 ring-gray-200/50 transition-transform duration-200 sm:inset-x-5 sm:top-4">
+    <div class="menu-panel absolute inset-x-4 top-3 max-h-[calc(100dvh-24px)] -translate-y-2 overflow-y-auto rounded-2xl bg-white shadow-[0_25px_50px_-12px_rgb(0_0_0/0.35)] ring-1 ring-gray-200/50 transition-transform duration-200 sm:inset-x-5 sm:top-4">
       <div class="flex h-[68px] items-center justify-between gap-2 border-b border-gray-100 pl-3 pr-1.5">
         <a href="/" class="flex shrink-0 items-center gap-2" aria-label={`${site.name}, accueil`}>
           <img src={site.logoUrl || '/logo.svg'} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover min-[390px]:h-11 min-[390px]:w-11" />
