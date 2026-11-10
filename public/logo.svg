@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bg" cx="40%" cy="35%" r="75%"><stop offset="0" stop-color="#1c2a4a"/><stop offset=".6" stop-color="#0d1730"/><stop offset="1" stop-color="#070d1d"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f7e3a1"/><stop offset=".45" stop-color="#d4af37"/><stop offset="1" stop-color="#9a7322"/></linearGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <g fill="#fff" opacity=".35"><circle cx="40" cy="55" r="1"/><circle cx="150" cy="40" r="1.2"/><circle cx="165" cy="120" r=".9"/><circle cx="30" cy="130" r="1"/><circle cx="120" cy="165" r=".8"/><circle cx="70" cy="30" r=".7"/></g>
+  <circle cx="100" cy="96" r="50" fill="none" stroke="url(#gold)" stroke-width="4.5"/>
+  <path fill="url(#gold)" d="M100 14 L101.2 46 L103 46 L103.8 70 L106 70 L107 96 L110 96 L111.5 124 L115 124 L116 140 L84 140 L85 124 L88.5 124 L90 96 L93 96 L94 70 L96.2 70 L97 46 L98.8 46 Z"/><path fill="#0d1730" opacity=".35" d="M100 46 L100.6 140 L99.4 140 Z"/>
+  <rect x="80" y="140" width="40" height="4" rx="2" fill="url(#gold)"/>
+</svg>

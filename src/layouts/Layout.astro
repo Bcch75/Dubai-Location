@@ -31,7 +31,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {site.logoUrl ? <link rel="icon" href={site.logoUrl} /> : <link rel="icon" type="image/svg+xml" href="/favicon.svg" />}
+    {site.logoUrl ? <link rel="icon" href={site.logoUrl} /> : <link rel="icon" type="image/svg+xml" href="/logo.svg" />}
     {site.logoUrl && <link rel="apple-touch-icon" href={site.logoUrl} />}
     <meta name="theme-color" content="#0F1B2D" />
     <meta property="og:type" content="website" />
