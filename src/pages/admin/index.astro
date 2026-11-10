@@ -166,7 +166,8 @@ import { ap, ai } from '../../lib/admin-icons';
   const panel = document.getElementById('panel')!;
   // Recadrer une photo déjà en place
   document.addEventListener('click', async (e) => {
-    const b = (e.target as HTMLElement).closest<HTMLElement>('[data-recrop]'); if (!b) return;
+    const t = e.target as HTMLElement;
+    const b = t.closest<HTMLElement>('[data-recrop]') ?? (t.matches('.photo > img') ? t.parentElement!.querySelector<HTMLElement>('[data-recrop]') : null); if (!b) return;
     e.preventDefault(); e.stopPropagation();
     const ph = b.closest<HTMLElement>('.photo')!, key = ph.closest<HTMLElement>('[data-photos]')?.dataset.photos ?? '';
     const inCat = !!ph.closest('form')?.querySelector('#ip-slot');
@@ -343,7 +344,7 @@ import { ap, ai } from '../../lib/admin-icons';
       <label class="drop mt-2 block">${multiple ? 'Ajouter des photos' : urls.length ? 'Remplacer la photo' : 'Choisir une photo'}
         <input type="file" accept="image/*" ${multiple ? 'multiple' : ''} class="hidden" data-upload="${k}"></label>
     </div>`;
-  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full rounded-lg object-cover" alt=""><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/95 text-gray-700 shadow hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><button type="button" data-recrop class="absolute bottom-1 left-1 flex h-7 items-center gap-1 rounded-full bg-white/95 px-2 text-[11px] font-semibold text-gray-700 shadow" aria-label="Recadrer"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg>Recadrer</button></div>`;
+  const photoItem = (u: string) => `<div class="photo group relative" data-url="${esc(u)}"><img src="${esc(img(u))}" class="aspect-[4/3] w-full cursor-pointer rounded-lg object-cover" alt="" title="Toucher pour recadrer"><button type="button" data-rm-photo class="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-white/95 text-gray-700 shadow hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button><button type="button" data-recrop class="absolute bottom-1 left-1 flex h-7 items-center gap-1 rounded-full bg-white/95 px-2 text-[11px] font-semibold text-gray-700 shadow" aria-label="Recadrer"><svg viewBox="0 0 24 24" class="h-3.5 w-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg>Recadrer</button></div>`;
   const getPhotos = (k: string) => [...form.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!);
 
   // Formules : lignes à remplir
