@@ -106,6 +106,12 @@ import { ap, ai } from '../../lib/admin-icons';
   .side[aria-pressed='true'] span[style] { background: rgb(255 255 255 / .2) !important; }
   .side[aria-pressed='true'] svg { color: #fff !important; }
   #panel.stale { pointer-events: none; }
+  .crop-dlg { margin: auto; width: min(560px, calc(100vw - 16px)); max-width: 100vw; max-height: calc(100dvh - 16px); border-radius: 18px; padding: 0; overflow: hidden; background: #fff; }
+  .crop-dlg::backdrop { background: rgb(0 0 0 / .6); }
+  .crop-dlg .crop-area { height: min(60dvh, 460px); }
+  .crop-chip { border-radius: 999px; border: 1px solid #e5e7eb; padding: 5px 12px; font-size: 12.5px; font-weight: 600; color: #374151; }
+  .crop-chip.on { border-color: #0171eb; background: #eff6ff; color: #0171eb; }
+  .crop-round .cropper-view-box, .crop-round .cropper-face { border-radius: 50%; }
   [data-photos="logo"] .photos { grid-template-columns: 96px; }
   [data-photos="logo"] .photo img { aspect-ratio: 1; border-radius: 9999px; object-fit: cover; box-shadow: 0 0 0 1px rgb(0 0 0 / .08); }
   .stat { background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 4px 20px rgb(0 0 0 / .06); }
@@ -149,6 +155,7 @@ import { ap, ai } from '../../lib/admin-icons';
 <script>
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
   import { ap, ai } from '../../lib/admin-icons';
+  import { cropImage } from '../../lib/cropper';
   import { pill, iconKey, ICON_COLORS } from '../../lib/icons';
   import { ICON_LIB } from '../../lib/icon-library';
   const user = await getUser();
@@ -479,7 +486,8 @@ import { ap, ai } from '../../lib/admin-icons';
     form.querySelector('#add-extra')?.addEventListener('click', () => form.querySelector('#extras')!.insertAdjacentHTML('beforeend', extraRow()));
     form.onchange = async (e) => {
       const inp = (e.target as HTMLElement).closest<HTMLInputElement>('[data-row-upload]'); if (!inp?.files?.[0]) return;
-      const row = inp.closest<HTMLElement>('.opt,.extra')!, file = inp.files[0], lab = inp.parentElement!;
+      const row = inp.closest<HTMLElement>('.opt,.extra')!, raw = inp.files[0], lab = inp.parentElement!; inp.value = '';
+      const file = await cropImage(raw, row.classList.contains('opt') ? 1 : 16 / 9); if (!file) return;
       lab.style.opacity = '.4';
       const path = `${tab}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
       const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
@@ -496,9 +504,11 @@ import { ap, ai } from '../../lib/admin-icons';
     form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
       const box = form.querySelector<HTMLElement>(`[data-photos="${inp.dataset.upload}"]`)!;
       const grid = box.querySelector('.photos')!;
-      const label = inp.parentElement!;
-      const old = label.innerHTML; label.firstChild!.textContent = '⏳ Envoi en cours… ';
-      for (const file of Array.from(inp.files ?? [])) {
+      const label = inp.parentElement!, txt = label.firstChild!, old = txt.textContent;
+      const files = Array.from(inp.files ?? []); inp.value = '';
+      for (const raw of files) {
+        const file = await cropImage(raw, 4 / 3); if (!file) continue;
+        txt.textContent = 'Envoi en cours… ';
         const path = `${tab}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
         const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
         if (error) { alert('La photo n’a pas pu être envoyée : ' + error.message); continue; }
@@ -506,7 +516,7 @@ import { ap, ai } from '../../lib/admin-icons';
         if (box.dataset.multiple !== '1') grid.innerHTML = '';
         grid.insertAdjacentHTML('beforeend', photoItem(u));
       }
-      label.innerHTML = old;
+      txt.textContent = old;
     }));
     form.querySelector('[data-delete]')?.addEventListener('click', async () => {
       if (!confirm(`Supprimer définitivement ${F.name} ?`)) return;
@@ -828,7 +838,8 @@ import { ap, ai } from '../../lib/admin-icons';
     const v = (k: string) => (f.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
     // envoi de la photo d'accueil (même composant que le catalogue)
     f.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
-      const file = inp.files?.[0]; if (!file) return;
+      const k = inp.dataset.upload!, raw = inp.files?.[0]; inp.value = ''; if (!raw) return;
+      const file = await cropImage(raw, k === 'logo' ? 1 : k === 'cars_tile' ? 3 / 4 : 16 / 9, k === 'logo'); if (!file) return;
       const path = `site/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
       const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
       if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
@@ -977,7 +988,8 @@ import { ap, ai } from '../../lib/admin-icons';
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     form.onclick = (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove(); };
     form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
-      const file = inp.files?.[0]; if (!file) return;
+      const raw = inp.files?.[0]; inp.value = ''; if (!raw) return;
+      const file = await cropImage(raw, 3 / 4); if (!file) return;
       const path = `categories/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
       const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
       if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
