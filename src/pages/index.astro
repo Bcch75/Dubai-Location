@@ -63,7 +63,7 @@ const rows = [
           <h2 class="mb-1 flex items-center gap-2 text-[28px] font-extrabold leading-tight tracking-[-0.75px] sm:text-[30px] sm:font-bold sm:leading-[1.25]"><Fragment set:html={pill(r.icon, 22, false, (r as any).color)} />{r.title}</h2>
           <p class="text-gray-500">{r.sub}</p>
         </div>
-        <a href={r.href} class="shrink-0 text-sm font-bold text-ink hover:text-gold sm:text-base">Toutes les activités →</a>
+        <a href={r.href} class="shrink-0 text-sm font-bold text-ink hover:text-gold sm:text-base">{r.kind === 'cars' ? 'Découvrir les voitures →' : 'Toutes les activités →'}</a>
       </div>
       <div class="relative mt-6">
         <div data-row={r.kind} set:html={rowHtml(r.kind)} class="no-scrollbar -mx-5 flex snap-x scroll-px-5 gap-6 overflow-x-auto scroll-smooth px-5 pb-6 pt-1 sm:-mx-2 sm:px-2"></div>
