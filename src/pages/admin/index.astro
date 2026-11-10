@@ -164,6 +164,14 @@ import { ap, ai } from '../../lib/admin-icons';
   else document.getElementById('app')!.classList.remove('hidden');
 
   const panel = document.getElementById('panel')!;
+  // Une seule section ouverte à la fois
+  document.addEventListener('toggle', (e) => {
+    const d = e.target as HTMLDetailsElement;
+    if (!d.matches?.('details.acc') || !d.open) return;
+    const root = d.closest('form, #panel') ?? document;
+    root.querySelectorAll<HTMLDetailsElement>('details.acc[open]').forEach((o) => { if (o !== d && !o.contains(d) && !d.contains(o)) o.open = false; });
+    setTimeout(() => { const r = d.getBoundingClientRect(); if (r.top < 70) d.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 30);
+  }, true);
   // Recadrer une photo déjà en place
   document.addEventListener('click', async (e) => {
     const t = e.target as HTMLElement;
