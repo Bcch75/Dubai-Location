@@ -879,7 +879,7 @@ import { ap, ai } from '../../lib/admin-icons';
     const publish = async () => {
       const hook = v('deploy_hook');
       if (!hook) { msg.textContent = 'Enregistré ✓ (ajoutez le lien Deploy Hook pour publier automatiquement)'; msg.className = 'text-sm text-amber-700'; return; }
-      try { await fetch(hook, { method: 'POST', mode: 'no-cors' }); msg.textContent = 'Enregistré ✓ — le site se met à jour (≈ 1 min)'; msg.className = 'text-sm text-emerald-700'; }
+      try { await fetch(hook, { method: 'POST', mode: 'no-cors' }); msg.textContent = ''; msg.className = 'hidden'; }
       catch { msg.textContent = 'Enregistré, mais la publication a échoué : vérifiez le lien.'; msg.className = 'text-sm text-red-600'; }
     };
     f.querySelector('#publish-now')!.addEventListener('click', publish);
@@ -927,7 +927,7 @@ import { ap, ai } from '../../lib/admin-icons';
   async function publishSite(msgEl?: Element | null) {
     const { data } = await sb.from('admin_settings').select('deploy_hook').eq('id', 1).maybeSingle();
     if (!data?.deploy_hook) { if (msgEl) { msgEl.textContent = 'Enregistré ✓ — pour que la nouvelle page apparaisse, ajoutez le lien Deploy Hook dans Réglages du site.'; msgEl.className = 'text-sm text-amber-700'; } return; }
-    try { await fetch(data.deploy_hook, { method: 'POST', mode: 'no-cors' }); if (msgEl) { msgEl.textContent = 'Enregistré ✓ — le site se met à jour (≈ 1 min)'; msgEl.className = 'text-sm text-emerald-700'; } } catch {}
+    try { await fetch(data.deploy_hook, { method: 'POST', mode: 'no-cors' }); if (msgEl) { msgEl.textContent = ''; msgEl.className = 'hidden'; } } catch {}
   }
   async function showCategories() {
     const { data } = await sb.from('categories').select('*').order('position');
