@@ -893,6 +893,9 @@ import { ap, ai } from '../../lib/admin-icons';
         sb.from('admin_settings').update({ deploy_hook: v('deploy_hook') || null }).eq('id', 1),
       ]);
       if (e1 || e2) { msg.textContent = 'Erreur : ' + (e1 ?? e2)!.message; msg.className = 'text-sm text-red-600'; return; }
+      Object.assign(d, data);
+      f.querySelectorAll<HTMLDetailsElement>('details[open]').forEach((x) => (x.open = false));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       await publish();
     });
   }
