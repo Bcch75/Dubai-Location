@@ -10,12 +10,12 @@ const seedData = await getActivities();
   <script type="application/json" id="seed-acts" set:html={JSON.stringify(seedData)} />
 </Layout>
 <style is:global>
-  .bk-lab { display: block; margin: 1.1rem 0 .5rem; font-size: 15px; font-weight: 500; color: #4b5563; }
-  .bk-sel { position: relative; display: flex; width: 100%; align-items: center; gap: .9rem; min-height: 56px; border-radius: 16px; border: 1px solid #d5dbe5; background: #fff; padding: .5rem 2.8rem .5rem 1rem; text-align: left; font-size: 17px; color: #0f1b3d; transition: border-color .15s; }
+  .bk-lab { display: block; margin: .9rem 0 .4rem; font-size: 13px; font-weight: 500; color: #4b5563; }
+  .bk-sel { position: relative; display: flex; width: 100%; align-items: center; gap: .7rem; min-height: 48px; border-radius: 14px; border: 1px solid #d5dbe5; background: #fff; padding: .4rem 2.6rem .4rem .9rem; text-align: left; font-size: 15px; color: #0f1b3d; transition: border-color .15s; }
   .bk-sel:hover, .bk-sel:focus-within { border-color: #38b2f5; }
   .bk-sel > select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
   .bk-chev { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #6b7280; pointer-events: none; }
-  .cal-d { display: flex; height: 46px; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 16px; line-height: 1.1; color: #0f1b3d; }
+  .cal-d { display: flex; height: 42px; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 14px; line-height: 1.1; color: #0f1b3d; }
   .cal-d small { font-size: 10px; font-weight: 600; color: #38b2f5; }
   .cal-d:not(:disabled):hover { background: #f0f9ff; }
   .cal-d.sel { background: #38b2f5; color: #fff; } .cal-d.sel small { color: #fff; }
@@ -27,7 +27,7 @@ const seedData = await getActivities();
   @media (min-width: 640px) { dialog.sheet { margin: auto; } }
   dialog.sheet[open] { animation: up .25s ease-out; }
   @keyframes up { from { transform: translateY(30px); opacity: 0; } }
-  body.has-bar #wa-float { bottom: 104px; }
+  body.has-bar #wa-float { bottom: 84px; }
 </style>
 <script>
   import { svgIcon } from '../../lib/icons';
@@ -58,7 +58,7 @@ const seedData = await getActivities();
       pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>', wallet: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v4"/><path d="M4 7.5V17a2 2 0 0 0 2 2h14V9H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="14" r="1"/>',
       check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
     };
-    const star = '<svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+    const star = '<svg viewBox="0 0 24 24" class="h-[15px] w-[15px]" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
     const md = (t: string) => esc(t).replace(/\*\*(.+?)\*\*/g, '<b class="font-bold text-ink">$1</b>').replace(/\n/g, '<br>');
     const fromPrice = (o: (typeof opts)[number]) => (o.durations?.length ? Math.min(...o.durations.map((d) => d.price)) : o.price || a.price);
     const sym: Record<string, string> = { EUR: '€', USD: '$', GBP: '£' };
@@ -75,68 +75,68 @@ const seedData = await getActivities();
       </div>
       <div class="mt-6 grid gap-x-10 gap-y-10 lg:grid-cols-[1fr_400px]">
         <div class="min-w-0">
-          <h1 class="text-[30px] font-extrabold leading-tight text-ink sm:text-[38px]">${esc(a.title)}</h1>
-          ${a.rating ? `<p class="mt-3 flex items-center gap-1 text-[17px]"><span class="flex gap-1 text-ink">${star.repeat(5)}</span><span class="ml-1.5 font-medium">${Number(a.rating).toFixed(1)}</span>${a.reviews_count ? `<span class="text-gray-400">(${a.reviews_count})</span>` : ''}</p>` : ''}
-          <p class="mt-3 flex items-center gap-2.5 text-[16px] text-gray-500">${S(P.pin, 'h-6 w-6')}${esc(a.location ?? 'Dubaï')}</p>
+          <h1 class="text-[23px] font-extrabold leading-tight text-ink sm:text-[30px]">${esc(a.title)}</h1>
+          ${a.rating ? `<p class="mt-2 flex items-center gap-1 text-[14px]"><span class="flex gap-1 text-ink">${star.repeat(5)}</span><span class="ml-1.5 font-medium">${Number(a.rating).toFixed(1)}</span>${a.reviews_count ? `<span class="text-gray-400">(${a.reviews_count})</span>` : ''}</p>` : ''}
+          <p class="mt-2 flex items-center gap-2 text-[14px] text-gray-500">${S(P.pin, 'h-5 w-5')}${esc(a.location ?? 'Dubaï')}</p>
           <div class="mt-4 flex gap-5 text-sm">
             <button type="button" data-fav="activity:${esc(a.slug)}" class="fav-btn flex items-center gap-1.5 font-medium text-ink">${ICON.heart} Favoris</button>
             <button type="button" id="share" class="font-medium text-ink">↗ Partager</button>
           </div>
-          <div class="mt-6 space-y-4 text-[17px] leading-[1.75] text-[#1e2a4a]">${(a.description ?? '').split(/\n\n+/).map((p) => `<p>${md(p)}</p>`).join('')}</div>
+          <div class="mt-5 space-y-3 text-[15px] leading-[1.65] text-[#1e2a4a]">${(a.description ?? '').split(/\n\n+/).map((p) => `<p>${md(p)}</p>`).join('')}</div>
 
-          <h2 class="mt-10 text-[26px] font-extrabold text-ink">À propos</h2>
-          <ul class="mt-5 space-y-5">
-            <li class="flex gap-4">${S(P.xc, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Annulation gratuite</p><p class="text-[15px] text-gray-500">Jusqu'à 24 heures à l'avance, sans frais</p></div></li>
-            ${a.duration ? `<li class="flex gap-4">${S(P.clock, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Durée ${esc(a.duration)}</p><p class="text-[15px] text-gray-500">Vérifiez les disponibilités pour voir les heures de départ</p></div></li>` : ''}
-            <li class="flex gap-4">${S(P.wallet, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Aucun paiement en ligne</p><p class="text-[15px] text-gray-500">Réservez maintenant, réglez après confirmation sur WhatsApp</p></div></li>
+          <h2 class="mt-8 text-[20px] font-extrabold text-ink">À propos</h2>
+          <ul class="mt-4 space-y-4">
+            <li class="flex gap-4">${S(P.xc, 'h-6 w-6 text-ink')}<div><p class="text-[15px] font-bold text-ink">Annulation gratuite</p><p class="text-[13px] text-gray-500">Jusqu'à 24 heures à l'avance, sans frais</p></div></li>
+            ${a.duration ? `<li class="flex gap-4">${S(P.clock, 'h-6 w-6 text-ink')}<div><p class="text-[15px] font-bold text-ink">Durée ${esc(a.duration)}</p><p class="text-[13px] text-gray-500">Vérifiez les disponibilités pour voir les heures de départ</p></div></li>` : ''}
+            <li class="flex gap-4">${S(P.wallet, 'h-6 w-6 text-ink')}<div><p class="text-[15px] font-bold text-ink">Aucun paiement en ligne</p><p class="text-[13px] text-gray-500">Réservez maintenant, réglez après confirmation sur WhatsApp</p></div></li>
           </ul>
-          ${a.highlights?.length ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Points forts</h2><ul class="mt-4 list-disc space-y-2 pl-5 text-[16px] font-medium text-[#1e2a4a]">${a.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></div>` : ''}
-          ${a.included?.length || a.excluded?.length ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Inclus / Non inclus</h2><ul class="mt-4 space-y-2.5 text-[16px]">
+          ${a.highlights?.length ? `<div class="mt-8 border-t border-gray-200 pt-6"><h2 class="text-[18px] font-extrabold text-ink">Points forts</h2><ul class="mt-4 list-disc space-y-2 pl-5 text-[15px] font-medium text-[#1e2a4a]">${a.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></div>` : ''}
+          ${a.included?.length || a.excluded?.length ? `<div class="mt-8 border-t border-gray-200 pt-6"><h2 class="text-[18px] font-extrabold text-ink">Inclus / Non inclus</h2><ul class="mt-3 space-y-2 text-[15px]">
             ${(a.included ?? []).map((i) => `<li class="flex gap-3"><span class="text-emerald-600">${S(P.check, 'h-5 w-5', 2.4)}</span>${esc(i)}</li>`).join('')}
             ${(a.excluded ?? []).map((i) => `<li class="flex gap-3 text-gray-500"><span class="text-red-500">${S(P.x, 'h-5 w-5', 2.4)}</span>${esc(i)}</li>`).join('')}
           </ul></div>` : ''}
-          ${a.important ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Informations importantes</h2><h3 class="mt-4 text-[20px] font-extrabold text-ink">Bon à savoir</h3><ul class="mt-2 list-disc space-y-1.5 pl-5 text-[17px] font-semibold leading-relaxed text-[#1e2a4a]">${a.important.split(/\n+/).filter(Boolean).map((l) => `<li>${md(l)}</li>`).join('')}</ul></div>` : ''}
+          ${a.important ? `<div class="mt-8 border-t border-gray-200 pt-6"><h2 class="text-[18px] font-extrabold text-ink">Informations importantes</h2><h3 class="mt-3 text-[16px] font-extrabold text-ink">Bon à savoir</h3><ul class="mt-2 list-disc space-y-1.5 pl-5 text-[15px] font-semibold leading-relaxed text-[#1e2a4a]">${a.important.split(/\n+/).filter(Boolean).map((l) => `<li>${md(l)}</li>`).join('')}</ul></div>` : ''}
         </div>
 
         <aside id="book-wrap" class="scroll-mt-24 lg:sticky lg:top-28 lg:self-start">
-          <div id="book" class="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_10px_30px_-12px_rgb(15_27_61/0.15)] sm:p-7">
-            <h2 class="text-[23px] font-extrabold text-ink">Vérifier les disponibilités</h2>
-            <p class="mt-4 text-[15px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p>
-            <p class="flex flex-wrap items-baseline gap-x-2">${a.old_price ? `<span class="text-base text-gray-400 line-through">${aed(a.old_price)}</span>` : ''}<span class="text-[28px] font-extrabold text-ink">${aed(a.price)}</span><span class="text-[16px] text-gray-500">${esc(a.price_unit ?? '')}</span></p>
-            <div class="my-5 border-t border-gray-200"></div>
+          <div id="book" class="rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_30px_-12px_rgb(15_27_61/0.15)]">
+            <h2 class="text-[19px] font-extrabold text-ink">Vérifier les disponibilités</h2>
+            <p class="mt-3 text-[13px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p>
+            <p class="flex flex-wrap items-baseline gap-x-2">${a.old_price ? `<span class="text-base text-gray-400 line-through">${aed(a.old_price)}</span>` : ''}<span class="text-[22px] font-extrabold text-ink">${aed(a.price)}</span><span class="text-[14px] text-gray-500">${esc(a.price_unit ?? '')}</span></p>
+            <div class="my-4 border-t border-gray-200"></div>
             ${opts.length ? `<span class="bk-lab !mt-0">Formule</span>
-              <button type="button" id="opt-btn" class="bk-sel !py-3">
-                <span id="opt-pic" class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sky-50 text-sky-500">${svgIcon('ticket', 24, 'currentColor')}</span>
-                <span class="min-w-0 flex-1"><b id="opt-name" class="block truncate text-[17px] font-extrabold">Choisir une formule</b><span id="opt-price" class="hidden text-[15px] text-gray-500"></span></span>
+              <button type="button" id="opt-btn" class="bk-sel !py-2">
+                <span id="opt-pic" class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-lg bg-sky-50 text-sky-500">${svgIcon('ticket', 24, 'currentColor')}</span>
+                <span class="min-w-0 flex-1"><b id="opt-name" class="block truncate text-[15px] font-extrabold">Choisir une formule</b><span id="opt-price" class="hidden text-[13px] text-gray-500"></span></span>
                 <span class="bk-chev">${S(P.right, 'h-5 w-5 text-gray-400')}</span>
               </button>
-              <div id="dur-box" class="hidden"><span class="bk-lab">Durée</span><label class="bk-sel">${S(P.timer, 'h-6 w-6 text-gray-600')}<span id="dur-l" class="flex-1"></span><select id="dur" aria-label="Durée"></select><span class="bk-chev">${S(P.chev)}</span></label></div>` : ''}
-            <label class="bk-sel ${opts.length ? 'mt-4' : ''}">${S(P.people, 'h-6 w-6 text-gray-600')}<span id="qty-l" class="flex-1"></span>
+              <div id="dur-box" class="hidden"><span class="bk-lab">Durée</span><label class="bk-sel">${S(P.timer, 'h-5 w-5 text-gray-600')}<span id="dur-l" class="flex-1"></span><select id="dur" aria-label="Durée"></select><span class="bk-chev">${S(P.chev)}</span></label></div>` : ''}
+            <label class="bk-sel ${opts.length ? 'mt-4' : ''}">${S(P.people, 'h-5 w-5 text-gray-600')}<span id="qty-l" class="flex-1"></span>
               <select id="qty" aria-label="${esc(a.qty_label || 'Participants')}">${Array.from({ length: 20 }, (_, i) => `<option value="${i + 1}" ${i === (a.qty_label === 'Participants' || !a.qty_label ? 1 : 0) ? 'selected' : ''}>${qLabel(i + 1)}</option>`).join('')}</select><span class="bk-chev">${S(P.chev)}</span></label>
             <div class="relative mt-4">
-              <button type="button" id="date-btn" class="bk-sel">${S(P.cal, 'h-6 w-6 text-gray-600')}<span id="date-l" class="flex-1">Sélectionner une date</span><span class="bk-chev">${S(P.chev)}</span></button>
+              <button type="button" id="date-btn" class="bk-sel">${S(P.cal, 'h-5 w-5 text-gray-600')}<span id="date-l" class="flex-1">Sélectionner une date</span><span class="bk-chev">${S(P.chev)}</span></button>
               <div id="cal" class="absolute inset-x-0 top-[calc(100%+6px)] z-30 hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_20px_40px_-12px_rgb(0_0_0/0.25)]"></div>
             </div>
             <span class="bk-lab">Heure de la réservation${slots ? '' : ' <span class="text-gray-400">(souhaitée)</span>'}</span>
             <div class="relative">
-              <button type="button" id="time-btn" class="bk-sel">${S(P.clock, 'h-6 w-6 text-gray-600')}<span id="time-l" class="flex-1 text-gray-400">Choisir une heure</span><span class="bk-chev" id="time-chev">${S(P.chev)}</span></button>
+              <button type="button" id="time-btn" class="bk-sel">${S(P.clock, 'h-5 w-5 text-gray-600')}<span id="time-l" class="flex-1 text-gray-400">Choisir une heure</span><span class="bk-chev" id="time-chev">${S(P.chev)}</span></button>
               <div id="time-list" class="absolute inset-x-0 top-[calc(100%+6px)] z-30 hidden max-h-[300px] overflow-y-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-[0_20px_40px_-12px_rgb(0_0_0/0.25)]"></div>
             </div>
-            <div class="my-5 border-t border-gray-200"></div>
-            <div class="flex items-center justify-between"><span class="text-[19px] font-medium text-ink">Total</span><span id="total" class="text-[28px] font-extrabold text-ink"></span></div>
-            <button type="button" id="add" class="mt-5 h-[52px] w-full rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white transition">${editKey ? 'Mettre à jour le panier' : 'Ajouter au panier'}</button>
-            <p id="need" class="mt-3 text-center text-[16px] font-medium text-[#e5283a]"></p>
-            <p class="mt-5 flex gap-3 text-emerald-600">${S(P.shield, 'h-7 w-7')}<span><b class="block text-[17px] font-medium text-ink">Annulation gratuite</b><span class="text-[15px] text-gray-500">Annulation jusqu'à 24 heures à l'avance, sans frais</span></span></p>
+            <div class="my-4 border-t border-gray-200"></div>
+            <div class="flex items-center justify-between"><span class="text-[16px] font-medium text-ink">Total</span><span id="total" class="text-[22px] font-extrabold text-ink"></span></div>
+            <button type="button" id="add" class="mt-4 h-12 w-full rounded-xl bg-[#38b2f5] text-[16px] font-semibold text-white transition">${editKey ? 'Mettre à jour le panier' : 'Ajouter au panier'}</button>
+            <p id="need" class="mt-2 text-center text-[14px] font-medium text-[#e5283a]"></p>
+            <p class="mt-4 flex gap-3 text-emerald-600">${S(P.shield, 'h-6 w-6')}<span><b class="block text-[15px] font-medium text-ink">Annulation gratuite</b><span class="text-[13px] text-gray-500">Annulation jusqu'à 24 heures à l'avance, sans frais</span></span></p>
             <a class="mt-5 block text-center text-sm font-medium text-sky-500" target="_blank" rel="noopener" href="${waLink(`Bonjour Dubai Location, j'ai une question sur « ${a.title} ».`)}">Une question ? Écrivez-nous sur WhatsApp</a>
           </div>
         </aside>
       </div>
-      <section class="mt-16"><h2 class="text-[28px] font-extrabold text-ink">Vous pourriez aussi aimer…</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
+      <section class="mt-16"><h2 class="text-[21px] font-extrabold text-ink">Vous pourriez aussi aimer…</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
 
     // ── Barre fixe en bas (téléphone)
     const bar = document.createElement('div');
-    bar.className = 'fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 transition-transform duration-200 lg:hidden';
-    bar.innerHTML = `<div class="min-w-0"><p class="text-[15px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p><p class="whitespace-nowrap"><b class="text-[24px] font-extrabold text-ink">${aed(a.price)}</b> <span class="text-[15px] text-gray-500">${esc(a.price_unit ?? '')}</span></p></div><button type="button" class="h-[52px] shrink-0 rounded-2xl bg-[#38b2f5] px-5 text-[17px] font-bold text-white">Vérifier les disponibilités</button>`;
+    bar.className = 'fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 pb-[max(10px,env(safe-area-inset-bottom))] pt-2.5 transition-transform duration-200 lg:hidden';
+    bar.innerHTML = `<div class="min-w-0"><p class="text-[12px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p><p class="whitespace-nowrap"><b class="text-[18px] font-extrabold text-ink">${aed(a.price)}</b> <span class="text-[13px] text-gray-500">${esc(a.price_unit ?? '')}</span></p></div><button type="button" class="h-11 shrink-0 rounded-xl bg-[#38b2f5] px-4 text-[15px] font-bold text-white">Vérifier les disponibilités</button>`;
     document.body.append(bar); document.body.classList.add('has-bar');
     bar.querySelector('button')!.addEventListener('click', () => document.getElementById('book-wrap')!.scrollIntoView({ behavior: 'smooth' }));
     new IntersectionObserver(([e]) => { const hide = e.isIntersecting; bar.style.transform = hide ? 'translateY(110%)' : ''; document.body.classList.toggle('has-bar', !hide); }, { rootMargin: '0px 0px -30% 0px' }).observe(document.getElementById('book')!);
@@ -183,9 +183,9 @@ const seedData = await getActivities();
           ${g ? `<p class="mb-3 mt-4 flex items-center gap-2.5 px-2 text-[15px] font-bold uppercase tracking-wide text-gray-500">${svgIcon('ticket', 18, 'currentColor')}${esc(g)}</p>` : '<div class="h-3"></div>'}
           <div class="space-y-3">${opts.map((o, i) => [o, i] as const).filter(([o]) => (o.group || '').trim() === g).map(([o, i]) => `
             <button type="button" data-pick="${i}" class="flex w-full items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-[0_2px_10px_-4px_rgb(0_0_0/0.12)] transition hover:border-sky-300">
-              ${o.image ? `<img src="${esc(thumb(o.image))}" alt="" class="h-[60px] w-[60px] shrink-0 rounded-xl object-cover">` : `<span class="grid h-[60px] w-[60px] shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-500">${svgIcon('ticket', 26, 'currentColor')}</span>`}
-              <span class="min-w-0 flex-1"><b class="block text-[17px] font-extrabold leading-snug text-ink">${esc(o.name)}</b>${o.detail ? `<span class="mt-0.5 block text-[15px] text-gray-500">${esc(o.detail)}</span>` : ''}
-              <span class="mt-1 block text-[15px] text-gray-500">dès <b class="text-[17px] font-extrabold text-sky-500">${aed(fromPrice(o))}</b>${o.people ? ` · ${o.people} pers.` : ''}</span></span>
+              ${o.image ? `<img src="${esc(thumb(o.image))}" alt="" class="h-[52px] w-[52px] shrink-0 rounded-xl object-cover">` : `<span class="grid h-[52px] w-[52px] shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-500">${svgIcon('ticket', 26, 'currentColor')}</span>`}
+              <span class="min-w-0 flex-1"><b class="block text-[15px] font-extrabold leading-snug text-ink">${esc(o.name)}</b>${o.detail ? `<span class="mt-0.5 block text-[13px] text-gray-500">${esc(o.detail)}</span>` : ''}
+              <span class="mt-1 block text-[13px] text-gray-500">dès <b class="text-[15px] font-extrabold text-sky-500">${aed(fromPrice(o))}</b>${o.people ? ` · ${o.people} pers.` : ''}</span></span>
             </button>`).join('')}</div>`).join('')}</div>`;
       document.body.append(od);
       document.getElementById('opt-btn')!.addEventListener('click', () => od.showModal());
@@ -245,7 +245,7 @@ const seedData = await getActivities();
     // Heures
     const allSlots = slots ?? Array.from({ length: 31 }, (_, i) => `${String(7 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
     const timeList = document.getElementById('time-list')!;
-    timeList.innerHTML = allSlots.map((t) => `<button type="button" data-t="${esc(t)}" class="block w-full px-6 py-2.5 text-left text-[17px] font-medium text-gray-700 hover:bg-sky-50">${esc(t)}</button>`).join('');
+    timeList.innerHTML = allSlots.map((t) => `<button type="button" data-t="${esc(t)}" class="block w-full px-5 py-2 text-left text-[15px] font-medium text-gray-700 hover:bg-sky-50">${esc(t)}</button>`).join('');
     document.getElementById('time-btn')!.addEventListener('click', (e) => { e.stopPropagation(); cal.classList.add('hidden'); timeList.classList.toggle('hidden'); document.getElementById('time-chev')!.style.transform = timeList.classList.contains('hidden') ? '' : 'translateY(-50%) rotate(180deg)'; });
     timeList.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLElement>('[data-t]'); if (!b) return;
@@ -279,25 +279,25 @@ const seedData = await getActivities();
     const showStep = (i: number) => {
       if (i >= extras.length) {
         cart.update(curKey, { extras: chosen.slice() });
-        done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[21px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
+        done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[18px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
           <div class="px-6 pb-8 pt-8 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-[28px] bg-emerald-50 text-emerald-600">${S(P.check, 'h-12 w-12', 2.5)}</div>
-          <p class="mt-6 text-[24px] font-extrabold text-ink">Parfait !</p>
+          <p class="mt-6 text-[21px] font-extrabold text-ink">Parfait !</p>
           <p class="mt-2 text-[16px] text-gray-600">${chosen.length ? `${chosen.map((c) => `${esc(c.name)} ×${c.qty}`).join(', ')} ajouté${chosen.length > 1 ? 's' : ''}.` : extras.length ? 'Aucune option supplémentaire sélectionnée.' : 'Votre activité a été ajoutée au panier.'}</p>
-          <button type="button" data-x class="mx-auto mt-7 block h-[52px] w-full max-w-[330px] rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white">Continuer mes achats</button>
-          <a href="${url('panier/')}" class="mx-auto mt-3 grid h-[52px] w-full max-w-[330px] place-items-center rounded-2xl bg-gray-100 text-[18px] font-medium text-ink">Continuer vers le panier</a></div>`;
+          <button type="button" data-x class="mx-auto mt-7 block h-[52px] w-full max-w-[330px] rounded-2xl bg-[#38b2f5] text-[16px] font-semibold text-white">Continuer mes achats</button>
+          <a href="${url('panier/')}" class="mx-auto mt-3 grid h-[52px] w-full max-w-[330px] place-items-center rounded-2xl bg-gray-100 text-[16px] font-semibold text-ink">Continuer vers le panier</a></div>`;
         return;
       }
       const x = extras[i]; let q = 0;
-      done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[21px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
+      done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[18px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
         <div class="mt-4 flex justify-center gap-1.5">${extras.map((_, j) => `<span class="h-2 rounded-full ${j === i ? 'w-10 bg-[#38b2f5]' : 'w-2 bg-gray-200'}"></span>`).join('')}</div>
         <div class="max-h-[62dvh] overflow-y-auto px-6 pb-5 pt-5">
           ${x.image ? `<div class="relative"><img src="${esc(img(x.image))}" alt="" class="h-48 w-full rounded-2xl object-cover"><span class="absolute right-3 top-3 rounded-full bg-white px-4 py-1.5 text-[17px] font-bold text-sky-500">+${aed(x.price)}</span></div>` : `<p class="text-right"><span class="rounded-full bg-sky-50 px-4 py-1.5 text-[17px] font-bold text-sky-500">+${aed(x.price)}</span></p>`}
-          <p class="mt-5 text-[21px] font-extrabold leading-snug text-ink">${esc(x.name)}</p>
+          <p class="mt-4 text-[18px] font-extrabold leading-snug text-ink">${esc(x.name)}</p>
           ${x.detail ? `<p class="mt-2 text-[16px] leading-relaxed text-gray-600">${esc(x.detail)}</p>` : ''}
           <div class="mt-5 flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"><span class="text-[16px] font-bold text-ink">Quantité</span>
             <span class="flex items-center gap-4"><button type="button" data-q="-1" class="grid h-11 w-11 place-items-center rounded-xl bg-white text-2xl text-gray-400 shadow-sm">−</button><b id="xq" class="w-6 text-center text-[24px]">0</b><button type="button" data-q="1" class="grid h-11 w-11 place-items-center rounded-xl bg-white text-2xl text-ink shadow-sm ring-1 ring-gray-200">+</button></span></div>
         </div>
-        <div class="grid grid-cols-2 gap-3 border-t border-gray-200 px-6 py-5"><button type="button" data-skip class="h-[52px] rounded-2xl bg-gray-100 text-[18px] font-medium text-ink">Passer</button><button type="button" data-addx class="h-[52px] rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white">Ajouter</button></div>`;
+        <div class="grid grid-cols-2 gap-3 border-t border-gray-200 px-6 py-5"><button type="button" data-skip class="h-12 rounded-xl bg-gray-100 text-[16px] font-medium text-ink">Passer</button><button type="button" data-addx class="h-12 rounded-xl bg-[#38b2f5] text-[16px] font-medium text-white">Ajouter</button></div>`;
       done.querySelectorAll<HTMLElement>('[data-q]').forEach((b) => b.addEventListener('click', () => { q = Math.max(0, Math.min(20, q + +b.dataset.q!)); done.querySelector('#xq')!.textContent = String(q); }));
       done.querySelector('[data-skip]')!.addEventListener('click', () => showStep(i + 1));
       done.querySelector('[data-addx]')!.addEventListener('click', () => { chosen.push({ name: x.name, price: x.price, qty: Math.max(1, q) }); showStep(i + 1); });
