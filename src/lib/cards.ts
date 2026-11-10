@@ -91,7 +91,7 @@ export function activityCard(a: Activity, cls = '') {
     <div class="flex flex-1 flex-col px-4 pb-4 pt-4">
       <h3 class="mb-2 line-clamp-2 text-[17px] font-semibold leading-[1.375] text-ink"><a href="${url('activite/?s=' + encodeURIComponent(a.slug))}" class="after:absolute after:inset-0">${esc(a.title)}</a></h3>
       <p class="mb-3 line-clamp-2 text-sm leading-[1.625] text-gray-500">${esc(a.tagline)}</p>
-      ${a.perk ? `<p class="flex items-start gap-1.5 self-start text-[12px] font-semibold leading-snug text-emerald-700">${ICON.gift}${esc(a.perk)}</p>` : ''}
+      ${a.perk ? `<p class="flex min-w-0 max-w-full items-center gap-1.5 self-start whitespace-nowrap text-[11px] font-semibold leading-snug text-emerald-700 [&>span]:truncate">${ICON.gift}<span>${esc(a.perk)}</span></p>` : ''}
       <div class="flex-1"></div>
       <div class="mt-4 flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
         ${footLeft(a.rating, a.reviews_count)}
@@ -114,7 +114,7 @@ export function carCard(c: Car, cls = '') {
       <p class="text-xs font-medium text-gray-400">${esc(c.brand)}</p>
       <h3 class="mb-2 text-[17px] font-semibold leading-[1.375] text-ink"><a href="${url('voiture/?s=' + encodeURIComponent(c.slug))}" class="after:absolute after:inset-0">${esc(c.model)}</a></h3>
       <p class="mb-3 mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500"><span class="flex items-center gap-1">${ICON.users}${c.seats ?? '-'} places</span><span>${esc(c.engine ?? '')}</span><span>Boîte auto</span></p>
-      ${c.perk ? `<p class="flex items-start gap-1.5 self-start text-[12px] font-semibold leading-snug text-emerald-700">${ICON.gift}${esc(c.perk)}</p>` : ''}
+      ${c.perk ? `<p class="flex min-w-0 max-w-full items-center gap-1.5 self-start whitespace-nowrap text-[11px] font-semibold leading-snug text-emerald-700 [&>span]:truncate">${ICON.gift}<span>${esc(c.perk)}</span></p>` : ''}
       <div class="flex-1"></div>
       <div class="mt-4 flex items-end justify-between gap-3 border-t border-gray-100 pt-3">
         ${footLeft(c.rating, c.reviews_count)}

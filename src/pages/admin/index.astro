@@ -961,7 +961,7 @@ import { ap, ai } from '../../lib/admin-icons';
               <p class="text-xs text-gray-500">${n(c.slug)} activité${n(c.slug) > 1 ? 's' : ''}${c.in_menu ? ' · dans le menu' : ''}${c.on_home ? ' · sur l’accueil' : ''}</p></div>
           </div>
         </div>`).join('')}</div>
-      <p class="grp-lab">Toujours en dernier dans « Nos univers »</p>
+      <p class="grp-lab">Toujours en dernier dans « Que faire à Dubaï ? »</p>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <div id="car-tile" class="group relative cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-100 transition hover:shadow-lift hover:ring-gold">
           <div class="relative h-28 bg-sand">${carTile ? `<img src="${esc(thumb(carTile))}" alt="" class="h-full w-full object-cover">` : ''}<div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div></div>
@@ -1045,7 +1045,7 @@ import { ap, ai } from '../../lib/admin-icons';
       <div class="space-y-4 p-4 sm:p-5">
         ${block('', 'La catégorie', '', `${input('label', 'Nom', c?.label, 'Ex. Désert')}${input('subtitle', 'Petite phrase', c?.subtitle, 'Ex. Quad, buggy, dîner bédouin…', 'text', '(sous le titre sur l’accueil)')}`)}
         <section class="blk"><h3>Icône</h3><div id="ip-slot" class="mt-4"></div></section>
-        ${block('', 'Photo de la tuile', 'Affichée dans « Nos univers » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
+        ${block('', 'Photo de la tuile', 'Affichée dans « Que faire à Dubaï ? » sur l’accueil.', photoBox('main', c?.image_url ? [c.image_url] : [], false))}
         ${block('', 'Affichage', '', toggle('in_menu', 'Dans le menu du haut', c?.in_menu ?? false, '4 catégories maximum dans le menu.') + toggle('on_home', 'Une rangée sur l’accueil', c?.on_home ?? true) + toggle('active', 'Visible', c?.active ?? true))}
         <p id="ferr" class="hidden rounded-xl bg-red-50 p-3 text-sm text-red-700"></p>
         ${c ? `<button type="button" data-delete class="w-full rounded-xl py-3 text-sm font-semibold text-red-600 hover:bg-red-50">Supprimer la catégorie</button>` : ''}
