@@ -110,3 +110,16 @@ input[type="date"]::-webkit-date-and-time-value { text-align: left; }
 
 /* Interface plus compacte : tout le site est légèrement réduit sur téléphone */
 @media (max-width: 640px) { html { font-size: 15px; } }
+
+/* ───── Toucher façon iPhone : léger enfoncement quand on appuie ───── */
+html, body { touch-action: manipulation; overscroll-behavior: none; }
+a, button, label, summary, [role="button"] { -webkit-touch-callout: none; transition-property: transform, translate, scale, opacity, bottom, background-color, border-color, color, box-shadow; transition-duration: .15s; transition-timing-function: cubic-bezier(.2,.8,.2,1); }
+@media (hover: none) {
+  a:active, button:not(:disabled):active, summary:active, label:has(> select):active, [role="button"]:active { transform: scale(.96); opacity: .85; transition-duration: .06s; }
+  /* grandes cartes : effet plus discret */
+  article a:active, a.group:active, [data-row] > *:active, a:has(> img):active { transform: scale(.985); }
+}
+/* Transitions douces entre les pages (Safari, Chrome) */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+@media (prefers-reduced-motion: reduce) { a:active, button:active { transform: none !important; } }
