@@ -72,19 +72,10 @@ const card = (icon: keyof typeof I, title: string, sub: string, body: string, id
               <p id="pw-msg" class="hidden text-sm"></p>
               <div class="flex justify-end pt-2"><button id="pw-btn" class="acc-btn" disabled>${ic('shield')}Modifier le mot de passe</button></div>
             </form>`, 'mdp')} />
-          <Fragment set:html={card('out', 'Session', 'Gérez votre session', `
-            <div class="flex gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5">
-              <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600">${ic('out', 'h-6 w-6')}</span>
-              <div class="min-w-0"><p class="text-[15px] font-extrabold text-ink">Se déconnecter</p><p class="mt-1 text-[14px] leading-relaxed text-gray-600">Vous serez déconnecté de votre compte sur cet appareil.</p>
-              <button type="button" id="logout" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-[#0f1b2d] px-5 font-semibold text-white">${ic('out')}Se déconnecter</button></div>
-            </div>`)} />
-          <Fragment set:html={card('warn', 'Zone dangereuse', 'Actions irréversibles sur votre compte', `
-            <div class="flex gap-3 rounded-2xl bg-red-50 p-4 text-red-500">${ic('warn', 'h-6 w-6')}<div><p class="font-medium">Attention</p><p class="font-medium">Les actions suivantes sont irréversibles</p></div></div>
-            <div class="mt-6 flex gap-4 rounded-2xl border-2 border-red-200 bg-red-50/60 p-5">
-              <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-red-100 text-red-600">${ic('trash', 'h-6 w-6')}</span>
-              <div class="min-w-0"><p class="text-[15px] font-extrabold text-ink">Supprimer mon compte</p><p class="mt-1 text-[14px] leading-relaxed text-gray-600">La suppression de votre compte est définitive. Toutes vos données et commandes seront définitivement supprimées.</p>
-              <button type="button" id="delete" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-red-500 px-5 font-semibold text-white">${ic('trash')}Supprimer mon compte</button></div>
-            </div>`)} />
+          <div class="divide-y divide-gray-100 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            <button type="button" id="logout" class="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold text-ink"><Fragment set:html={ic('out', 'h-5 w-5')} />Se déconnecter</button>
+            <button type="button" id="delete" class="flex w-full items-center gap-3 px-4 py-3.5 text-left text-[14px] font-semibold text-red-500"><Fragment set:html={ic('trash', 'h-5 w-5')} />Supprimer mon compte</button>
+          </div>
         </div>
 
         <!-- Mes commandes -->
