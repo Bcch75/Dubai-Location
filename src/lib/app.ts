@@ -46,6 +46,8 @@ if (lang() !== 'fr') {
 export const waLink = (msg: string) => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
 
 // ───────── Session ─────────
+// « Se souvenir de moi » décoché : déconnexion à la fermeture du navigateur
+try { if (localStorage.getItem('dl-noremember') && !sessionStorage.getItem('dl-alive')) { localStorage.removeItem('dl-noremember'); sb.auth.signOut(); } } catch {}
 let _user: User | null | undefined;
 export async function getUser() {
   if (_user !== undefined) return _user;
@@ -66,16 +68,21 @@ export function goLogin() { location.href = url(`connexion/?next=${encodeURIComp
 export type CartItem = {
   key: string; type: 'activity' | 'car'; slug: string; title: string; image: string | null; option: string | null;
   date: string | null; endDate: string | null; qty: number; qtyLabel: string; unitPrice: number | null; priceUnit: string | null;
+  time?: string | null; duration?: string | null; extras?: { name: string; price: number; qty: number }[];
+  tagline?: string | null; rating?: number | null; reviews?: number | null; optIndex?: number | null;
 };
+/** Prix d'une ligne du panier (formule × quantité + options en plus) */
+export const lineTotal = (i: CartItem) => (i.unitPrice ?? 0) * (i.type === 'car' ? nights(i) : i.qty) + (i.extras ?? []).reduce((s, e) => s + e.price * e.qty, 0);
 const CART = 'dl-cart';
 export const cart = {
   get(): CartItem[] { try { return JSON.parse(localStorage.getItem(CART) || '[]'); } catch { return []; } },
   set(items: CartItem[]) { try { localStorage.setItem(CART, JSON.stringify(items)); } catch {} window.dispatchEvent(new Event('cart:change')); },
-  add(item: Omit<CartItem, 'key'>) { this.set([...this.get(), { ...item, key: crypto.randomUUID() }]); },
+  add(item: Omit<CartItem, 'key'>) { const key = Math.random().toString(36).slice(2) + Date.now().toString(36); this.set([...this.get(), { ...item, key }]); return key; },
+  update(key: string, patch: Partial<CartItem>) { this.set(this.get().map((i) => (i.key === key ? { ...i, ...patch } : i))); },
   remove(key: string) { this.set(this.get().filter((i) => i.key !== key)); },
   setQty(key: string, qty: number) { this.set(this.get().map((i) => (i.key === key ? { ...i, qty: Math.max(1, Math.min(50, qty)) } : i))); },
   clear() { this.set([]); },
-  total() { return this.get().reduce((s, i) => s + (i.unitPrice ?? 0) * (i.type === 'car' ? nights(i) : i.qty), 0); },
+  total() { return this.get().reduce((s, i) => s + lineTotal(i), 0); },
 };
 export const nights = (i: Pick<CartItem, 'date' | 'endDate'>) => {
   if (!i.date || !i.endDate) return 1;

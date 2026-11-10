@@ -4,7 +4,9 @@
 export type Activity = {
   id: number; slug: string; title: string; categories: string[]; tagline: string | null; description: string | null;
   image_url: string | null; image_alt: string | null; price: number; price_from: boolean; price_unit: string | null;
-  duration: string | null; location: string | null; highlights: string[]; options: { name: string; detail?: string | null; price?: number | null }[];
+  duration: string | null; location: string | null; highlights: string[];
+  options: { name: string; detail?: string | null; price?: number | null; group?: string | null; image?: string | null; people?: number | null; durations?: { label: string; price: number }[] }[];
+  extras?: { name: string; detail?: string | null; price: number; image?: string | null }[]; time_slots?: string[];
   badge: string | null; featured: boolean; position: number; active: boolean; old_price: number | null; perk: string | null;
   gallery: string[]; included: string[]; excluded: string[]; important: string | null; qty_label: string;
   rating?: number | null; reviews_count?: number | null; video_url?: string | null;

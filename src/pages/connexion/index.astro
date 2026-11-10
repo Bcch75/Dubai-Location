@@ -1,58 +1,136 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+const eye = '<svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" type="password" class="inp pr-12" autocomplete="${ac}"><button type="button" data-eye="${id}" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600" aria-label="Afficher le mot de passe">${eye}</button></div>`;
 ---
 <Layout title="Connexion">
-  <section class="container-x flex min-h-[80svh] items-center justify-center pb-16 pt-28">
-    <div class="w-full max-w-md rounded-3xl border border-line bg-white p-6 shadow-soft sm:p-8">
-      <div class="grid grid-cols-2 rounded-full bg-sand p-1 text-sm font-semibold">
-        <button data-tab="login" class="tab rounded-full py-2">Se connecter</button>
-        <button data-tab="signup" class="tab rounded-full py-2">Créer un compte</button>
-      </div>
-      <form id="f" class="mt-6 space-y-3">
-        <div data-only="signup"><label class="label" for="name">Nom complet</label><input id="name" class="field" autocomplete="name"></div>
-        <div data-only="signup"><label class="label" for="phone">Téléphone WhatsApp</label><input id="phone" type="tel" class="field" autocomplete="tel"></div>
-        <div><label class="label" for="email">Email</label><input id="email" type="email" required class="field" autocomplete="email"></div>
-        <div><label class="label" for="pw">Mot de passe</label><input id="pw" type="password" required minlength="6" class="field" autocomplete="current-password"></div>
-        <button id="submit" class="w-full rounded-xl bg-gold py-3.5 font-semibold text-white hover:bg-gold-deep">Se connecter</button>
-        <p id="msg" class="hidden text-center text-sm"></p>
-        <button type="button" id="forgot" data-only="login" class="block w-full text-center text-sm text-muted hover:text-ink">Mot de passe oublié ?</button>
+  <section class="mx-auto w-full max-w-[460px] px-4 pb-16 pt-24 sm:pt-32">
+    <!-- Connexion -->
+    <div id="v-login">
+      <form id="f-login" class="card-auth" novalidate>
+        <div class="p-6 sm:p-8">
+          <h1 class="text-[22px] font-extrabold text-[#0f1b3d]">Connectez-vous à votre compte</h1>
+          <label class="lab-auth mt-6" for="l-email">E-mail</label>
+          <input id="l-email" type="email" class="inp" placeholder="votre adresse email" autocomplete="email">
+          <label class="lab-auth mt-5" for="l-pw">Mot de passe</label>
+          <Fragment set:html={pw('l-pw', 'current-password')} />
+          <div class="mt-5 flex items-center justify-between gap-3">
+            <label class="flex items-center gap-2.5 text-[15px] text-gray-700"><input id="l-remember" type="checkbox" checked class="h-5 w-5 rounded border-gray-300">Se souvenir de moi</label>
+            <button type="button" id="forgot" class="text-[15px] font-bold text-sky-500">Mot de passe oublié ?</button>
+          </div>
+          <button id="l-submit" class="btn-auth mt-6" disabled>Se connecter</button>
+          <p id="l-msg" class="mt-3 hidden text-center text-sm"></p>
+        </div>
+        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-4 py-5 text-center text-[15px] text-gray-600">Vous n'avez pas encore de compte ? <a href="#inscription" class="font-bold text-sky-500">Créer un compte</a></p>
       </form>
+      <p class="mt-8 flex gap-3 px-1 text-[15px] text-gray-600"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1"/></svg>Ne communiquez jamais vos identifiants Dubai Location. Vos données sont protégées et sécurisées.</p>
+    </div>
+
+    <!-- Inscription -->
+    <div id="v-signup" class="hidden">
+      <form id="f-signup" class="card-auth" novalidate>
+        <div class="p-6 sm:p-8">
+          <h1 class="text-[22px] font-extrabold text-[#0f1b3d]">Créer un compte Dubai Location</h1>
+          <label class="lab-auth mt-6" for="s-name">Nom complet</label>
+          <input id="s-name" class="inp" placeholder="Prénom Nom" autocomplete="name">
+          <p data-err="s-name" class="err hidden">Veuillez indiquer votre prénom et nom de famille</p>
+          <label class="lab-auth mt-5" for="s-email">E-mail</label>
+          <input id="s-email" type="email" class="inp" placeholder="votre adresse email" autocomplete="email">
+          <p data-err="s-email" class="err hidden">Veuillez indiquer une adresse e-mail valide</p>
+          <label class="lab-auth mt-5" for="s-pw">Mot de passe</label>
+          <Fragment set:html={pw('s-pw', 'new-password')} />
+          <div id="strength" class="hidden">
+            <div class="mt-3 grid grid-cols-4 gap-1.5">{[0, 1, 2, 3].map(() => <span class="bar h-1 rounded-full bg-gray-200"></span>)}</div>
+            <p class="mt-2 text-sm text-gray-500">Force du mot de passe : <b id="strength-l"></b></p>
+          </div>
+          <p data-err="s-pw" class="err hidden">Le mot de passe doit contenir au moins 8 caractères</p>
+          <label class="lab-auth mt-5" for="s-pw2">Confirmer le mot de passe</label>
+          <Fragment set:html={pw('s-pw2', 'new-password')} />
+          <p data-err="s-pw2" class="err hidden">Les mots de passe ne correspondent pas</p>
+          <label class="mt-6 flex items-start gap-3 text-[15px] text-gray-700"><input id="s-cgu" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 rounded border-gray-300"><span>J'accepte les <a href="/conditions/" target="_blank" class="font-bold text-sky-500">conditions générales d'utilisation</a> et la <a href="/conditions/#confidentialite" target="_blank" class="font-bold text-sky-500">politique de confidentialité</a></span></label>
+          <button id="s-submit" class="btn-auth mt-6" disabled>Créer mon compte</button>
+          <p id="s-msg" class="mt-3 hidden text-center text-sm"></p>
+        </div>
+        <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-4 py-5 text-center text-[15px] text-gray-600">Vous avez déjà un compte ? <a href="#connexion" class="font-bold text-sky-500">Se connecter</a></p>
+      </form>
+      <p class="mt-8 flex gap-3 px-1 text-[15px] text-gray-600"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>Vos données personnelles sont sécurisées et protégées. Nous ne partagerons jamais vos informations avec des tiers.</p>
     </div>
   </section>
 </Layout>
-<style>.tab[aria-selected='true']{background:#fff;box-shadow:0 1px 4px rgb(0 0 0/.1)}</style>
+<style is:global>
+  .card-auth { border-radius: 28px; border: 1px solid #e5e7eb; background: #fff; box-shadow: 0 10px 30px -12px rgb(15 27 61 / .12); }
+  .lab-auth { display: block; margin-bottom: .5rem; font-size: 16px; font-weight: 700; color: #0f1b3d; }
+  .inp { display: block; width: 100%; height: 52px; border-radius: 14px; border: 1px solid #d5dbe5; background: #fff; padding: 0 1rem; font-size: 16px; color: #0f1b3d; outline: none; transition: border-color .15s, box-shadow .15s; }
+  .inp::placeholder { color: #94a3b8; }
+  .inp:focus { border-color: #38b2f5; box-shadow: 0 0 0 3px rgb(56 178 245 / .15); }
+  .inp:read-only { background: #fff; color: #334155; }
+  .btn-auth { display: block; width: 100%; height: 52px; border-radius: 14px; background: #38b2f5; font-size: 18px; font-weight: 800; color: #fff; transition: background .15s; }
+  .btn-auth:disabled { background: #808080; }
+  .err { margin-top: .6rem; display: flex; gap: .6rem; font-size: 15px; color: #c8102e; }
+  .err.hidden { display: none; }
+  .err::before { content: ''; flex: none; width: 18px; height: 18px; margin-top: 2px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; }
+</style>
 <script>
   import { sb, url } from '../../lib/app';
-  let mode: 'login' | 'signup' = 'login';
   const next = new URLSearchParams(location.search).get('next') || url('compte/');
-  const msg = document.getElementById('msg')!;
-  const say = (t: string, ok = false) => { msg.textContent = t; msg.className = 'text-center text-sm ' + (ok ? 'text-emerald-700' : 'text-red-600'); };
-  const setMode = (m: typeof mode) => {
-    mode = m;
-    document.querySelectorAll<HTMLElement>('.tab').forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === m)));
-    document.querySelectorAll<HTMLElement>('[data-only]').forEach((el) => el.classList.toggle('hidden', el.dataset.only !== m));
-    document.getElementById('submit')!.textContent = m === 'login' ? 'Se connecter' : 'Créer mon compte';
-    msg.className = 'hidden';
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const show = () => {
+    const sign = location.hash === '#inscription';
+    $('v-login').classList.toggle('hidden', sign); $('v-signup').classList.toggle('hidden', !sign);
+    document.title = (sign ? 'Créer un compte' : 'Connexion') + ' | Dubai Location';
+    window.scrollTo(0, 0);
   };
-  document.querySelectorAll<HTMLElement>('.tab').forEach((t) => t.addEventListener('click', () => setMode(t.dataset.tab as typeof mode)));
-  setMode(location.hash === '#inscription' ? 'signup' : 'login');
-  const v = (id: string) => (document.getElementById(id) as HTMLInputElement).value.trim();
-  document.getElementById('f')!.addEventListener('submit', async (e) => {
+  window.addEventListener('hashchange', show); show();
+  document.querySelectorAll<HTMLElement>('[data-eye]').forEach((b) => b.addEventListener('click', () => { const i = $(b.dataset.eye!); i.type = i.type === 'password' ? 'text' : 'password'; }));
+  const say = (id: string, t: string, ok = false) => { const m = $(id); m.textContent = t; m.className = 'mt-3 text-center text-sm ' + (ok ? 'text-emerald-700' : 'text-red-600'); };
+
+  // ── Connexion
+  const lOk = () => { $<HTMLButtonElement>('l-submit').disabled = !($('l-email').value.trim() && $('l-pw').value); };
+  ['l-email', 'l-pw'].forEach((id) => $(id).addEventListener('input', lOk));
+  $('f-login').addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (mode === 'login') {
-      const { error } = await sb.auth.signInWithPassword({ email: v('email'), password: v('pw') });
-      if (error) return say(error.message === 'Invalid login credentials' ? 'Email ou mot de passe incorrect.' : error.message === 'Email not confirmed' ? 'Confirmez d’abord votre email (lien reçu par email).' : error.message);
-      location.href = next;
-    } else {
-      const { data, error } = await sb.auth.signUp({ email: v('email'), password: v('pw'), options: { data: { full_name: v('name'), phone: v('phone') }, emailRedirectTo: location.origin + url('compte/') } });
-      if (error) return say(error.message.includes('already') ? 'Un compte existe déjà avec cet email.' : error.message);
-      if (data.session) location.href = next;
-      else say('Compte créé ! Cliquez sur le lien reçu par email pour l’activer, puis connectez-vous.', true);
-    }
+    const b = $<HTMLButtonElement>('l-submit'); b.disabled = true; b.textContent = 'Connexion…';
+    const { error } = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pw').value });
+    b.textContent = 'Se connecter'; lOk();
+    if (error) return say('l-msg', error.message === 'Invalid login credentials' ? 'E-mail ou mot de passe incorrect.' : error.message === 'Email not confirmed' ? 'Confirmez d’abord votre e-mail (lien reçu par e-mail).' : error.message);
+    try { if ($('l-remember').checked) localStorage.removeItem('dl-noremember'); else { localStorage.setItem('dl-noremember', '1'); sessionStorage.setItem('dl-alive', '1'); } } catch {}
+    location.href = next;
   });
-  document.getElementById('forgot')!.addEventListener('click', async () => {
-    if (!v('email')) return say('Indiquez votre email ci-dessus.');
-    const { error } = await sb.auth.resetPasswordForEmail(v('email'), { redirectTo: location.origin + url('compte/') });
-    say(error ? error.message : 'Email de réinitialisation envoyé.', !error);
+  $('forgot').addEventListener('click', async () => {
+    const email = $('l-email').value.trim();
+    if (!email) { $('l-email').focus(); return say('l-msg', 'Indiquez votre e-mail ci-dessus.'); }
+    const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + url('compte/?reset=1') });
+    say('l-msg', error ? error.message : 'E-mail de réinitialisation envoyé.', !error);
+  });
+
+  // ── Inscription
+  const touched = new Set<string>();
+  const rules: Record<string, () => boolean> = {
+    's-name': () => $('s-name').value.trim().split(/\s+/).filter((w) => w.length > 0).length >= 2,
+    's-email': () => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test($('s-email').value.trim()),
+    's-pw': () => $('s-pw').value.length >= 8,
+    's-pw2': () => !!$('s-pw2').value && $('s-pw2').value === $('s-pw').value,
+  };
+  const score = (p: string) => (p.length >= 8 ? 1 : 0) + (/[A-Z]/.test(p) && /[a-z]/.test(p) ? 1 : 0) + (/\d/.test(p) ? 1 : 0) + (/[^A-Za-z0-9]/.test(p) || p.length >= 12 ? 1 : 0);
+  const sCheck = () => {
+    let ok = $('s-cgu').checked;
+    Object.entries(rules).forEach(([id, fn]) => { const v = fn(); ok &&= v; document.querySelector(`[data-err="${id}"]`)!.classList.toggle('hidden', v || !touched.has(id)); });
+    const p = $('s-pw').value, n = p ? Math.max(1, score(p)) : 0;
+    $('strength').classList.toggle('hidden', !p);
+    const col = ['', '#ef4444', '#f59e0b', '#22c55e', '#16a34a'][n];
+    document.querySelectorAll<HTMLElement>('#strength .bar').forEach((b, i) => (b.style.background = i < n ? col : '#e5e7eb'));
+    const l = $('strength-l'); l.textContent = ['', 'Faible', 'Moyen', 'Bon', 'Fort'][n]; l.style.color = col;
+    $<HTMLButtonElement>('s-submit').disabled = !ok;
+  };
+  Object.keys(rules).forEach((id) => { $(id).addEventListener('input', () => { if ($(id).value) touched.add(id); sCheck(); }); $(id).addEventListener('blur', () => { if ($(id).value) touched.add(id); sCheck(); }); });
+  $('s-cgu').addEventListener('change', sCheck);
+  $('f-signup').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const b = $<HTMLButtonElement>('s-submit'); b.disabled = true; b.textContent = 'Création…';
+    const { data, error } = await sb.auth.signUp({ email: $('s-email').value.trim(), password: $('s-pw').value, options: { data: { full_name: $('s-name').value.trim().replace(/\s+/g, ' ') }, emailRedirectTo: location.origin + url('compte/') } });
+    b.textContent = 'Créer mon compte'; sCheck();
+    if (error) return say('s-msg', /already/i.test(error.message) ? 'Un compte existe déjà avec cet e-mail.' : error.message);
+    if (data.session) location.href = next;
+    else say('s-msg', 'Compte créé ! Cliquez sur le lien reçu par e-mail pour l’activer.', true);
   });
 </script>

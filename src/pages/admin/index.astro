@@ -317,7 +317,18 @@ import { ap, ai } from '../../lib/admin-icons';
   const getPhotos = (k: string) => [...form.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!);
 
   // Formules : lignes à remplir
-  const optRow = (o: any = {}) => `<div class="opt grid grid-cols-[1fr_1fr_110px_32px] gap-2"><input class="field !py-2 text-sm" data-o="name" placeholder="Nom" value="${esc(o.name ?? '')}"><input class="field !py-2 text-sm" data-o="detail" placeholder="Détail" value="${esc(o.detail ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="text-gray-400 hover:text-red-600" aria-label="Retirer"><svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>`;
+  const X_ICON = '<svg viewBox="0 0 24 24" class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  const picBtn = (u: string | null | undefined) => `<label class="relative grid h-12 w-12 shrink-0 cursor-pointer place-items-center overflow-hidden rounded-lg bg-gray-100 text-gray-400" title="Photo">${u ? `<img src="${esc(img(u))}" class="h-full w-full object-cover" alt="">` : ap('camera', '#9ca3af', 18)}<input type="file" accept="image/*" class="hidden" data-row-upload></label>`;
+  const optRow = (o: any = {}) => `<div class="opt space-y-2 rounded-xl border border-gray-200 p-3" data-img="${esc(o.image ?? '')}">
+    <div class="flex items-center gap-2">${picBtn(o.image)}<input class="field !py-2 text-sm" data-o="name" placeholder="Nom" value="${esc(o.name ?? '')}"><button type="button" data-rm-opt class="grid h-8 w-8 shrink-0 place-items-center text-gray-400 hover:text-red-600" aria-label="Retirer">${X_ICON}</button></div>
+    <div class="grid grid-cols-[1fr_90px_64px] gap-2"><input class="field !py-2 text-sm" data-o="group" placeholder="Groupe" value="${esc(o.group ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><input class="field !py-2 text-sm" data-o="people" type="number" placeholder="Pers." value="${esc(o.people ?? '')}"></div>
+    <input class="field !py-2 text-sm" data-o="detail" placeholder="Détail" value="${esc(o.detail ?? '')}">
+    <input class="field !py-2 text-sm" data-o="durations" placeholder="Durées : 30 min = 180 ; 1 h = 320" value="${esc((o.durations ?? []).map((d: any) => `${d.label} = ${d.price}`).join(' ; '))}">
+  </div>`;
+  const extraRow = (o: any = {}) => `<div class="extra space-y-2 rounded-xl border border-gray-200 p-3" data-img="${esc(o.image ?? '')}">
+    <div class="flex items-center gap-2">${picBtn(o.image)}<input class="field !py-2 text-sm" data-o="name" placeholder="Nom" value="${esc(o.name ?? '')}"><input class="field !w-24 shrink-0 !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="grid h-8 w-8 shrink-0 place-items-center text-gray-400 hover:text-red-600" aria-label="Retirer">${X_ICON}</button></div>
+    <textarea class="field resize-none !py-2 text-sm" rows="2" data-o="detail" placeholder="Description">${esc(o.detail ?? '')}</textarea>
+  </div>`;
 
   // ═════════ Formulaire : Activité ═════════
   function activityForm(r: any) {
@@ -346,6 +357,10 @@ import { ap, ai } from '../../lib/admin-icons';
       ].join('')),
       grp('Vente et affichage') + sec(ap('tag', '#0171eb', 16), 'Formules', nOpts ? `${nOpts} formule${nOpts > 1 ? 's' : ''}` : 'Aucune',
         `<div id="opts" class="space-y-2">${(r.options ?? []).map(optRow).join('')}</div><button type="button" id="add-opt" class="text-sm font-semibold text-gold">+ Ajouter une formule</button>`),
+      sec(ap('clock', '#0d9488', 16), 'Horaires et options en plus', [(r.time_slots ?? []).length ? `${r.time_slots.length} horaires` : 'Horaires libres', (r.extras ?? []).length ? `${r.extras.length} option${r.extras.length > 1 ? 's' : ''}` : ''].filter(Boolean).join(' · '), [
+        input('time_slots', 'Horaires de départ', (r.time_slots ?? []).join(', '), '09:00, 09:30, 10:00'),
+        `<div><span class="lab">Options en plus</span><div id="extras" class="space-y-2">${(r.extras ?? []).map(extraRow).join('')}</div><button type="button" id="add-extra" class="mt-2 text-sm font-semibold text-gold">+ Ajouter une option</button></div>`,
+      ].join('')),
       sec(ap('eye', '#6366f1', 16), 'Affichage et mise en avant', flags, [
         toggle('active', 'Visible', r.active ?? true) + toggle('featured', 'Populaire', !!r.featured),
         `<div><span class="lab">Étiquette</span>${picks('badge', BADGES.map((b) => [b, b || 'Aucune'] as [string, string]), [r.badge ?? ''], 'radio')}</div>`,
@@ -375,8 +390,14 @@ import { ap, ai } from '../../lib/admin-icons';
       highlights: lines('highlights'), included: lines('included'), excluded: lines('excluded'), important: v('important') || null,
       options: [...form.querySelectorAll<HTMLElement>('#opts .opt')].map((row) => {
         const g = (k: string) => (row.querySelector<HTMLInputElement>(`[data-o="${k}"]`)!.value || '').trim();
-        return { name: g('name'), detail: g('detail') || null, price: g('price') ? +g('price') : null };
+        const durations = g('durations').split(/[;\n]+/).map((x) => { const i = x.lastIndexOf('='); return i > 0 ? { label: x.slice(0, i).trim(), price: +x.slice(i + 1).replace(/[^\d.]/g, '') } : null; }).filter((d): d is { label: string; price: number } => !!d && !!d.label && d.price > 0);
+        return { name: g('name'), detail: g('detail') || null, price: g('price') ? +g('price') : null, group: g('group') || null, people: g('people') ? +g('people') : null, image: row.dataset.img || null, durations };
       }).filter((o) => o.name),
+      extras: [...form.querySelectorAll<HTMLElement>('#extras .extra')].map((row) => {
+        const g = (k: string) => (row.querySelector<HTMLInputElement>(`[data-o="${k}"]`)!.value || '').trim();
+        return { name: g('name'), detail: g('detail') || null, price: +g('price') || 0, image: row.dataset.img || null };
+      }).filter((o) => o.name),
+      time_slots: v('time_slots').split(/[,;\s]+/).map((t) => t.trim().replace('h', ':').replace(/^(\d):/, '0$1:')).filter((t) => /^\d{2}:\d{2}$/.test(t)),
       active: (form.querySelector('#f_active') as HTMLInputElement).checked, featured: (form.querySelector('#f_featured') as HTMLInputElement).checked,
     };
   }
@@ -451,9 +472,21 @@ import { ap, ai } from '../../lib/admin-icons';
       </div>`;
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     form.querySelector('#add-opt')?.addEventListener('click', () => form.querySelector('#opts')!.insertAdjacentHTML('beforeend', optRow()));
+    form.querySelector('#add-extra')?.addEventListener('click', () => form.querySelector('#extras')!.insertAdjacentHTML('beforeend', extraRow()));
+    form.onchange = async (e) => {
+      const inp = (e.target as HTMLElement).closest<HTMLInputElement>('[data-row-upload]'); if (!inp?.files?.[0]) return;
+      const row = inp.closest<HTMLElement>('.opt,.extra')!, file = inp.files[0], lab = inp.parentElement!;
+      lab.style.opacity = '.4';
+      const path = `${tab}/${Date.now()}-${file.name.replace(/[^\w.-]/g, '_')}`;
+      const { error } = await sb.storage.from('images').upload(path, file, { upsert: true });
+      lab.style.opacity = '';
+      if (error) return alert('La photo n’a pas pu être envoyée : ' + error.message);
+      row.dataset.img = sb.storage.from('images').getPublicUrl(path).data.publicUrl;
+      lab.querySelector('img, svg')?.remove(); lab.insertAdjacentHTML('afterbegin', `<img src="${esc(row.dataset.img)}" class="h-full w-full object-cover" alt="">`);
+    };
     form.onclick = (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('[data-rm-opt]')) t.closest('.opt')!.remove();
+      if (t.closest('[data-rm-opt]')) t.closest('.opt,.extra')!.remove();
       if (t.closest('[data-rm-photo]')) t.closest('.photo')!.remove();
     };
     form.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
@@ -509,6 +542,11 @@ import { ap, ai } from '../../lib/admin-icons';
   };
   const fmtDate = (d: string) => new Date(d).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
+  const kpi = (label: string, value: string, chip: string, go = '', tone = '', sub = '') => `<${go ? `button data-go="${go}"` : 'div'} class="min-w-0 rounded-2xl bg-white p-4 text-left shadow-[0_8px_30px_-12px_rgb(15_27_61/0.15)] ring-1 ring-gray-100 sm:p-5">
+    <span class="block truncate text-[11px] font-semibold uppercase tracking-[0.12em] text-gray-500">${label}</span>
+    <b class="mt-1.5 block truncate text-[26px] font-extrabold leading-tight text-ink sm:text-[30px]">${value}</b>
+    ${chip ? `<span class="mt-1.5 inline-block rounded-full px-2 py-0.5 text-[12px] font-semibold ${tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'}">${chip}</span>` : `<span class="mt-1.5 block text-[13px] text-gray-500">${sub || '&nbsp;'}</span>`}
+  </${go ? 'button' : 'div'}>`;
   async function showDashboard() {
     const [{ data: orders }, { count: nActs }, { count: nCars }, { count: nClients }] = await Promise.all([
       sb.from('orders').select('id,status,total_estimate,created_at,contact_name,order_items(item_title)').order('created_at', { ascending: false }),
@@ -516,6 +554,7 @@ import { ap, ai } from '../../lib/admin-icons';
       sb.from('cars').select('id', { count: 'exact', head: true }).eq('active', true),
       sb.from('profiles').select('id', { count: 'exact', head: true }),
     ]);
+    const { data: newClients } = await sb.from('profiles').select('id').gte('created_at', new Date().toISOString().slice(0, 7) + '-01');
     const o = orders ?? [];
     const pending = o.filter((x: any) => x.status === 'pending').length;
     const month = new Date().toISOString().slice(0, 7);
@@ -526,12 +565,16 @@ import { ap, ai } from '../../lib/admin-icons';
     o.forEach((x: any) => x.order_items.forEach((it: any) => (counts[it.item_title] = (counts[it.item_title] ?? 0) + 1)));
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 5);
     panel.innerHTML = `
-      <div class="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <button data-go="orders" class="stat text-left ${pending ? 'ring-2 ring-red-400' : ''}"><span class="flex items-center gap-1.5">${ap('hourglass', '#d97706', 14)} À traiter</span><b>${pending}</b><span>commande${pending > 1 ? 's' : ''} en attente</span></button>
-        <div class="stat"><span class="flex items-center gap-1.5">${ap('calendar', '#10b981', 14)} Ce mois-ci</span><b>${thisMonth.length}</b><span>réservation${thisMonth.length > 1 ? 's' : ''}</span></div>
-        <div class="stat"><span class="flex items-center gap-1.5">${ap('money', '#059669', 14)} Chiffre confirmé</span><b>${aed(ca) || '0 AED'}</b><span>commandes confirmées</span></div>
-        <button data-go="clients" class="stat text-left"><span class="flex items-center gap-1.5">${ap('users', '#ec4899', 14)} Clients</span><b>${nClients ?? 0}</b><span>comptes créés</span></button>
+      <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        ${kpi('Réservations', String(o.length), thisMonth.length ? `↗ +${thisMonth.length} ce mois` : '', 'orders')}
+        ${kpi('À traiter', String(pending), pending ? 'en attente' : '', 'orders', pending ? 'amber' : '')}
+        ${kpi('CA confirmé', aed(ca) || '0 AED', '', '', '', 'à ce jour')}
+        ${kpi('Clients', String(nClients ?? 0), (newClients ?? []).length ? `↗ +${(newClients ?? []).length} ce mois` : '', 'clients')}
       </div>
+      <button data-go="orders" class="mt-3 flex w-full items-center gap-4 rounded-2xl bg-white p-4 text-left shadow-[0_8px_30px_-12px_rgb(15_27_61/0.15)] ring-1 ring-gray-100 sm:mt-4">
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-sky-50">${ai('check', 20, '#0171eb')}</span>
+        <span class="min-w-0"><b class="block text-[15px] text-ink">Taux de confirmation · ${o.length ? Math.round((o.filter((x: any) => ['confirmed', 'done'].includes(x.status)).length / o.length) * 100) : 0} %</b><span class="block truncate text-[13px] text-gray-500">${o.length ? `${o.filter((x: any) => ['confirmed', 'done'].includes(x.status)).length} réservation(s) confirmée(s) sur ${o.length}` : 'aucune réservation pour l’instant'}</span></span>
+      </button>
       <div class="mt-4 grid gap-4 sm:grid-cols-3">
         <button data-go="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('sunset', '#f59e0b', 22)}<span><b class="block">${nActs ?? 0} activités</b><span class="text-sm text-gray-500">visibles sur le site</span></span></button>
         <button data-go="cars" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('car', '#c9a227', 22)}<span><b class="block">${nCars ?? 0} voitures</b><span class="text-sm text-gray-500">dans la flotte</span></span></button>

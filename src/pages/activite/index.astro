@@ -4,15 +4,37 @@ import { getActivities } from '../../lib/data';
 const seedData = await getActivities();
 ---
 <Layout title="Activité" description="Réservez votre activité à Dubaï avec Dubai Location.">
-  <div id="page" class="container-x pb-20 pt-28 sm:pt-32">
-    <div class="animate-pulse space-y-4"><div class="h-8 w-1/2 rounded bg-sand"></div><div class="h-80 rounded-2xl bg-sand"></div></div>
+  <div id="page" class="container-x pb-28 pt-24 sm:pt-32 lg:pb-20">
+    <div class="animate-pulse space-y-4"><div class="h-72 rounded-2xl bg-sand"></div><div class="h-8 w-2/3 rounded bg-sand"></div></div>
   </div>
   <script type="application/json" id="seed-acts" set:html={JSON.stringify(seedData)} />
 </Layout>
+<style is:global>
+  .bk-lab { display: block; margin: 1.1rem 0 .5rem; font-size: 15px; font-weight: 500; color: #4b5563; }
+  .bk-sel { position: relative; display: flex; width: 100%; align-items: center; gap: .9rem; min-height: 56px; border-radius: 16px; border: 1px solid #d5dbe5; background: #fff; padding: .5rem 2.8rem .5rem 1rem; text-align: left; font-size: 17px; color: #0f1b3d; transition: border-color .15s; }
+  .bk-sel:hover, .bk-sel:focus-within { border-color: #38b2f5; }
+  .bk-sel > select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+  .bk-chev { position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: #6b7280; pointer-events: none; }
+  .cal-d { display: flex; height: 46px; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; font-size: 16px; line-height: 1.1; color: #0f1b3d; }
+  .cal-d small { font-size: 10px; font-weight: 600; color: #38b2f5; }
+  .cal-d:not(:disabled):hover { background: #f0f9ff; }
+  .cal-d.sel { background: #38b2f5; color: #fff; } .cal-d.sel small { color: #fff; }
+  .cal-d.today { color: #38b2f5; font-weight: 700; }
+  .cal-d:disabled { color: #9ca3af; text-decoration: line-through; cursor: default; }
+  .cal-d.out { visibility: hidden; }
+  dialog.sheet { margin: auto auto 12px; width: calc(100% - 24px); max-width: 520px; max-height: calc(100dvh - 40px); border-radius: 28px; padding: 0; background: #fff; }
+  dialog.sheet::backdrop { background: rgb(15 23 42 / .45); }
+  @media (min-width: 640px) { dialog.sheet { margin: auto; } }
+  dialog.sheet[open] { animation: up .25s ease-out; }
+  @keyframes up { from { transform: translateY(30px); opacity: 0; } }
+  body.has-bar #wa-float { bottom: 104px; }
+</style>
 <script>
-  import { svgIcon, pill } from '../../lib/icons';
-  import { sb, esc, aed, img, url, cart, activityCard, paintFavs, ICON, waLink, videoBadge, cachedActivities, refreshCache, type Activity } from '../../lib/app';
-  const slug = new URLSearchParams(location.search).get('s') ?? '';
+  import { svgIcon } from '../../lib/icons';
+  import { sb, esc, aed, img, thumb, url, cart, activityCard, paintFavs, ICON, waLink, videoBadge, cachedActivities, refreshCache, currency, CURRENCIES, type Activity } from '../../lib/app';
+  const qs = new URLSearchParams(location.search);
+  const slug = qs.get('s') ?? '';
+  const editKey = qs.get('edit');
   const page = document.getElementById('page')!;
   const fromCache = cachedActivities().find((x) => x.slug === slug) ?? null;
   const net = sb.from('activities').select('*').eq('slug', slug).maybeSingle();
@@ -22,78 +44,107 @@ const seedData = await getActivities();
     page.innerHTML = `<h1 class="text-3xl font-bold">Activité introuvable</h1><a class="btn-gold mt-6" href="${url('activites/')}">Voir toutes les activités</a>`;
   } else {
     document.title = `${a.title} | Dubai Location`;
+    try { const seen = JSON.parse(localStorage.getItem('dl-seen') || '[]').filter((x: string) => x !== a.slug); localStorage.setItem('dl-seen', JSON.stringify([a.slug, ...seen].slice(0, 12))); } catch {}
+    const opts = a.options ?? [];
+    const extras = (a.extras ?? []).filter((e) => e.name);
+    const slots = a.time_slots?.length ? a.time_slots : null;
     const pics = [a.image_url, ...(a.gallery ?? [])].filter(Boolean) as string[];
-    const today = new Date().toISOString().slice(0, 10);
-    const check = '<svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
-    const cross = '<svg viewBox="0 0 24 24" class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+    const S = (d: string, c = 'h-5 w-5', w = 1.8) => `<svg viewBox="0 0 24 24" class="${c} shrink-0" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+    const P = {
+      chev: '<path d="m6 9 6 6 6-6"/>', right: '<path d="m9 6 6 6-6 6"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      timer: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M10 2h4"/>', cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
+      people: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
+      xc: '<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/>', shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/>',
+      pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>', wallet: '<path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18v4"/><path d="M4 7.5V17a2 2 0 0 0 2 2h14V9H6.5A2.5 2.5 0 0 1 4 7.5z"/><circle cx="16" cy="14" r="1"/>',
+      check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>',
+    };
+    const star = '<svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" fill="currentColor"><path d="m12 2.5 2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z"/></svg>';
+    const md = (t: string) => esc(t).replace(/\*\*(.+?)\*\*/g, '<b class="font-bold text-ink">$1</b>').replace(/\n/g, '<br>');
+    const fromPrice = (o: (typeof opts)[number]) => (o.durations?.length ? Math.min(...o.durations.map((d) => d.price)) : o.price || a.price);
+    const sym: Record<string, string> = { EUR: '€', USD: '$', GBP: '£' };
+    const short = (n: number) => (currency() === 'AED' ? String(Math.round(n)) : Math.round(n * CURRENCIES[currency()].rate) + sym[currency()]);
+    const qLabel = (n: number) => { const l = (a.qty_label || 'Participants').toLowerCase(); return `${n} ${n > 1 ? l : l.replace(/s$/, '')}`; };
+    const groups = [...new Set(opts.map((o) => (o.group || '').trim()))];
+
     page.innerHTML = `
-      <nav class="text-xs text-muted"><a href="${url('')}" class="hover:text-ink">Accueil</a> › <a href="${url('activites/')}" class="hover:text-ink">Activités</a></nav>
-      <h1 class="mt-2 text-3xl font-bold sm:text-4xl">${esc(a.title)}</h1>
-      <div class="mt-2 flex flex-wrap items-center justify-between gap-3 text-sm text-muted">
-        <span class="flex flex-wrap items-center gap-1.5">${a.rating ? `<span class="flex">${ICON.star.repeat(Math.round(a.rating))}</span><b class="text-ink">${Number(a.rating).toFixed(1)}</b>${a.reviews_count ? `(${a.reviews_count})` : ''} · ` : ''}${svgIcon('pin', 15)} ${esc(a.location ?? 'Dubaï')} · ${ICON.clock} ${esc(a.duration ?? '')}</span>
-        <span class="flex items-center gap-5">
-          <button type="button" data-fav="activity:${esc(a.slug)}" class="fav-btn flex items-center gap-1.5 font-medium text-ink">${ICON.heart} Ajouter aux favoris</button>
-          <button type="button" id="share" class="font-medium text-ink">↗ Partager</button>
-        </span>
+      <div class="relative grid h-[260px] gap-2 sm:h-[420px] ${pics.length > 1 ? 'sm:grid-cols-[2fr_1fr] sm:grid-rows-2' : ''}">
+        <button type="button" data-gal="0" class="block h-full overflow-hidden rounded-2xl sm:row-span-2"><img src="${esc(img(pics[0]))}" alt="${esc(a.image_alt ?? a.title)}" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"></button>
+        ${pics.slice(1, 3).map((p, i) => `<button type="button" data-gal="${i + 1}" class="relative hidden h-full overflow-hidden rounded-2xl sm:block ${pics.length === 2 ? 'sm:row-span-2' : ''}"><img src="${esc(img(p))}" alt="" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]">${i === Math.min(1, pics.length - 2) ? `<span class="absolute inset-0 grid place-items-center bg-black/35 text-sm font-semibold text-white">Voir toutes les photos (${pics.length})</span>` : ''}</button>`).join('')}
+        ${a.video_url ? videoBadge(a.video_url, 'absolute right-3 top-3 z-10') : ''}
+        ${pics.length > 1 ? `<button type="button" data-gal="0" class="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-xs font-semibold text-ink shadow sm:hidden">${svgIcon('photos', 14, 'currentColor')} ${pics.length} photos</button>` : ''}
       </div>
-      <div class="mt-5 grid gap-x-8 gap-y-6 lg:grid-cols-[1fr_340px]">
-        <div class="order-1 lg:order-none lg:col-start-1 lg:row-start-1">
-          <div class="relative grid h-[260px] gap-2 sm:h-[400px] ${pics.length > 1 ? 'sm:grid-cols-[2fr_1fr] sm:grid-rows-2' : ''}">
-            <button type="button" data-gal="0" class="block h-full overflow-hidden rounded-2xl sm:row-span-2"><img src="${esc(img(pics[0]))}" alt="${esc(a.image_alt ?? a.title)}" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]"></button>
-            ${pics.slice(1, 3).map((p, i) => `<button type="button" data-gal="${i + 1}" class="relative hidden h-full overflow-hidden rounded-2xl sm:block ${pics.length === 2 ? 'sm:row-span-2' : ''}"><img src="${esc(img(p))}" alt="" class="h-full w-full object-cover transition duration-500 hover:scale-[1.03]">${i === Math.min(1, pics.length - 2) ? `<span class="absolute inset-0 grid place-items-center bg-black/35 text-sm font-semibold text-white">${svgIcon('photos', 16, 'currentColor')} Voir toutes les photos (${pics.length})</span>` : ''}</button>`).join('')}
-            ${a.video_url ? videoBadge(a.video_url, 'absolute right-3 top-3 z-10') : ''}
+      <div class="mt-6 grid gap-x-10 gap-y-10 lg:grid-cols-[1fr_400px]">
+        <div class="min-w-0">
+          <h1 class="text-[30px] font-extrabold leading-tight text-ink sm:text-[38px]">${esc(a.title)}</h1>
+          ${a.rating ? `<p class="mt-3 flex items-center gap-1 text-[17px]"><span class="flex gap-1 text-ink">${star.repeat(5)}</span><span class="ml-1.5 font-medium">${Number(a.rating).toFixed(1)}</span>${a.reviews_count ? `<span class="text-gray-400">(${a.reviews_count})</span>` : ''}</p>` : ''}
+          <p class="mt-3 flex items-center gap-2.5 text-[16px] text-gray-500">${S(P.pin, 'h-6 w-6')}${esc(a.location ?? 'Dubaï')}</p>
+          <div class="mt-4 flex gap-5 text-sm">
+            <button type="button" data-fav="activity:${esc(a.slug)}" class="fav-btn flex items-center gap-1.5 font-medium text-ink">${ICON.heart} Favoris</button>
+            <button type="button" id="share" class="font-medium text-ink">↗ Partager</button>
           </div>
-          ${pics.length > 1 ? `<button type="button" data-gal="0" class="mt-2 text-sm font-semibold text-gold sm:hidden">${svgIcon('photos', 16, 'currentColor')} Voir toutes les photos (${pics.length})</button>` : ''}
-          <div class="mt-6 space-y-4 leading-relaxed text-ink-soft">${(a.description ?? '').split(/\n\n+/).map((p) => `<p>${esc(p)}</p>`).join('')}</div>
-        </div>
-        <div class="order-3 lg:order-none lg:col-start-1 lg:row-start-2">
-          <h2 class="mt-2 lg:mt-0 text-xl font-bold">À propos</h2>
-          <ul class="mt-3 space-y-3 text-sm">
-            <li><b>Réservez maintenant, payez plus tard</b><br><span class="text-muted">Aucun paiement en ligne : vous réglez après confirmation.</span></li>
-            <li><b>Confirmation rapide</b><br><span class="text-muted">Nous vérifions la disponibilité et vous confirmons sur WhatsApp.</span></li>
-            <li><b>Durée : ${esc(a.duration ?? '-')}</b><br><span class="text-muted">L’horaire exact vous est communiqué à la confirmation.</span></li>
+          <div class="mt-6 space-y-4 text-[17px] leading-[1.75] text-[#1e2a4a]">${(a.description ?? '').split(/\n\n+/).map((p) => `<p>${md(p)}</p>`).join('')}</div>
+
+          <h2 class="mt-10 text-[26px] font-extrabold text-ink">À propos</h2>
+          <ul class="mt-5 space-y-5">
+            <li class="flex gap-4">${S(P.xc, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Annulation gratuite</p><p class="text-[15px] text-gray-500">Jusqu'à 24 heures à l'avance, sans frais</p></div></li>
+            ${a.duration ? `<li class="flex gap-4">${S(P.clock, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Durée ${esc(a.duration)}</p><p class="text-[15px] text-gray-500">Vérifiez les disponibilités pour voir les heures de départ</p></div></li>` : ''}
+            <li class="flex gap-4">${S(P.wallet, 'h-7 w-7 text-ink')}<div><p class="text-[18px] font-bold text-ink">Aucun paiement en ligne</p><p class="text-[15px] text-gray-500">Réservez maintenant, réglez après confirmation sur WhatsApp</p></div></li>
           </ul>
-          ${a.highlights?.length ? `<div class="mt-8 grid gap-3 border-t border-line pt-6 sm:grid-cols-[160px_1fr]"><h2 class="text-lg font-bold">Points forts</h2><ul class="list-disc space-y-2 pl-5 font-medium">${a.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></div>` : ''}
-          ${a.options?.length ? `<div class="mt-8 border-t border-line pt-6"><h2 class="text-lg font-bold">Formules</h2><ul class="mt-3 divide-y divide-line rounded-2xl border border-line">${a.options.map((o) => `<li class="flex items-center justify-between gap-4 p-4"><span><b class="block">${esc(o.name)}</b>${o.detail ? `<span class="text-sm text-muted">${esc(o.detail)}</span>` : ''}</span>${o.price ? `<span class="shrink-0 font-semibold">${aed(o.price)}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
-          ${a.included?.length || a.excluded?.length ? `<div class="mt-8 border-t border-line pt-6"><h2 class="text-lg font-bold">Inclus / Non inclus</h2><div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            ${(a.included ?? []).map((i) => `<p class="flex gap-2 rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-sm"><span class="text-emerald-600">${check}</span>${esc(i)}</p>`).join('')}
-            ${(a.excluded ?? []).map((i) => `<p class="flex gap-2 rounded-xl border border-line bg-sand/60 p-3 text-sm text-muted"><span class="text-red-500">${cross}</span><span class="line-through">${esc(i)}</span></p>`).join('')}
-          </div></div>` : ''}
-          ${a.important ? `<div class="mt-8 grid gap-3 border-t border-line pt-6 sm:grid-cols-[160px_1fr]"><h2 class="text-lg font-bold">Informations importantes</h2><p class="flex items-start gap-2 font-medium">${svgIcon('warn', 18)}<span>${esc(a.important)}</span></p></div>` : ''}
+          ${a.highlights?.length ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Points forts</h2><ul class="mt-4 list-disc space-y-2 pl-5 text-[16px] font-medium text-[#1e2a4a]">${a.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}</ul></div>` : ''}
+          ${a.included?.length || a.excluded?.length ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Inclus / Non inclus</h2><ul class="mt-4 space-y-2.5 text-[16px]">
+            ${(a.included ?? []).map((i) => `<li class="flex gap-3"><span class="text-emerald-600">${S(P.check, 'h-5 w-5', 2.4)}</span>${esc(i)}</li>`).join('')}
+            ${(a.excluded ?? []).map((i) => `<li class="flex gap-3 text-gray-500"><span class="text-red-500">${S(P.x, 'h-5 w-5', 2.4)}</span>${esc(i)}</li>`).join('')}
+          </ul></div>` : ''}
+          ${a.important ? `<div class="mt-10 border-t border-gray-200 pt-8"><h2 class="text-[22px] font-extrabold text-ink">Informations importantes</h2><h3 class="mt-4 text-[20px] font-extrabold text-ink">Bon à savoir</h3><ul class="mt-2 list-disc space-y-1.5 pl-5 text-[17px] font-semibold leading-relaxed text-[#1e2a4a]">${a.important.split(/\n+/).filter(Boolean).map((l) => `<li>${md(l)}</li>`).join('')}</ul></div>` : ''}
         </div>
-        <aside class="order-2 lg:order-none lg:sticky lg:top-28 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
-          <form id="book" class="rounded-2xl border border-line bg-white p-5 shadow-soft">
-            <p class="text-xs text-muted">${a.price_from ? 'À partir de' : 'Prix'}</p>
-            <p class="text-2xl font-bold">${a.old_price ? `<span class="mr-2 text-base font-medium text-muted line-through">${aed(a.old_price)}</span>` : ''}${aed(a.price)} <span class="text-sm font-normal text-muted">${esc(a.price_unit ?? '')}</span></p>
-            ${a.important ? `<p class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">${svgIcon('warn', 16)}<span>${esc(a.important)}</span></p>` : ''}
-            ${a.options?.length ? `<p class="label mt-4">Formule</p>
-              <select id="opt" class="hidden" aria-hidden="true">${a.options.map((o, i) => `<option value="${i}">${esc(o.name)}</option>`).join('')}</select>
-              <button type="button" id="opt-btn" class="flex w-full items-center gap-3 rounded-xl border border-line p-3 text-left transition hover:border-gold">
-                ${pill('ticket', 22)}
-                <span class="min-w-0 flex-1"><b id="opt-name" class="block truncate text-sm text-ink">Choisir une formule</b><span id="opt-price" class="text-xs text-gray-500">${a.options.length} formules disponibles</span></span>
-                <span class="text-gray-400">›</span>
-              </button>` : ''}
-            <div class="mt-4 grid grid-cols-2 gap-3 [&>div]:min-w-0">
-              <div><label class="label" for="date">Date</label><input id="date" type="date" min="${today}" class="field !px-3" required></div>
-              <div><label class="label" for="qty">${esc(a.qty_label || 'Participants')}</label><input id="qty" type="number" min="1" max="50" value="2" class="field !px-3"></div>
+
+        <aside id="book-wrap" class="scroll-mt-24 lg:sticky lg:top-28 lg:self-start">
+          <div id="book" class="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_10px_30px_-12px_rgb(15_27_61/0.15)] sm:p-7">
+            <h2 class="text-[23px] font-extrabold text-ink">Vérifier les disponibilités</h2>
+            <p class="mt-4 text-[15px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p>
+            <p class="flex flex-wrap items-baseline gap-x-2">${a.old_price ? `<span class="text-base text-gray-400 line-through">${aed(a.old_price)}</span>` : ''}<span class="text-[28px] font-extrabold text-ink">${aed(a.price)}</span><span class="text-[16px] text-gray-500">${esc(a.price_unit ?? '')}</span></p>
+            <div class="my-5 border-t border-gray-200"></div>
+            ${opts.length ? `<span class="bk-lab !mt-0">Formule</span>
+              <button type="button" id="opt-btn" class="bk-sel !py-3">
+                <span id="opt-pic" class="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-sky-50 text-sky-500">${svgIcon('ticket', 24, 'currentColor')}</span>
+                <span class="min-w-0 flex-1"><b id="opt-name" class="block truncate text-[17px] font-extrabold">Choisir une formule</b><span id="opt-price" class="hidden text-[15px] text-gray-500"></span></span>
+                <span class="bk-chev">${S(P.right, 'h-5 w-5 text-gray-400')}</span>
+              </button>
+              <div id="dur-box" class="hidden"><span class="bk-lab">Durée</span><label class="bk-sel">${S(P.timer, 'h-6 w-6 text-gray-600')}<span id="dur-l" class="flex-1"></span><select id="dur" aria-label="Durée"></select><span class="bk-chev">${S(P.chev)}</span></label></div>` : ''}
+            <label class="bk-sel ${opts.length ? 'mt-4' : ''}">${S(P.people, 'h-6 w-6 text-gray-600')}<span id="qty-l" class="flex-1"></span>
+              <select id="qty" aria-label="${esc(a.qty_label || 'Participants')}">${Array.from({ length: 20 }, (_, i) => `<option value="${i + 1}" ${i === (a.qty_label === 'Participants' || !a.qty_label ? 1 : 0) ? 'selected' : ''}>${qLabel(i + 1)}</option>`).join('')}</select><span class="bk-chev">${S(P.chev)}</span></label>
+            <div class="relative mt-4">
+              <button type="button" id="date-btn" class="bk-sel">${S(P.cal, 'h-6 w-6 text-gray-600')}<span id="date-l" class="flex-1">Sélectionner une date</span><span class="bk-chev">${S(P.chev)}</span></button>
+              <div id="cal" class="absolute inset-x-0 top-[calc(100%+6px)] z-30 hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-[0_20px_40px_-12px_rgb(0_0_0/0.25)]"></div>
             </div>
-            <div class="mt-5 flex items-center justify-between border-t border-line pt-4"><span class="text-muted">Total estimé</span><span id="total" class="text-xl font-bold">-</span></div>
-            <button class="mt-4 w-full rounded-xl bg-gold py-3.5 font-semibold text-white transition hover:bg-gold-deep">Ajouter au panier</button>
-            <p id="err" class="mt-2 hidden text-center text-sm text-red-600">Veuillez sélectionner une date</p>
-            <p id="ok" class="mt-2 hidden text-center text-sm text-emerald-700">Ajouté au panier ✓ <a class="font-semibold underline" href="${url('panier/')}">Voir le panier</a></p>
-            <ul class="mt-5 space-y-3 text-sm">
-              <li class="flex gap-2"><span class="text-emerald-600">${check}</span><span><b>Sans paiement en ligne</b><br><span class="text-muted">Vous réglez après confirmation.</span></span></li>
-              <li class="flex gap-2"><span class="text-gold">${check}</span><span><b>Confirmation sur WhatsApp</b><br><span class="text-muted">Un conseiller vous recontacte rapidement.</span></span></li>
-            </ul>
-            <a class="mt-4 block text-center text-sm font-medium text-gold" target="_blank" rel="noopener" href="${waLink(`Bonjour Dubai Location, j'ai une question sur « ${a.title} ».`)}">Une question ? Écrivez-nous →</a>
-          </form>
+            <span class="bk-lab">Heure de la réservation${slots ? '' : ' <span class="text-gray-400">(souhaitée)</span>'}</span>
+            <div class="relative">
+              <button type="button" id="time-btn" class="bk-sel">${S(P.clock, 'h-6 w-6 text-gray-600')}<span id="time-l" class="flex-1 text-gray-400">Choisir une heure</span><span class="bk-chev" id="time-chev">${S(P.chev)}</span></button>
+              <div id="time-list" class="absolute inset-x-0 top-[calc(100%+6px)] z-30 hidden max-h-[300px] overflow-y-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-[0_20px_40px_-12px_rgb(0_0_0/0.25)]"></div>
+            </div>
+            <div class="my-5 border-t border-gray-200"></div>
+            <div class="flex items-center justify-between"><span class="text-[19px] font-medium text-ink">Total</span><span id="total" class="text-[28px] font-extrabold text-ink"></span></div>
+            <button type="button" id="add" class="mt-5 h-[52px] w-full rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white transition">${editKey ? 'Mettre à jour le panier' : 'Ajouter au panier'}</button>
+            <p id="need" class="mt-3 text-center text-[16px] font-medium text-[#e5283a]"></p>
+            <p class="mt-5 flex gap-3 text-emerald-600">${S(P.shield, 'h-7 w-7')}<span><b class="block text-[17px] font-medium text-ink">Annulation gratuite</b><span class="text-[15px] text-gray-500">Annulation jusqu'à 24 heures à l'avance, sans frais</span></span></p>
+            <a class="mt-5 block text-center text-sm font-medium text-sky-500" target="_blank" rel="noopener" href="${waLink(`Bonjour Dubai Location, j'ai une question sur « ${a.title} ».`)}">Une question ? Écrivez-nous sur WhatsApp</a>
+          </div>
         </aside>
       </div>
-      <section class="mt-16"><h2 class="text-2xl font-bold">Vous pourriez aussi aimer…</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
+      <section class="mt-16"><h2 class="text-[28px] font-extrabold text-ink">Vous pourriez aussi aimer…</h2><div id="related" class="no-scrollbar -mx-4 mt-5 flex snap-x gap-6 overflow-x-auto px-4 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
 
+    // ── Barre fixe en bas (téléphone)
+    const bar = document.createElement('div');
+    bar.className = 'fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 transition-transform duration-200 lg:hidden';
+    bar.innerHTML = `<div class="min-w-0"><p class="text-[15px] text-gray-500">${a.price_from ? 'À partir de' : 'Prix'}</p><p class="whitespace-nowrap"><b class="text-[24px] font-extrabold text-ink">${aed(a.price)}</b> <span class="text-[15px] text-gray-500">${esc(a.price_unit ?? '')}</span></p></div><button type="button" class="h-[52px] shrink-0 rounded-2xl bg-[#38b2f5] px-5 text-[17px] font-bold text-white">Vérifier les disponibilités</button>`;
+    document.body.append(bar); document.body.classList.add('has-bar');
+    bar.querySelector('button')!.addEventListener('click', () => document.getElementById('book-wrap')!.scrollIntoView({ behavior: 'smooth' }));
+    new IntersectionObserver(([e]) => { const hide = e.isIntersecting; bar.style.transform = hide ? 'translateY(110%)' : ''; document.body.classList.toggle('has-bar', !hide); }, { rootMargin: '0px 0px -30% 0px' }).observe(document.getElementById('book')!);
+
+    // ── Galerie
     const gal = document.createElement('dialog');
     gal.className = 'm-auto h-[100dvh] max-h-none w-screen max-w-none bg-black/95 p-0 backdrop:bg-black/80';
-    gal.innerHTML = `<div class="flex h-full flex-col"><div class="flex items-center justify-between p-4 text-white"><span id="gal-n"></span><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-xl">✕</button></div><div class="relative flex flex-1 items-center justify-center px-2 pb-6"><button type="button" data-p class="absolute left-3 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-2xl text-white">‹</button><img id="gal-img" class="max-h-full max-w-full rounded-xl object-contain" alt=""><button type="button" data-n class="absolute right-3 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-2xl text-white">›</button></div></div>`;
+    gal.innerHTML = `<div class="flex h-full flex-col"><div class="flex items-center justify-between p-4 text-white"><span id="gal-n"></span><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-white/10">${S(P.x)}</button></div><div class="relative flex flex-1 items-center justify-center px-2 pb-6"><button type="button" data-p class="absolute left-3 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-2xl text-white">‹</button><img id="gal-img" class="max-h-full max-w-full rounded-xl object-contain" alt=""><button type="button" data-n class="absolute right-3 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-2xl text-white">›</button></div></div>`;
     document.body.append(gal);
     let gi = 0;
     const showG = (i: number) => { gi = (i + pics.length) % pics.length; (gal.querySelector('#gal-img') as HTMLImageElement).src = img(pics[gi]); gal.querySelector('#gal-n')!.textContent = `${gi + 1} / ${pics.length}`; };
@@ -102,63 +153,174 @@ const seedData = await getActivities();
     gal.querySelector('[data-p]')!.addEventListener('click', () => showG(gi - 1));
     gal.querySelector('[data-n]')!.addEventListener('click', () => showG(gi + 1));
     gal.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') showG(gi - 1); if (e.key === 'ArrowRight') showG(gi + 1); });
-    const opt = document.getElementById('opt') as HTMLSelectElement | null;
-    let optChosen = !a.options?.length;
-    if (opt) {
+
+    // ── État de la réservation
+    const st = { opt: opts.length ? -1 : null as number | null, dur: -1, qty: +(document.getElementById('qty') as HTMLSelectElement).value, date: '', time: '' };
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const unit = () => {
+      if (st.opt == null || st.opt < 0) return a.price;
+      const o = opts[st.opt];
+      return o.durations?.length ? (o.durations[st.dur] ?? o.durations[0]).price : o.price || a.price;
+    };
+    const addBtn = document.getElementById('add') as HTMLButtonElement;
+    const missing = () => (st.opt === -1 ? 'Veuillez choisir une formule' : !st.date ? 'Veuillez sélectionner une date' : slots && !st.time ? 'Veuillez choisir une heure' : '');
+    const paint = () => {
+      document.getElementById('total')!.textContent = aed(unit() * st.qty);
+      document.getElementById('qty-l')!.textContent = qLabel(st.qty);
+      const m = missing();
+      document.getElementById('need')!.textContent = m;
+      addBtn.classList.toggle('opacity-60', !!m);
+      if (!document.getElementById('cal')!.classList.contains('hidden')) renderCal();
+    };
+
+    // Formules (fenêtre qui monte du bas)
+    if (opts.length) {
       const od = document.createElement('dialog');
-      od.className = 'm-auto w-[min(520px,94vw)] rounded-2xl p-0 backdrop:bg-black/50';
-      od.innerHTML = `<div class="flex items-center justify-between border-b border-gray-100 p-5"><h3 class="text-lg font-bold">Choisir une formule</h3><button type="button" data-x class="grid h-9 w-9 place-items-center rounded-full bg-gray-100">✕</button></div>
-        <div class="max-h-[65vh] space-y-2 overflow-y-auto p-4">${a.options.map((o, i) => `<button type="button" data-pick="${i}" class="flex w-full items-center justify-between gap-4 rounded-xl border-2 border-line p-4 text-left transition hover:border-gold"><span><b class="block text-ink">${esc(o.name)}</b>${o.detail ? `<span class="text-sm text-gray-500">${esc(o.detail)}</span>` : ''}</span><span class="shrink-0 font-bold text-ink">${o.price ? aed(o.price) : aed(a.price)}</span></button>`).join('')}</div>`;
+      od.className = 'sheet';
+      od.innerHTML = `<div class="sticky top-0 z-10 bg-white px-5 pb-3 pt-3"><div class="mx-auto h-1.5 w-12 rounded-full bg-gray-200"></div><div class="relative mt-4 flex items-center justify-center"><button type="button" data-x class="absolute left-0 text-[18px] text-sky-500">Fermer</button><h3 class="text-[19px] font-extrabold text-ink">formules</h3></div></div>
+        <div class="max-h-[70dvh] overflow-y-auto px-4 pb-6">${groups.map((g) => `
+          ${g ? `<p class="mb-3 mt-4 flex items-center gap-2.5 px-2 text-[15px] font-bold uppercase tracking-wide text-gray-500">${svgIcon('ticket', 18, 'currentColor')}${esc(g)}</p>` : '<div class="h-3"></div>'}
+          <div class="space-y-3">${opts.map((o, i) => [o, i] as const).filter(([o]) => (o.group || '').trim() === g).map(([o, i]) => `
+            <button type="button" data-pick="${i}" class="flex w-full items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 text-left shadow-[0_2px_10px_-4px_rgb(0_0_0/0.12)] transition hover:border-sky-300">
+              ${o.image ? `<img src="${esc(thumb(o.image))}" alt="" class="h-[60px] w-[60px] shrink-0 rounded-xl object-cover">` : `<span class="grid h-[60px] w-[60px] shrink-0 place-items-center rounded-xl bg-sky-50 text-sky-500">${svgIcon('ticket', 26, 'currentColor')}</span>`}
+              <span class="min-w-0 flex-1"><b class="block text-[17px] font-extrabold leading-snug text-ink">${esc(o.name)}</b>${o.detail ? `<span class="mt-0.5 block text-[15px] text-gray-500">${esc(o.detail)}</span>` : ''}
+              <span class="mt-1 block text-[15px] text-gray-500">dès <b class="text-[17px] font-extrabold text-sky-500">${aed(fromPrice(o))}</b>${o.people ? ` · ${o.people} pers.` : ''}</span></span>
+            </button>`).join('')}</div>`).join('')}</div>`;
       document.body.append(od);
       document.getElementById('opt-btn')!.addEventListener('click', () => od.showModal());
       od.querySelector('[data-x]')!.addEventListener('click', () => od.close());
-      od.addEventListener('click', (e) => {
-        const b = (e.target as HTMLElement).closest<HTMLElement>('[data-pick]'); if (!b) return;
-        const o = a.options[+b.dataset.pick!];
-        opt.value = b.dataset.pick!; optChosen = true;
+      od.addEventListener('click', (e) => { if (e.target === od) od.close(); });
+      const pick = (i: number, dur = 0) => {
+        const o = opts[i]; st.opt = i; st.dur = dur;
         document.getElementById('opt-name')!.textContent = o.name;
-        document.getElementById('opt-price')!.textContent = aed(o.price || a.price) + (a.price_unit ? ' ' + a.price_unit : '');
-        document.getElementById('opt-btn')!.classList.add('border-gold', 'bg-blue-50/40');
-        od.querySelectorAll('[data-pick]').forEach((x) => x.classList.toggle('!border-gold', x === b));
-        od.close(); paint();
-      });
+        const pr = document.getElementById('opt-price')!; pr.innerHTML = `dès <span class="font-medium text-gray-600">${aed(fromPrice(o))}</span>`; pr.classList.remove('hidden');
+        document.getElementById('opt-pic')!.innerHTML = o.image ? `<img src="${esc(thumb(o.image))}" alt="" class="h-full w-full object-cover">` : svgIcon('ticket', 24, 'currentColor');
+        const box = document.getElementById('dur-box')!, sel = document.getElementById('dur') as HTMLSelectElement;
+        box.classList.toggle('hidden', !o.durations?.length);
+        if (o.durations?.length) {
+          sel.innerHTML = o.durations.map((d, j) => `<option value="${j}" ${j === dur ? 'selected' : ''}>${esc(d.label)} — ${aed(d.price)}</option>`).join('');
+          document.getElementById('dur-l')!.textContent = sel.selectedOptions[0].text;
+        }
+        paint();
+      };
+      od.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest<HTMLElement>('[data-pick]'); if (!b) return; pick(+b.dataset.pick!); od.close(); });
+      document.getElementById('dur')!.addEventListener('change', (e) => { const s = e.target as HTMLSelectElement; st.dur = +s.value; document.getElementById('dur-l')!.textContent = s.selectedOptions[0].text; paint(); });
+      (window as any).__pick = pick;
     }
-    const qty = document.getElementById('qty') as HTMLInputElement;
-    const date = document.getElementById('date') as HTMLInputElement;
-    const unit = () => (opt && a.options[+opt.value]?.price) || a.price;
-    const paint = () => { document.getElementById('total')!.textContent = aed(unit() * Math.max(1, +qty.value || 1)); };
-    [opt, qty].forEach((el) => el?.addEventListener('input', paint)); paint();
-    // Dates complètes (bloquées par l'admin)
+    document.getElementById('qty')!.addEventListener('change', (e) => { st.qty = +(e.target as HTMLSelectElement).value; paint(); });
+
+    // Calendrier avec prix
     const blocked = new Set<string>();
-    const fullEl = document.createElement('p');
-    fullEl.className = 'mt-2 hidden rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700';
-    date.closest('.grid')!.after(fullEl);
-    const fmtD = (d: string) => new Date(d + 'T12:00').toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-    sb.from('blocked_dates').select('day').eq('item_type', 'activity').eq('item_slug', a.slug).gte('day', today).order('day').then(({ data }) => {
-      (data ?? []).forEach((x: any) => blocked.add(x.day));
-      if (blocked.size) { fullEl.textContent = 'Complet le : ' + [...blocked].slice(0, 8).map(fmtD).join(', ') + (blocked.size > 8 ? '…' : ''); fullEl.classList.remove('hidden'); }
+    const cal = document.getElementById('cal')!;
+    let view = new Date(today.getFullYear(), today.getMonth(), 1);
+    const MONTHS = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    const renderCal = () => {
+      const y = view.getFullYear(), m = view.getMonth();
+      const first = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+      const canPrev = new Date(y, m, 1) > new Date(today.getFullYear(), today.getMonth(), 1);
+      const nav = (d: string, k: string, dis = false) => `<button type="button" data-nav="${k}" ${dis ? 'disabled' : ''} class="grid h-9 w-9 place-items-center rounded-full text-gray-600 hover:bg-gray-100 disabled:opacity-30">${d}</button>`;
+      let cells = '';
+      for (let i = 0; i < first; i++) cells += '<span class="cal-d out"></span>';
+      for (let d = 1; d <= days; d++) {
+        const dt = new Date(y, m, d), k = iso(dt), past = dt < today, full = blocked.has(k);
+        cells += `<button type="button" data-day="${k}" ${past || full ? 'disabled' : ''} class="cal-d ${k === st.date ? 'sel' : ''} ${+dt === +today ? 'today' : ''}">${d}${!past && !full ? `<small>${short(unit())}</small>` : ''}</button>`;
+      }
+      cal.innerHTML = `<div class="flex items-center justify-between">${nav('«', '-12', !canPrev)}${nav('‹', '-1', !canPrev)}<b class="text-[16px] font-semibold text-ink">${MONTHS[m]} ${y}</b>${nav('›', '1')}${nav('»', '12')}</div>
+        <div class="mt-2 grid grid-cols-7 text-center text-[13px] font-semibold text-sky-500">${['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((d) => `<span class="py-1.5">${d}</span>`).join('')}</div>
+        <div class="grid grid-cols-7 gap-0.5">${cells}</div>${blocked.size ? '<p class="mt-2 text-center text-xs text-gray-400">Les jours barrés sont complets</p>' : ''}`;
+    };
+    cal.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const t = e.target as HTMLElement;
+      const n = t.closest<HTMLElement>('[data-nav]'); if (n) { view = new Date(view.getFullYear(), view.getMonth() + +n.dataset.nav!, 1); if (view < new Date(today.getFullYear(), today.getMonth(), 1)) view = new Date(today.getFullYear(), today.getMonth(), 1); renderCal(); return; }
+      const d = t.closest<HTMLElement>('[data-day]'); if (!d) return;
+      st.date = d.dataset.day!;
+      document.getElementById('date-l')!.textContent = new Date(st.date + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
+      cal.classList.add('hidden'); paint();
     });
-    date.addEventListener('change', () => {
-      const err = document.getElementById('err')!;
-      if (blocked.has(date.value)) { err.textContent = 'Complet ce jour-là : choisissez une autre date.'; err.classList.remove('hidden'); }
-      else err.classList.add('hidden');
+    document.getElementById('date-btn')!.addEventListener('click', (e) => { e.stopPropagation(); timeList.classList.add('hidden'); renderCal(); cal.classList.toggle('hidden'); });
+    sb.from('blocked_dates').select('day').eq('item_type', 'activity').eq('item_slug', a.slug).gte('day', iso(today)).then(({ data }) => { (data ?? []).forEach((x: any) => blocked.add(x.day)); if (blocked.has(st.date)) { st.date = ''; document.getElementById('date-l')!.textContent = 'Sélectionner une date'; } paint(); });
+
+    // Heures
+    const allSlots = slots ?? Array.from({ length: 31 }, (_, i) => `${String(7 + Math.floor(i / 2)).padStart(2, '0')}:${i % 2 ? '30' : '00'}`);
+    const timeList = document.getElementById('time-list')!;
+    timeList.innerHTML = allSlots.map((t) => `<button type="button" data-t="${esc(t)}" class="block w-full px-6 py-2.5 text-left text-[17px] font-medium text-gray-700 hover:bg-sky-50">${esc(t)}</button>`).join('');
+    document.getElementById('time-btn')!.addEventListener('click', (e) => { e.stopPropagation(); cal.classList.add('hidden'); timeList.classList.toggle('hidden'); document.getElementById('time-chev')!.style.transform = timeList.classList.contains('hidden') ? '' : 'translateY(-50%) rotate(180deg)'; });
+    timeList.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-t]'); if (!b) return;
+      st.time = b.dataset.t!; const l = document.getElementById('time-l')!; l.textContent = st.time; l.classList.remove('text-gray-400');
+      timeList.querySelectorAll('[data-t]').forEach((x) => x.classList.toggle('!text-sky-500', x === b));
+      timeList.classList.add('hidden'); document.getElementById('time-chev')!.style.transform = ''; paint();
     });
-    document.getElementById('book')!.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const err = document.getElementById('err')!;
-      if (!optChosen) { err.textContent = 'Veuillez choisir une formule'; err.classList.remove('hidden'); document.getElementById('opt-btn')!.click(); return; }
-      if (!date.value) { err.textContent = 'Veuillez sélectionner une date'; err.classList.remove('hidden'); date.focus(); return; }
-      if (blocked.has(date.value)) { err.textContent = 'Complet ce jour-là : choisissez une autre date.'; err.classList.remove('hidden'); date.focus(); return; }
-      err.classList.add('hidden');
-      cart.add({ type: 'activity', slug: a.slug, title: a.title, image: a.image_url, option: opt ? a.options[+opt.value].name : null,
-        date: date.value, endDate: null, qty: Math.max(1, +qty.value || 1), qtyLabel: a.qty_label || 'Participants', unitPrice: unit(), priceUnit: a.price_unit });
-      document.getElementById('ok')!.classList.remove('hidden');
+    document.addEventListener('click', (e) => {
+      if (!cal.contains(e.target as Node)) cal.classList.add('hidden');
+      if (!timeList.contains(e.target as Node) && !(e.target as HTMLElement).closest('#time-btn')) { timeList.classList.add('hidden'); document.getElementById('time-chev')!.style.transform = ''; }
     });
+
+    // Modification d'un article du panier
+    const editing = editKey ? cart.get().find((i) => i.key === editKey) : null;
+    if (editing) {
+      const oi = editing.optIndex ?? opts.findIndex((o) => o.name === editing.option);
+      if (oi != null && oi >= 0 && opts[oi]) { const di = opts[oi].durations?.findIndex((d) => d.label === editing.duration) ?? 0; (window as any).__pick(oi, Math.max(0, di)); }
+      st.qty = editing.qty; (document.getElementById('qty') as HTMLSelectElement).value = String(editing.qty);
+      if (editing.date && new Date(editing.date + 'T12:00') >= today) { st.date = editing.date; view = new Date(+editing.date.slice(0, 4), +editing.date.slice(5, 7) - 1, 1); document.getElementById('date-l')!.textContent = new Date(st.date + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, (c) => c.toUpperCase()); }
+      if (editing.time) { st.time = editing.time; const l = document.getElementById('time-l')!; l.textContent = st.time; l.classList.remove('text-gray-400'); }
+      setTimeout(() => document.getElementById('book-wrap')!.scrollIntoView({ behavior: 'smooth' }), 300);
+    }
+    paint();
+
+    // ── Ajout au panier puis options en plus
+    const done = document.createElement('dialog');
+    done.className = 'sheet';
+    document.body.append(done);
+    let curKey = '';
+    const chosen: { name: string; price: number; qty: number }[] = [];
+    const showStep = (i: number) => {
+      if (i >= extras.length) {
+        cart.update(curKey, { extras: chosen.slice() });
+        done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[21px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
+          <div class="px-6 pb-8 pt-8 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-[28px] bg-emerald-50 text-emerald-600">${S(P.check, 'h-12 w-12', 2.5)}</div>
+          <p class="mt-6 text-[24px] font-extrabold text-ink">Parfait !</p>
+          <p class="mt-2 text-[16px] text-gray-600">${chosen.length ? `${chosen.map((c) => `${esc(c.name)} ×${c.qty}`).join(', ')} ajouté${chosen.length > 1 ? 's' : ''}.` : extras.length ? 'Aucune option supplémentaire sélectionnée.' : 'Votre activité a été ajoutée au panier.'}</p>
+          <button type="button" data-x class="mx-auto mt-7 block h-[52px] w-full max-w-[330px] rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white">Continuer mes achats</button>
+          <a href="${url('panier/')}" class="mx-auto mt-3 grid h-[52px] w-full max-w-[330px] place-items-center rounded-2xl bg-gray-100 text-[18px] font-medium text-ink">Continuer vers le panier</a></div>`;
+        return;
+      }
+      const x = extras[i]; let q = 0;
+      done.innerHTML = `<div class="flex items-center justify-between px-6 pt-6"><h3 class="text-[21px] font-extrabold text-ink">Personnalisez votre expérience</h3><button type="button" data-x class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600">${S(P.x)}</button></div>
+        <div class="mt-4 flex justify-center gap-1.5">${extras.map((_, j) => `<span class="h-2 rounded-full ${j === i ? 'w-10 bg-[#38b2f5]' : 'w-2 bg-gray-200'}"></span>`).join('')}</div>
+        <div class="max-h-[62dvh] overflow-y-auto px-6 pb-5 pt-5">
+          ${x.image ? `<div class="relative"><img src="${esc(img(x.image))}" alt="" class="h-48 w-full rounded-2xl object-cover"><span class="absolute right-3 top-3 rounded-full bg-white px-4 py-1.5 text-[17px] font-bold text-sky-500">+${aed(x.price)}</span></div>` : `<p class="text-right"><span class="rounded-full bg-sky-50 px-4 py-1.5 text-[17px] font-bold text-sky-500">+${aed(x.price)}</span></p>`}
+          <p class="mt-5 text-[21px] font-extrabold leading-snug text-ink">${esc(x.name)}</p>
+          ${x.detail ? `<p class="mt-2 text-[16px] leading-relaxed text-gray-600">${esc(x.detail)}</p>` : ''}
+          <div class="mt-5 flex items-center justify-between rounded-2xl bg-gray-50 px-5 py-4"><span class="text-[16px] font-bold text-ink">Quantité</span>
+            <span class="flex items-center gap-4"><button type="button" data-q="-1" class="grid h-11 w-11 place-items-center rounded-xl bg-white text-2xl text-gray-400 shadow-sm">−</button><b id="xq" class="w-6 text-center text-[24px]">0</b><button type="button" data-q="1" class="grid h-11 w-11 place-items-center rounded-xl bg-white text-2xl text-ink shadow-sm ring-1 ring-gray-200">+</button></span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 border-t border-gray-200 px-6 py-5"><button type="button" data-skip class="h-[52px] rounded-2xl bg-gray-100 text-[18px] font-medium text-ink">Passer</button><button type="button" data-addx class="h-[52px] rounded-2xl bg-[#38b2f5] text-[18px] font-medium text-white">Ajouter</button></div>`;
+      done.querySelectorAll<HTMLElement>('[data-q]').forEach((b) => b.addEventListener('click', () => { q = Math.max(0, Math.min(20, q + +b.dataset.q!)); done.querySelector('#xq')!.textContent = String(q); }));
+      done.querySelector('[data-skip]')!.addEventListener('click', () => showStep(i + 1));
+      done.querySelector('[data-addx]')!.addEventListener('click', () => { chosen.push({ name: x.name, price: x.price, qty: Math.max(1, q) }); showStep(i + 1); });
+    };
+    done.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-x]') || e.target === done) done.close(); });
+    addBtn.addEventListener('click', () => {
+      const m = missing();
+      if (m) { if (st.opt === -1) document.getElementById('opt-btn')!.click(); else if (!st.date) document.getElementById('date-btn')!.click(); else document.getElementById('time-btn')!.click(); return; }
+      const o = st.opt != null && st.opt >= 0 ? opts[st.opt] : null;
+      const item = { type: 'activity' as const, slug: a.slug, title: a.title, image: a.image_url, option: o?.name ?? null, optIndex: st.opt,
+        duration: o?.durations?.length ? (o.durations[st.dur] ?? o.durations[0]).label : null, date: st.date, endDate: null, time: st.time || null,
+        qty: st.qty, qtyLabel: a.qty_label || 'Participants', unitPrice: unit(), priceUnit: a.price_unit, tagline: a.tagline, rating: a.rating ?? null, reviews: a.reviews_count ?? null, extras: [] };
+      if (editing && cart.get().some((i) => i.key === editing.key)) { cart.update(editing.key, { ...item, extras: editing.extras ?? [] }); location.href = url('panier/'); return; }
+      curKey = cart.add(item); chosen.length = 0;
+      showStep(0); done.showModal();
+    });
+
+    if (editing && qs.has('opts') && extras.length) { curKey = editing.key; chosen.length = 0; showStep(0); done.showModal(); }
     document.getElementById('share')!.addEventListener('click', async () => {
       try { if (navigator.share) await navigator.share({ title: a.title, url: location.href }); else { await navigator.clipboard.writeText(location.href); alert('Lien copié !'); } } catch {}
     });
     const { data: rel } = await sb.from('activities').select('*').eq('active', true).neq('slug', a.slug).overlaps('categories', a.categories).limit(8);
-    document.getElementById('related')!.innerHTML = ((rel ?? []) as Activity[]).map((r) => activityCard(r, 'w-[78vw] shrink-0 snap-start sm:w-[280px]')).join('');
+    document.getElementById('related')!.innerHTML = ((rel ?? []) as Activity[]).map((r) => activityCard(r, 'w-[78vw] max-w-[300px] shrink-0 snap-start sm:w-[280px]')).join('');
     paintFavs();
   }
 </script>

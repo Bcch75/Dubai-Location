@@ -1,48 +1,195 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+const I = {
+  user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  bag: '<path d="M5 7h14l-1 13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><path d="M5 7 6.5 3h11L19 7M9 11a3 3 0 0 0 6 0"/>',
+  shield: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  lock: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
+  lockdot: '<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1" fill="currentColor"/>',
+  key: '<circle cx="7.5" cy="16.5" r="4"/><path d="m10.5 13.5 9-9M16 8l2.5 2.5M18.5 5.5 21 8"/>',
+  out: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M15 17l5-5-5-5M20 12H9"/>',
+  warn: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+  trash: '<path d="M4 7h16M10 11v6M14 11v6M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>',
+  save: '<path d="M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/>',
+  grid: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+  box: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9M8 5.3l8 4.4"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+} as const;
+const ic = (k: keyof typeof I, c = 'h-5 w-5') => `<svg viewBox="0 0 24 24" class="${c} shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[k]}</svg>`;
+const field = (id: string, label: string, icon: keyof typeof I, opts: { req?: boolean; sub?: string; type?: string; ph?: string; ro?: boolean; eye?: boolean } = {}) => `
+  <div>
+    <label for="${id}" class="block text-[15px] font-medium text-gray-700">${label}${opts.req ? '<span class="ml-0.5 text-red-500">*</span>' : ''}</label>
+    ${opts.sub ? `<p class="text-sm text-gray-500">${opts.sub}</p>` : ''}
+    <div class="relative mt-2"><span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">${ic(icon, 'h-6 w-6')}</span>
+      <input id="${id}" type="${opts.type ?? 'text'}" ${opts.ph ? `placeholder="${opts.ph}"` : ''} ${opts.ro ? 'readonly' : ''} class="acc-inp ${opts.eye ? 'pr-12' : ''}">
+      ${opts.eye ? `<button type="button" data-eye="${id}" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600" aria-label="Afficher">${ic('eye', 'h-6 w-6')}</button>` : ''}
+    </div>
+  </div>`;
+const card = (icon: keyof typeof I, title: string, sub: string, body: string, id = '') =>
+  `<section ${id ? `id="${id}"` : ''} class="scroll-mt-28 rounded-2xl border border-gray-200 bg-white p-5 sm:p-7"><span class="text-sky-500">${ic(icon, 'h-7 w-7')}</span><h2 class="mt-3 text-[19px] font-extrabold text-ink">${title}</h2><p class="mt-1 text-[15px] text-slate-500">${sub}</p><div class="mt-5">${body}</div></section>`;
 ---
 <Layout title="Mon compte">
-  <section class="container-x pb-20 pt-28 sm:pt-32">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 class="text-3xl font-bold sm:text-4xl">Mon compte</h1><p id="who" class="mt-1 text-muted"></p></div>
-      <div class="flex gap-2"><a id="admin" href="/admin/" class="btn-gold hidden !py-2.5">Espace admin</a><button id="logout" class="btn-outline !py-2.5">Se déconnecter</button></div>
+  <section class="container-x pb-20 pt-24 sm:pt-32">
+    <div class="grid gap-6 lg:grid-cols-[300px_1fr] lg:items-start">
+      <nav class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_10px_30px_-15px_rgb(15_27_61/0.2)] lg:sticky lg:top-28" aria-label="Mon compte">
+        <div class="bg-gradient-to-br from-sky-50/80 to-white px-5 py-6 sm:px-6">
+          <p class="flex items-center gap-3 text-[20px] font-extrabold text-ink"><span class="text-sky-500" set:html={ic('grid', 'h-6 w-6')} />Navigation</p>
+          <p class="mt-1 text-[15px] text-gray-600">Gérez votre compte</p>
+        </div>
+        <div class="border-t border-gray-200 px-3 py-3">
+          <a href="#compte" data-v="compte" class="nav-i"><Fragment set:html={ic('user', 'h-6 w-6')} />Mon compte</a>
+          <a href="#commandes" data-v="commandes" class="nav-i"><Fragment set:html={ic('bag', 'h-6 w-6')} />Mes commandes</a>
+          <a id="nav-admin" href="/admin/" class="nav-i hidden"><Fragment set:html={ic('grid', 'h-6 w-6')} />Espace admin</a>
+          <div class="mx-2 my-2 border-t border-gray-200"></div>
+          <a href="#securite" data-v="securite" class="nav-i"><Fragment set:html={ic('shield', 'h-6 w-6')} />Sécurité</a>
+        </div>
+      </nav>
+
+      <div class="min-w-0">
+        <!-- Mon compte -->
+        <div id="v-compte" class="view space-y-6">
+          <Fragment set:html={card('user', 'Informations personnelles', 'Mettez à jour vos informations de compte', `
+            <form id="f-info" class="space-y-5">
+              ${field('fn', 'Prénom', 'user', { req: true })}
+              ${field('ln', 'Nom', 'user', { req: true })}
+              ${field('em', 'E-mail', 'mail', { req: true, sub: "L'adresse e-mail ne peut pas être modifiée", ro: true })}
+              ${field('ph', 'Téléphone', 'phone', { sub: 'Le numéro est optionnel', type: 'tel', ph: '+33 6 12 34 56 78' })}
+              <p id="info-msg" class="hidden text-sm"></p>
+              <div class="flex justify-end pt-2"><button class="acc-btn">${ic('save')}Enregistrer les modifications</button></div>
+            </form>`)} />
+        </div>
+
+        <!-- Sécurité -->
+        <div id="v-securite" class="view mt-6 space-y-6">
+          <Fragment set:html={card('lock', 'Modifier le mot de passe', 'Changez votre mot de passe pour sécuriser votre compte', `
+            <form id="f-pw" class="space-y-5">
+              <div id="cur-wrap">${field('pw0', 'Mot de passe actuel', 'lock', { req: true, type: 'password', ph: '••••••••••••', eye: true })}
+              <button type="button" id="forgot" class="mt-3 text-[15px] font-semibold text-sky-500">Mot de passe oublié ?</button></div>
+              ${field('pw1', 'Nouveau mot de passe', 'key', { req: true, type: 'password', ph: '••••••••••••', eye: true })}
+              ${field('pw2', 'Confirmer le nouveau mot de passe', 'lockdot', { req: true, type: 'password', ph: '••••••••••••', eye: true })}
+              <p id="pw-msg" class="hidden text-sm"></p>
+              <div class="flex justify-end pt-2"><button id="pw-btn" class="acc-btn" disabled>${ic('shield')}Modifier le mot de passe</button></div>
+            </form>`, 'mdp')} />
+          <Fragment set:html={card('out', 'Session', 'Gérez votre session', `
+            <div class="flex gap-4 rounded-2xl border border-gray-200 bg-gray-50 p-5">
+              <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-gray-100 text-gray-600">${ic('out', 'h-6 w-6')}</span>
+              <div class="min-w-0"><p class="text-[18px] font-extrabold text-ink">Se déconnecter</p><p class="mt-1 text-[15px] leading-relaxed text-gray-600">Vous serez déconnecté de votre compte sur cet appareil.</p>
+              <button type="button" id="logout" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-[#0f1b2d] px-5 font-semibold text-white">${ic('out')}Se déconnecter</button></div>
+            </div>`)} />
+          <Fragment set:html={card('warn', 'Zone dangereuse', 'Actions irréversibles sur votre compte', `
+            <div class="flex gap-3 rounded-2xl bg-red-50 p-4 text-red-500">${ic('warn', 'h-6 w-6')}<div><p class="font-medium">Attention</p><p class="font-medium">Les actions suivantes sont irréversibles</p></div></div>
+            <div class="mt-6 flex gap-4 rounded-2xl border-2 border-red-200 bg-red-50/60 p-5">
+              <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-red-100 text-red-600">${ic('trash', 'h-6 w-6')}</span>
+              <div class="min-w-0"><p class="text-[18px] font-extrabold text-ink">Supprimer mon compte</p><p class="mt-1 text-[15px] leading-relaxed text-gray-600">La suppression de votre compte est définitive. Toutes vos données et commandes seront définitivement supprimées.</p>
+              <button type="button" id="delete" class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-red-500 px-5 font-semibold text-white">${ic('trash')}Supprimer mon compte</button></div>
+            </div>`)} />
+        </div>
+
+        <!-- Mes commandes -->
+        <div id="v-commandes" class="view hidden">
+          <div id="orders" class="space-y-4"><div class="h-24 animate-pulse rounded-2xl bg-sand"></div></div>
+        </div>
+      </div>
     </div>
-    <h2 class="mt-10 text-xl font-bold">Mes commandes</h2>
-    <div id="orders" class="mt-4 space-y-3"><div class="h-24 animate-pulse rounded-2xl bg-sand"></div></div>
-    <h2 class="mt-12 text-xl font-bold">Mes informations</h2>
-    <form id="prof" class="mt-4 grid max-w-xl gap-3 sm:grid-cols-2">
-      <div><label class="label" for="pn">Nom complet</label><input id="pn" class="field"></div>
-      <div><label class="label" for="pp">Téléphone WhatsApp</label><input id="pp" class="field" type="tel"></div>
-      <button class="btn-gold !py-2.5 sm:col-span-2 sm:justify-self-start">Enregistrer</button>
-      <p id="saved" class="hidden text-sm text-emerald-700 sm:col-span-2">Enregistré ✓</p>
-    </form>
   </section>
 </Layout>
+<style is:global>
+  .nav-i { display: flex; align-items: center; gap: .9rem; border-radius: .75rem; padding: .7rem .75rem; font-size: 17px; font-weight: 500; color: #64748b; }
+  .nav-i.on { color: #38b2f5; }
+  .acc-inp { display: block; width: 100%; height: 52px; border-radius: 14px; border: 1px solid #d5dbe5; background: #fff; padding: 0 1rem 0 3.4rem; font-size: 16px; color: #0f1b3d; outline: none; }
+  .acc-inp::placeholder { color: #94a3b8; }
+  .acc-inp:focus { border-color: #38b2f5; box-shadow: 0 0 0 3px rgb(56 178 245 / .15); }
+  .acc-inp:read-only { color: #334155; }
+  .acc-btn { display: inline-flex; align-items: center; gap: .6rem; height: 52px; border-radius: 14px; background: #38b2f5; padding: 0 1.4rem; font-size: 17px; font-weight: 500; color: #fff; }
+  .acc-btn:disabled { background: #7dd3fc; }
+</style>
 <script>
-  import { sb, getUser, goLogin, isAdmin, esc, aed, url } from '../../lib/app';
+  import { sb, getUser, goLogin, isAdmin, esc, aed, url, img } from '../../lib/app';
+  const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
+  const say = (id: string, t: string, ok = false) => { const m = $(id); m.textContent = t; m.className = 'text-sm ' + (ok ? 'text-emerald-700' : 'text-red-600'); };
+  const reset = new URLSearchParams(location.search).has('reset');
   const u = await getUser();
-  if (!u) goLogin();
-  else if (await isAdmin()) location.replace(url('admin/'));
-  else {
-    document.getElementById('who')!.textContent = u.email ?? '';
+  if (!u && !reset) goLogin();
+  else if (u && !reset && (await isAdmin())) location.replace(url('admin/'));
+  else if (u) {
+    // Navigation
+    const views = () => {
+      const h = location.hash.slice(1) || 'compte';
+      const v = h === 'commandes' ? 'commandes' : 'compte';
+      $('v-compte').classList.toggle('hidden', v !== 'compte');
+      $('v-securite').classList.toggle('hidden', v !== 'compte');
+      $('v-commandes').classList.toggle('hidden', v !== 'commandes');
+      document.querySelectorAll<HTMLElement>('[data-v]').forEach((a) => a.classList.toggle('on', a.dataset.v === (h === 'securite' ? 'securite' : v)));
+      if (h === 'securite') setTimeout(() => $('mdp').scrollIntoView({ behavior: 'smooth' }), 50);
+    };
+    window.addEventListener('hashchange', views); views();
+    if (reset) { $('cur-wrap').classList.add('hidden'); location.hash = 'securite'; say('pw-msg', 'Choisissez votre nouveau mot de passe.', true); }
+
+    // Informations
     const { data: p } = await sb.from('profiles').select('*').eq('id', u.id).maybeSingle();
-    (document.getElementById('pn') as HTMLInputElement).value = p?.full_name ?? '';
-    (document.getElementById('pp') as HTMLInputElement).value = p?.phone ?? '';
-    if (p?.is_admin) { const a = document.getElementById('admin') as HTMLAnchorElement; a.href = url('admin/'); a.classList.remove('hidden'); }
-    const STATUS: Record<string, string> = { pending: '<span class="text-amber-700">● En attente de confirmation</span>', confirmed: '<span class="text-emerald-700">● Confirmée</span>', cancelled: '<span class="text-red-600">● Annulée</span>', done: '<span class="text-gray-500">● Terminée</span>' };
-    const { data: orders } = await sb.from('orders').select('*, order_items(*)').eq('user_id', u.id).order('created_at', { ascending: false });
-    document.getElementById('orders')!.innerHTML = (orders ?? []).length ? (orders ?? []).map((o: any) => `
-      <div class="rounded-2xl border border-line bg-white p-5">
-        <div class="flex flex-wrap items-center justify-between gap-2"><p class="font-semibold">Commande n°${o.id} · ${new Date(o.created_at).toLocaleDateString('fr-FR')}</p><span class="rounded-full bg-sand px-3 py-1 text-sm">${STATUS[o.status] ?? o.status}</span></div>
-        <ul class="mt-3 space-y-1 text-sm text-ink-soft">${o.order_items.map((i: any) => `<li>• ${esc(i.item_title)}${i.item_option ? ' (' + esc(i.item_option) + ')' : ''} · ${i.date ?? ''}${i.end_date ? ' → ' + i.end_date : ''}${i.item_type === 'activity' ? ' · ' + i.people + ' pers.' : ''}</li>`).join('')}</ul>
-        ${o.total_estimate ? `<p class="mt-2 text-sm">Total estimé : <b>${aed(o.total_estimate)}</b></p>` : ''}
-        ${o.admin_note ? `<p class="mt-2 rounded-lg bg-gold-light p-3 text-sm"><b>Message de l’équipe :</b> ${esc(o.admin_note)}</p>` : ''}
-      </div>`).join('') : `<p class="rounded-2xl bg-sand p-6 text-muted">Aucune commande pour l'instant. <a class="font-semibold text-gold" href="${url('activites/')}">Découvrir les activités →</a></p>`;
-    document.getElementById('prof')!.addEventListener('submit', async (e) => {
+    const [first, ...rest] = String(p?.full_name ?? '').trim().split(/\s+/);
+    $('fn').value = first ?? ''; $('ln').value = rest.join(' '); $('em').value = u.email ?? ''; $('ph').value = p?.phone ?? '';
+    if (p?.is_admin) $('nav-admin').classList.remove('hidden');
+    $('f-info').addEventListener('submit', async (e) => {
       e.preventDefault();
-      await sb.from('profiles').update({ full_name: (document.getElementById('pn') as HTMLInputElement).value, phone: (document.getElementById('pp') as HTMLInputElement).value }).eq('id', u.id);
-      document.getElementById('saved')!.classList.remove('hidden');
+      if (!$('fn').value.trim() || !$('ln').value.trim()) return say('info-msg', 'Indiquez votre prénom et votre nom.');
+      const { error } = await sb.from('profiles').update({ full_name: `${$('fn').value.trim()} ${$('ln').value.trim()}`, phone: $('ph').value.trim() || null }).eq('id', u.id);
+      say('info-msg', error ? 'Erreur : ' + error.message : 'Modifications enregistrées ✓', !error);
     });
+
+    // Mot de passe
+    document.querySelectorAll<HTMLElement>('[data-eye]').forEach((b) => b.addEventListener('click', () => { const i = $(b.dataset.eye!); i.type = i.type === 'password' ? 'text' : 'password'; }));
+    const pwOk = () => { $<HTMLButtonElement>('pw-btn').disabled = !((reset || $('pw0').value) && $('pw1').value.length >= 8 && $('pw1').value === $('pw2').value); };
+    ['pw0', 'pw1', 'pw2'].forEach((id) => $(id).addEventListener('input', () => {
+      pwOk();
+      const m = $('pw-msg');
+      if ($('pw1').value && $('pw1').value.length < 8) say('pw-msg', 'Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      else if ($('pw2').value && $('pw1').value !== $('pw2').value) say('pw-msg', 'Les mots de passe ne correspondent pas.');
+      else m.className = 'hidden';
+    }));
+    $('f-pw').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!reset) {
+        const { error } = await sb.auth.signInWithPassword({ email: u.email!, password: $('pw0').value });
+        if (error) return say('pw-msg', 'Le mot de passe actuel est incorrect.');
+      }
+      const { error } = await sb.auth.updateUser({ password: $('pw1').value });
+      if (error) return say('pw-msg', 'Erreur : ' + error.message);
+      ['pw0', 'pw1', 'pw2'].forEach((id) => ($(id).value = '')); pwOk();
+      say('pw-msg', 'Mot de passe modifié ✓', true);
+    });
+    $('forgot').addEventListener('click', async () => {
+      const { error } = await sb.auth.resetPasswordForEmail(u.email!, { redirectTo: location.origin + url('compte/?reset=1') });
+      say('pw-msg', error ? error.message : `E-mail de réinitialisation envoyé à ${u.email}.`, !error);
+    });
+
+    // Session et suppression
+    $('logout').addEventListener('click', async () => { await sb.auth.signOut(); location.href = url(''); });
+    $('delete').addEventListener('click', async () => {
+      if (!confirm('Supprimer définitivement votre compte, vos favoris et vos commandes ?')) return;
+      const { error } = await sb.rpc('delete_my_account');
+      if (error) return alert('Erreur : ' + error.message);
+      await sb.auth.signOut(); location.href = url('');
+    });
+
+    // Commandes
+    const STATUS: Record<string, [string, string]> = { pending: ['En attente', 'bg-amber-50 text-amber-700'], confirmed: ['Confirmée', 'bg-emerald-50 text-emerald-700'], cancelled: ['Annulée', 'bg-red-50 text-red-600'], done: ['Terminée', 'bg-gray-100 text-gray-600'] };
+    const fmt = (d: string | null) => (d ? new Date(d + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '');
+    const { data: orders } = await sb.from('orders').select('*, order_items(*)').eq('user_id', u.id).order('created_at', { ascending: false });
+    $('orders').innerHTML = (orders ?? []).length ? (orders ?? []).map((o: any) => {
+      const [label, cls] = STATUS[o.status] ?? [o.status, 'bg-gray-100'];
+      return `<div class="rounded-2xl border border-gray-200 bg-white p-5">
+        <div class="flex items-center justify-between gap-2"><p class="font-bold">Commande n°${o.id}</p><span class="rounded-full px-3 py-1 text-sm font-semibold ${cls}">${label}</span></div>
+        <p class="text-sm text-gray-500">Passée le ${new Date(o.created_at).toLocaleDateString('fr-FR')}</p>
+        <ul class="mt-4 space-y-3">${o.order_items.map((i: any) => `<li class="flex gap-3"><span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-sky-400"></span><span class="min-w-0 text-[15px]"><b class="block">${esc(i.item_title)}</b><span class="text-gray-500">${[i.item_option, i.end_date ? `${fmt(i.date)} → ${fmt(i.end_date)}` : fmt(i.date), i.details?.time, i.item_type === 'activity' ? i.people + ' pers.' : ''].filter(Boolean).map(esc).join(' · ')}</span></span></li>`).join('')}</ul>
+        ${o.total_estimate ? `<p class="mt-4 flex justify-between border-t border-gray-100 pt-3"><span class="text-gray-500">Total</span><b>${aed(o.total_estimate)}</b></p>` : ''}
+        ${o.admin_note ? `<p class="mt-3 rounded-xl bg-sky-50 p-3 text-sm"><b>Message de l’équipe :</b> ${esc(o.admin_note)}</p>` : ''}
+      </div>`;
+    }).join('') : `<div class="py-12 text-center"><div class="mx-auto grid h-24 w-24 place-items-center rounded-full bg-gray-100 text-gray-400"><svg viewBox="0 0 24 24" class="h-11 w-11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="m4 7.5 8 4.5 8-4.5M12 12v9M8 5.3l8 4.4"/></svg></div>
+        <p class="mt-8 text-[24px] font-extrabold text-ink">Aucune commande</p><p class="mt-3 text-[17px] text-gray-600">Vous n'avez pas encore effectué de réservation.</p>
+        <a href="${url('activites/')}" class="mt-7 inline-flex h-12 items-center gap-2.5 rounded-xl bg-[#38b2f5] px-6 text-[17px] font-medium text-white"><svg viewBox="0 0 24 24" class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>Découvrir nos activités</a></div>`;
   }
-  document.getElementById('logout')!.addEventListener('click', async () => { await sb.auth.signOut(); location.href = url(''); });
 </script>
