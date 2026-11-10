@@ -104,6 +104,9 @@ import { ap, ai } from '../../lib/admin-icons';
   .side[aria-pressed='true'] { background: #0171eb; color: #fff; outline-color: #0171eb; box-shadow: 0 6px 16px -6px rgb(1 113 235 / .6); }
   .side[aria-pressed='true'] span[style] { background: rgb(255 255 255 / .2) !important; }
   .side[aria-pressed='true'] svg { color: #fff !important; }
+  #panel.stale { pointer-events: none; }
+  [data-photos="logo"] .photos { grid-template-columns: 96px; }
+  [data-photos="logo"] .photo img { aspect-ratio: 1; border-radius: 9999px; object-fit: cover; box-shadow: 0 0 0 1px rgb(0 0 0 / .08); }
   .stat { background: #fff; border-radius: 16px; padding: 14px 16px; box-shadow: 0 4px 20px rgb(0 0 0 / .06); }
   .stat b { display: block; font-size: 1.3rem; font-weight: 800; color: #111827; line-height: 1.1; margin-top: 6px; }
   .stat span { font-size: .75rem; color: #6b7280; }
@@ -1031,14 +1034,20 @@ import { ap, ai } from '../../lib/admin-icons';
 
   document.getElementById('logout')?.addEventListener('click', async () => { await sb.auth.signOut(); location.href = '/'; });
   const tabs = [...document.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+  // Affichage instantané : on remontre la dernière version de la page pendant le chargement
+  const snap: Record<string, string> = {};
+  const obs = new MutationObserver(() => { panel.classList.remove('stale'); });
+  obs.observe(panel, { childList: true, subtree: true });
   const show = (t: string) => {
+    if (current && panel.firstElementChild && !panel.classList.contains('stale') && !panel.querySelector('.animate-pulse')) snap[current] = panel.innerHTML;
     if (t !== current) listFilter = 'all';
     current = t;
     tabs.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tab === t)));
     document.querySelectorAll<HTMLElement>('[data-bn]').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.covers ?? '').split(' ').includes(t))));
     window.scrollTo(0, 0);
     document.getElementById('view-title')!.textContent = TITLES[t][0];
-    panel.innerHTML = '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
+    panel.innerHTML = snap[t] ?? '<div class="h-40 animate-pulse rounded-2xl bg-white"></div>';
+    obs.takeRecords(); if (snap[t]) panel.classList.add('stale');
     history.replaceState(null, '', '#' + t);
     ({ 'hub-catalog': () => showHub('hub-catalog'), 'hub-more': () => showHub('hub-more'), dashboard: showDashboard, account: showAccount, orders: showOrders, clients: showClients, calendar: showCalendar, categories: showCategories, promos: showPromos, stats: showStats, settings: showSettings } as Record<string, () => void>)[t]?.() ?? showTable(t);
     if (t === 'orders' || t === 'dashboard') paintPending();
