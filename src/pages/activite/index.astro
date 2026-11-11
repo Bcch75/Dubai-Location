@@ -235,7 +235,7 @@ const seedData = await getActivities();
       const t = e.target as HTMLElement;
       const n = t.closest<HTMLElement>('[data-nav]'); if (n) { view = new Date(view.getFullYear(), view.getMonth() + +n.dataset.nav!, 1); if (view < new Date(today.getFullYear(), today.getMonth(), 1)) view = new Date(today.getFullYear(), today.getMonth(), 1); renderCal(); return; }
       const d = t.closest<HTMLElement>('[data-day]'); if (!d) return;
-      st.date = d.dataset.day!;
+      st.date = d.dataset.day!; refreshTaken();
       document.getElementById('date-l')!.textContent = new Date(st.date + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, (c) => c.toUpperCase());
       cal.classList.add('hidden'); paint();
     });
@@ -247,8 +247,18 @@ const seedData = await getActivities();
     const timeList = document.getElementById('time-list')!;
     timeList.innerHTML = allSlots.map((t) => `<button type="button" data-t="${esc(t)}" class="block w-full px-5 py-2 text-left text-[14px] font-medium text-gray-700 hover:bg-sky-50">${esc(t)}</button>`).join('');
     document.getElementById('time-btn')!.addEventListener('click', (e) => { e.stopPropagation(); cal.classList.add('hidden'); timeList.classList.toggle('hidden'); document.getElementById('time-chev')!.style.transform = timeList.classList.contains('hidden') ? '' : 'translateY(-50%) rotate(180deg)'; });
+    // Horaires déjà pris (créneaux bloqués) : grisés
+    const refreshTaken = async () => {
+      timeList.querySelectorAll<HTMLButtonElement>('[data-t]').forEach((b) => { b.disabled = false; b.classList.remove('line-through', 'opacity-40'); });
+      if (!st.date) return;
+      const { data } = await sb.rpc('taken_slots', { p_slug: a.slug, p_day: st.date });
+      const ranges = ((data ?? []) as { start_time: string; end_time: string }[]).map((r) => [r.start_time.slice(0, 5), (r.end_time || r.start_time).slice(0, 5)]);
+      const taken = (t: string) => ranges.some(([s1, e1]) => (e1 > s1 ? t >= s1 && t < e1 : t === s1));
+      timeList.querySelectorAll<HTMLButtonElement>('[data-t]').forEach((b) => { if (taken(b.dataset.t!)) { b.disabled = true; b.classList.add('line-through', 'opacity-40'); } });
+      if (st.time && taken(st.time)) { st.time = ''; const l = document.getElementById('time-l')!; l.textContent = 'Choisir une heure'; l.classList.add('text-gray-400'); paint(); }
+    };
     timeList.addEventListener('click', (e) => {
-      const b = (e.target as HTMLElement).closest<HTMLElement>('[data-t]'); if (!b) return;
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-t]'); if (!b || b.disabled) return;
       st.time = b.dataset.t!; const l = document.getElementById('time-l')!; l.textContent = st.time; l.classList.remove('text-gray-400');
       timeList.querySelectorAll('[data-t]').forEach((x) => x.classList.toggle('!text-sky-500', x === b));
       timeList.classList.add('hidden'); document.getElementById('time-chev')!.style.transform = ''; paint();
