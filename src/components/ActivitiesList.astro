@@ -36,21 +36,22 @@ const list = cat ? acts.filter((a) => a.categories.includes(cat)) : acts;
   <script type="application/json" id="seed-acts" set:html={JSON.stringify(acts)} />
 </Layout>
 <script>
-  import { fetchActivities, activityCard, paintFavs, live } from '../lib/app';
+  import { fetchActivities, activityCard, paintFavs, live, cachedActivities } from '../lib/app';
+  import { score } from '../lib/search';
   const oldCat = new URLSearchParams(location.search).get('cat');
   if (oldCat && !location.pathname.includes('/' + oldCat)) location.replace(location.pathname.replace(/\/?$/, '/') + oldCat + '/');
   const grid = document.getElementById('grid')!;
   const cat = grid.dataset.cat ?? '';
   const q = document.getElementById('q') as HTMLInputElement;
   q.value = new URLSearchParams(location.search).get('q') ?? '';
-  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const apply = () => {
-    const words = norm(q.value.trim()).split(/\s+/).filter(Boolean);
+    const query = q.value.trim(), acts = cachedActivities();
     let n = 0;
-    grid.querySelectorAll<HTMLElement>('.card').forEach((c) => {
-      const ok = (!cat || (c.dataset.cats ?? '').split(' ').includes(cat)) && words.every((w) => norm(c.dataset.search ?? '').includes(w));
-      c.style.display = ok ? '' : 'none'; if (ok) n++;
-    });
+    const cards = [...grid.querySelectorAll<HTMLElement>('.card')];
+    const sc = (c: HTMLElement) => { const slug = c.querySelector<HTMLAnchorElement>('a[href*="activite/?s="]')?.href.split('s=')[1]?.split('&')[0]; const a = acts.find((x) => x.slug === decodeURIComponent(slug ?? '')); return a ? score(a, query) : (c.dataset.search ?? '').includes(query.toLowerCase()) ? 1 : 0; };
+    const scored = cards.map((c) => [c, (!cat || (c.dataset.cats ?? '').split(' ').includes(cat)) ? sc(c) : 0] as const);
+    scored.forEach(([c, s]) => { c.style.display = s > 0 ? '' : 'none'; if (s > 0) n++; });
+    if (query) scored.filter(([, s]) => s > 0).sort((x, y) => y[1] - x[1]).forEach(([c]) => grid.append(c));
     document.getElementById('count')!.textContent = `${n} activité${n > 1 ? 's' : ''}`;
     document.getElementById('empty')!.classList.toggle('hidden', n > 0);
   };
