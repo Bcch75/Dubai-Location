@@ -162,13 +162,18 @@ import Layout from '../../layouts/Layout.astro';
     const v = (id: string) => ($<HTMLInputElement>(id)).value.trim();
     const err = $('err'), btn = $<HTMLButtonElement>('send');
     btn.disabled = true; btn.textContent = 'Envoi…';
-    const fail = (m: string) => { err.textContent = 'Erreur : ' + m; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Confirmer ma réservation'; };
+    const fail = (m: string) => { err.textContent = m; err.classList.remove('hidden'); btn.disabled = false; btn.textContent = 'Confirmer ma réservation'; };
+    // Voitures : les dates sont-elles toujours libres ?
+    for (const i of list.filter((x) => x.type === 'car' && x.date)) {
+      const { data: taken } = await sb.from('blocked_dates').select('day').eq('item_type', 'car').eq('item_slug', i.slug).gte('day', i.date!).lte('day', i.endDate ?? i.date!).limit(1);
+      if (taken?.length) return fail(`${i.title} n’est plus disponible à ces dates. Modifiez les dates ou choisissez une autre voiture.`);
+    }
     const sub = cart.total(), total = sub - (promo ? Math.round((sub * promo.pct) / 100) : 0);
     const { data: order, error } = await sb.from('orders').insert({ user_id: user.id, contact_name: v('name'), contact_phone: v('phone'), contact_email: user.email, notes: v('notes') || null, total_estimate: total || null, promo_code: promo?.code ?? null, discount_percent: promo?.pct ?? null }).select('id').single();
-    if (error || !order) return fail(error?.message ?? 'inconnue');
+    if (error || !order) return fail('Erreur : ' + (error?.message ?? 'inconnue'));
     const optText = (i: CartItem) => [i.option, i.duration, i.time, ...(i.extras ?? []).map((x) => `+ ${x.name} ×${x.qty}`)].filter(Boolean).join(' · ') || null;
     const { error: e2 } = await sb.from('order_items').insert(list.map((i) => ({ order_id: order.id, item_type: i.type, item_slug: i.slug, item_title: i.title, item_option: optText(i), date: i.date, end_date: i.endDate, people: i.qty, unit_price: i.unitPrice, price_label: i.priceUnit, details: { time: i.time ?? null, duration: i.duration ?? null, extras: i.extras ?? [], line_total: lineTotal(i) } })));
-    if (e2) return fail(e2.message);
+    if (e2) return fail('Erreur : ' + e2.message);
     await sb.rpc('finalize_order', { p_order: order.id });
     await sb.from('profiles').update({ full_name: v('name'), phone: v('phone') }).eq('id', user.id);
     const recap = `Bonjour Dubai Location 👋 Je viens de faire la réservation n°${order.id} sur le site :\n` + list.map((i) => `• ${i.title}${optText(i) ? ' (' + optText(i) + ')' : ''} : ${i.type === 'car' ? `du ${i.date} au ${i.endDate}` : `${i.date}, ${qLabel(i)}`}`).join('\n') + `\nNom : ${v('name')}`;
