@@ -163,6 +163,7 @@ import { ap, ai } from '../../lib/admin-icons';
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
   import { ap, ai } from '../../lib/admin-icons';
   import { cropImage } from '../../lib/cropper';
+  import { COUNTRIES } from '../../lib/countries';
   import { COND_ICONS, rentalConditions } from '../../lib/cond-icons';
   import { pill, iconKey, ICON_COLORS } from '../../lib/icons';
   import { ICON_LIB } from '../../lib/icon-library';
@@ -635,8 +636,8 @@ import { ap, ai } from '../../lib/admin-icons';
         <button data-new="activities" class="blk flex items-center gap-3 text-left hover:ring-2 hover:ring-gold">${ap('plus', '#0171eb', 22)}<span><b class="block">Nouvelle activité</b><span class="text-sm text-gray-500">l’ajouter en 2 minutes</span></span></button>
       </div>
       <div class="mt-6">
-        <section class="blk"><h3>${ap('list', '#0171eb', 16)} Dernières commandes</h3>
-          ${o.length ? `<ul class="mt-3 divide-y divide-gray-100">${o.slice(0, 6).map((x: any) => `<li class="flex items-center justify-between gap-3 py-3 text-sm"><span class="min-w-0"><b>n°${x.id} · ${esc(x.contact_name ?? '')}</b><span class="block truncate text-gray-500">${esc(x.order_items.map((i: any) => i.item_title).join(', '))}</span></span><span class="shrink-0 text-right"><span class="block">${STATUS[x.status] ?? x.status}</span><span class="text-xs text-gray-400">${fmtDate(x.created_at)}</span></span></li>`).join('')}</ul><button data-go="orders" class="mt-2 text-sm font-semibold text-gold">Voir toutes les commandes →</button>` : '<p class="mt-3 text-sm text-gray-500">Aucune commande pour l’instant. Elles apparaîtront ici dès qu’un client réservera.</p>'}
+        <section class="blk"><h3>${ap('list', '#0171eb', 16)} Dernières réservations<button type="button" data-slot-new class="ml-auto flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#0f1b2d] px-2.5 text-[12px] font-semibold text-white">${ai('lock', 13, '#fff')}Bloquer</button></h3>
+          ${o.length ? `<ul class="mt-3 divide-y divide-gray-100">${o.slice(0, 6).map((x: any) => `<li class="flex items-center justify-between gap-3 py-3 text-sm"><span class="min-w-0"><b>n°${x.id} · ${esc(x.contact_name ?? '')}</b><span class="block truncate text-gray-500">${esc(x.order_items.map((i: any) => i.item_title).join(', '))}</span></span><span class="shrink-0 text-right"><span class="block">${STATUS[x.status] ?? x.status}</span><span class="text-xs text-gray-400">${fmtDate(x.created_at)}</span></span></li>`).join('')}</ul><button data-go="orders" class="mt-2 text-sm font-semibold text-gold">Voir toutes les commandes →</button>` : '<p class="mt-3 text-sm text-gray-500">Aucune réservation pour l’instant.</p>'}
         </section>
       </div>`;
   }
@@ -776,7 +777,8 @@ import { ap, ai } from '../../lib/admin-icons';
 
   // ═════════ Planning du jour + blocage de créneaux ═════════
   let planDay = iso(new Date());
-  const CC: [string, string, string][] = [['🇫🇷', '+33', 'France'], ['🇦🇪', '+971', 'Émirats'], ['🇧🇪', '+32', 'Belgique'], ['🇨🇭', '+41', 'Suisse'], ['🇬🇧', '+44', 'Royaume-Uni'], ['🇲🇦', '+212', 'Maroc'], ['🇩🇿', '+213', 'Algérie'], ['🇹🇳', '+216', 'Tunisie'], ['🇸🇦', '+966', 'Arabie saoudite'], ['🇶🇦', '+974', 'Qatar'], ['🇰🇼', '+965', 'Koweït'], ['🇩🇪', '+49', 'Allemagne'], ['🇮🇹', '+39', 'Italie'], ['🇪🇸', '+34', 'Espagne'], ['🇳🇱', '+31', 'Pays-Bas'], ['🇱🇺', '+352', 'Luxembourg'], ['🇨🇦', '+1', 'Canada / USA'], ['🇷🇺', '+7', 'Russie'], ['🇮🇳', '+91', 'Inde'], ['🇬🇵', '+590', 'Guadeloupe'], ['🇲🇶', '+596', 'Martinique'], ['🇷🇪', '+262', 'Réunion']];
+  const TOP = ['France', 'Émirats arabes unis', 'Belgique', 'Suisse', 'Royaume-Uni', 'Maroc', 'Algérie', 'Tunisie', 'Arabie saoudite'];
+  const CC: [string, string, string][] = [...TOP.map((n) => COUNTRIES.find((c) => c[2] === n)!), ...COUNTRIES.filter((c) => !TOP.includes(c[2])).sort((x, y) => x[2].localeCompare(y[2], 'fr'))];
   const flagOf = (ph: string | null) => { const m = (ph ?? '').replace(/\s/g, ''); const c = [...CC].sort((a, b) => b[1].length - a[1].length).find((x) => m.startsWith(x[1])); return c ? c[0] + ' ' : ''; };
   async function showCalendar() {
     await loadCatalog();
@@ -843,7 +845,10 @@ import { ap, ai } from '../../lib/admin-icons';
         <div><p class="grp-lab !mt-0">Client</p><div class="divide-y divide-gray-100 rounded-2xl bg-white shadow-sm">
           ${rowI('user', '#ec4899', 'Prénom', `<input id="sl-fn" class="${inp}" placeholder="Sarah" autocomplete="off">`)}
           ${rowI('user', '#ec4899', 'Nom', `<input id="sl-ln" class="${inp}" placeholder="Martin" autocomplete="off">`)}
-          ${rowI('phone', '#10b981', 'Tél.', `<span class="flex items-center justify-end gap-2"><select id="sl-cc" class="shrink-0 appearance-none rounded-lg bg-gray-100 px-2 py-1 text-[14px] outline-none">${CC.map((c) => `<option value="${c[1]}">${c[0]} ${c[1]}</option>`).join('')}</select><input id="sl-ph" type="tel" inputmode="tel" class="${inp} min-w-0 !text-left" placeholder="6 12 34 56 78"></span>`)}
+          ${rowI('phone', '#10b981', 'Tél.', `<span class="flex items-center justify-end gap-1.5">
+            <span class="relative grid h-8 w-9 shrink-0 place-items-center rounded-lg bg-gray-100 text-[17px]"><span id="sl-flag">🇫🇷</span><select id="sl-country" class="absolute inset-0 cursor-pointer opacity-0" aria-label="Pays">${CC.map((c, i) => `<option value="${i}">${c[2]} (${c[1]})</option>`).join('')}</select></span>
+            <input id="sl-cc" type="tel" inputmode="tel" value="+33" class="h-8 w-[52px] shrink-0 rounded-lg bg-gray-100 px-1.5 text-center text-[14px] text-ink outline-none" aria-label="Indicatif">
+            <input id="sl-ph" type="tel" inputmode="tel" class="${inp} min-w-0 !text-left" placeholder="6 12 34 56 78"></span>`)}
           ${rowI('message', '#6b7280', 'Note', `<input id="sl-note" class="${inp}" placeholder="Hôtel, remarque…" autocomplete="off">`)}
         </div></div>
         <p id="sl-err" class="hidden rounded-xl bg-red-50 p-3 text-[13px] text-red-700"></p>
@@ -871,6 +876,12 @@ import { ap, ai } from '../../lib/admin-icons';
     $('sl-d1').addEventListener('change', () => { if ($('sl-d2').value < $('sl-d1').value) $('sl-d2').value = $('sl-d1').value; });
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     fillItems();
+    // Pays : le drapeau ouvre la liste, l'indicatif se tape aussi à la main
+    $('sl-country').addEventListener('change', () => { const c = CC[+$<HTMLSelectElement>('sl-country').value]; $('sl-flag').textContent = c[0]; $('sl-cc').value = c[1]; });
+    $('sl-cc').addEventListener('input', () => {
+      let v = $('sl-cc').value.replace(/[^\d+]/g, ''); if (v && !v.startsWith('+')) v = '+' + v; $('sl-cc').value = v;
+      const i = CC.findIndex((c) => c[1] === v); $('sl-flag').textContent = i >= 0 ? CC[i][0] : '🌍'; if (i >= 0) $<HTMLSelectElement>('sl-country').value = String(i);
+    });
     form.onsubmit = async (e) => {
       e.preventDefault();
       const err = $('sl-err'), t = type();
@@ -883,7 +894,7 @@ import { ap, ai } from '../../lib/admin-icons';
       const { error } = await sb.rpc('admin_add_slot', {
         p_type: t, p_slug: c.slug, p_title: c.name, p_option: $<HTMLSelectElement>('sl-opt').value || null,
         p_date: $('sl-d1').value, p_end: t === 'car' ? $('sl-d2').value : null, p_time: $('sl-t1').value || null, p_end_time: $('sl-t2').value || null,
-        p_first: $('sl-fn').value.trim(), p_last: $('sl-ln').value.trim(), p_phone: num ? `${$<HTMLSelectElement>('sl-cc').value} ${num}` : null,
+        p_first: $('sl-fn').value.trim(), p_last: $('sl-ln').value.trim(), p_phone: num ? `${$('sl-cc').value || '+'} ${num}` : null,
         p_note: $('sl-note').value.trim() || null, p_people: +$('sl-pp').value || 1,
       });
       if (error) return fail('Erreur : ' + error.message);
