@@ -22,7 +22,7 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
   </section>
   <section class="container-x py-12">
     <div class="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
-      <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2><p id="count" class="mt-1 text-muted">{cars.length} modèles · livraison hôtel ou aéroport</p></div>
+      <div><h2 class="text-2xl font-bold sm:text-3xl">Nos voitures</h2></div>
       <div class="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 sm:mx-0 sm:px-0">{cats.map(([id, l]) => <button class="chip" data-cat={id} aria-pressed={id === '' ? 'true' : 'false'}>{l}</button>)}</div>
     </div>
     <div id="grid" set:html={cars.map((c) => carCard(c)).join('')} class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
@@ -42,7 +42,7 @@ const cats = [['', 'Toutes'], ['supercar', 'Supercars'], ['prestige', 'Prestige'
   const grid = document.getElementById('grid')!;
   live('cars', fetchCars, (cars) => {
     grid.innerHTML = cars.map((c) => carCard(c)).join('');
-    document.getElementById('count')!.textContent = `${cars.length} modèles · livraison hôtel ou aéroport`;
+    
     paintFavs(grid);
   });
   const chips = [...document.querySelectorAll<HTMLButtonElement>('[data-cat]')];

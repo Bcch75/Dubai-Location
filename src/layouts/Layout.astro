@@ -35,6 +35,14 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     {site.logoUrl && <link rel="apple-touch-icon" href={site.logoUrl} />}
     <meta name="theme-color" content="#0F1B2D" />
     <script is:inline>
+      // Autre langue : on cache la page le temps que la traduction se fasse, pour ne pas voir le texte changer
+      (function () {
+        try { var l = localStorage.getItem('dl-lang'); if (!l || l === 'fr') return; } catch (e) { return; }
+        var h = document.documentElement; h.classList.add('gt-wait');
+        var done = function () { h.classList.remove('gt-wait'); h.classList.add('gt-done'); };
+        new MutationObserver(function () { if (/translated-(ltr|rtl)/.test(h.className)) setTimeout(done, 60); }).observe(h, { attributes: true, attributeFilter: ['class'] });
+        setTimeout(done, 2500);
+      })();
       // Page fixe : pas de zoom au pincement (le double appui est bloqué par touch-action dans le CSS)
       ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) { document.addEventListener(t, function (e) { e.preventDefault(); }, { passive: false }); });
     </script>

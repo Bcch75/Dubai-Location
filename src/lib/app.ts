@@ -121,16 +121,15 @@ export async function loadFavs() {
 export async function toggleFav(type: 'activity' | 'car', slug: string) {
   const u = await getUser();
   if (!u) return goLogin();
-  if (!favSet) await loadFavs();
+  if (!favSet) favSet = new Set();
   const k = `${type}:${slug}`;
-  if (favSet!.has(k)) {
-    await sb.from('favorites').delete().match({ item_type: type, item_slug: slug });
-    favSet!.delete(k);
-  } else {
-    await sb.from('favorites').insert({ user_id: u.id, item_type: type, item_slug: slug });
-    favSet!.add(k);
-  }
-  paintFavs();
+  const add = !favSet.has(k);
+  if (add) favSet.add(k); else favSet.delete(k);
+  paintFavs();                                   // le cœur change tout de suite
+  const { error } = add
+    ? await sb.from('favorites').insert({ user_id: u.id, item_type: type, item_slug: slug })
+    : await sb.from('favorites').delete().match({ item_type: type, item_slug: slug });
+  if (error && !/duplicate/i.test(error.message)) { if (add) favSet.delete(k); else favSet.add(k); paintFavs(); }
 }
 export function paintFavs(root: ParentNode = document) {
   root.querySelectorAll<HTMLElement>('[data-fav]').forEach((b) => {
