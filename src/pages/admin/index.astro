@@ -20,7 +20,7 @@ import { ap, ai } from '../../lib/admin-icons';
             <button class="side" data-tab="cars"><Fragment set:html={ap('car', '#c9a227', 17)} />Catalogue voitures</button>
             <button class="side" data-tab="orders"><Fragment set:html={ap('list', '#0171eb', 17)} />Commandes<em id="pending-badge" class="ml-auto hidden rounded-full bg-red-500 px-2 text-xs font-bold not-italic text-white"></em></button>
             <button class="side" data-tab="clients"><Fragment set:html={ap('users', '#ec4899', 17)} />Clients</button>
-            <button class="side" data-tab="calendar"><Fragment set:html={ap('calendar', '#10b981', 17)} />Calendrier</button>
+            <button class="side" data-tab="calendar"><Fragment set:html={ap('calendar', '#10b981', 17)} />Planning</button>
             <button class="side" data-tab="promos"><Fragment set:html={ap('tag', '#059669', 17)} />Codes promo</button>
             <button class="side" data-tab="stats"><Fragment set:html={ap('stats', '#6366f1', 17)} />Statistiques</button>
             <button class="side" data-tab="posts"><Fragment set:html={ap('blog', '#0ea5e9', 17)} />Blog</button>
@@ -807,12 +807,10 @@ import { ap, ai } from '../../lib/admin-icons';
       <button type="button" id="slot-new" class="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#0f1b2d] text-[14px] font-semibold text-white">${ai('lock', 16, '#fff')}Bloquer un créneau</button>
       <div class="no-scrollbar -mx-5 mb-3 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">${days.map((d) => { const k = iso(d), on = k === planDay; return `<button type="button" data-pday="${k}" class="flex w-[50px] shrink-0 flex-col items-center rounded-2xl py-1.5 ${on ? 'bg-[#0171eb] text-white' : 'bg-white ring-1 ring-gray-200'}"><span class="text-[10.5px] capitalize ${on ? 'text-white/80' : 'text-gray-400'}">${d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '')}</span><b class="text-[16px] leading-tight">${d.getDate()}</b></button>`; }).join('')}</div>
       <p class="grp-lab capitalize">${new Date(planDay + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-      <div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">${list.length ? list.map(card).join('') : '<p class="py-6 text-center text-[13px] text-gray-400">Rien de prévu ce jour-là</p>'}</div>
-      <button type="button" id="to-month" class="mt-4 w-full text-center text-[13px] font-semibold text-gold">Voir le mois et les jours complets ›</button>`;
+      <div class="rounded-2xl bg-white p-3 shadow-sm ring-1 ring-gray-100">${list.length ? list.map(card).join('') : '<p class="py-6 text-center text-[13px] text-gray-400">Rien de prévu ce jour-là</p>'}</div>`;
     panel.querySelectorAll<HTMLElement>('[data-pday]').forEach((b) => b.addEventListener('click', () => { planDay = b.dataset.pday!; showCalendar(); }));
     panel.querySelector<HTMLElement>(`[data-pday="${planDay}"]`)?.scrollIntoView({ inline: 'center', block: 'nearest' });
     panel.querySelector('#slot-new')!.addEventListener('click', () => slotForm());
-    panel.querySelector('#to-month')!.addEventListener('click', () => showMonth());
     panel.querySelectorAll<HTMLElement>('[data-slot]').forEach((b) => b.addEventListener('click', async () => {
       if (b.dataset.src !== 'admin') { show('orders'); return; }
       if (!confirm('Supprimer ce créneau ? Il redevient disponible.')) return;
@@ -1241,7 +1239,7 @@ import { ap, ai } from '../../lib/admin-icons';
     const pl = (n: number | null, w: string) => `${n ?? 0} ${w}${(n ?? 0) > 1 ? 's' : ''}`;
     panel.innerHTML = kind === 'hub-catalog'
       ? grp('Catalogue') + row('activities', 'sunset', '#f59e0b', 'Activités', pl(nA, 'activité')) + row('cars', 'car', '#c9a227', 'Voitures', pl(nC, 'voiture')) + row('categories', 'folder', '#8b5cf6', 'Catégories', pl(nK, 'catégorie'))
-      : grp('Ventes') + row('calendar', 'calendar', '#10b981', 'Calendrier', 'Réservations et dates complètes') + row('clients', 'users', '#ec4899', 'Clients', pl(nCl, 'compte')) + row('promos', 'tag', '#059669', 'Codes promo', pl(nP, 'code'))
+      : grp('Ventes') + row('clients', 'users', '#ec4899', 'Clients', pl(nCl, 'compte')) + row('promos', 'tag', '#059669', 'Codes promo', pl(nP, 'code'))
         + grp('Site') + row('stats', 'stats', '#6366f1', 'Statistiques', '30 derniers jours') + row('posts', 'blog', '#0ea5e9', 'Blog', 'Articles de conseils')
         + grp('Compte') + row('account', 'user', '#0ea5e9', 'Mon compte', esc(user?.email ?? '')) + `<a class="hub-row" href="/" target="_blank">${ap('world', '#0171eb', 16)}<span class="acc-t"><b>Voir le site</b><span class="acc-sum">S’ouvre dans un nouvel onglet</span></span><span class="chev">›</span></a>`
         + `<button class="hub-row" data-logout>${ap('logout', '#dc2626', 16)}<span class="acc-t"><b class="!text-red-600">Se déconnecter</b></span></button>`;
