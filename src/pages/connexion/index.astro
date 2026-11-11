@@ -71,7 +71,7 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
   .err::before { content: ''; flex: none; width: 15px; height: 15px; margin-top: 1px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; }
 </style>
 <script>
-  import { sb, url } from '../../lib/app';
+  import { sb, url, lang } from '../../lib/app';
   const next = new URLSearchParams(location.search).get('next') || url('compte/');
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
   const show = () => {
@@ -93,6 +93,7 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
     const { error } = await sb.auth.signInWithPassword({ email: $('l-email').value.trim(), password: $('l-pw').value });
     b.textContent = 'Se connecter'; lOk();
     if (error) return say('l-msg', error.message === 'Invalid login credentials' ? 'E-mail ou mot de passe incorrect.' : error.message === 'Email not confirmed' ? 'Confirmez d’abord votre e-mail (lien reçu par e-mail).' : error.message);
+    sb.auth.updateUser({ data: { lang: lang() } }).catch(() => {});
     try { if ($('l-remember').checked) localStorage.removeItem('dl-noremember'); else { localStorage.setItem('dl-noremember', '1'); sessionStorage.setItem('dl-alive', '1'); } } catch {}
     location.href = next;
   });
@@ -127,7 +128,7 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
   $('f-signup').addEventListener('submit', async (e) => {
     e.preventDefault();
     const b = $<HTMLButtonElement>('s-submit'); b.disabled = true; b.textContent = 'Création…';
-    const { data, error } = await sb.auth.signUp({ email: $('s-email').value.trim(), password: $('s-pw').value, options: { data: { full_name: $('s-name').value.trim().replace(/\s+/g, ' ') }, emailRedirectTo: location.origin + url('compte/') } });
+    const { data, error } = await sb.auth.signUp({ email: $('s-email').value.trim(), password: $('s-pw').value, options: { data: { full_name: $('s-name').value.trim().replace(/\s+/g, ' '), lang: lang() }, emailRedirectTo: location.origin + url('compte/') } });
     b.textContent = 'Créer mon compte'; sCheck();
     if (error) return say('s-msg', /already/i.test(error.message) ? 'Un compte existe déjà avec cet e-mail.' : error.message);
     if (data.session) location.href = next;
