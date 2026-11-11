@@ -54,7 +54,12 @@ function protectWords(root: Node) {
 }
 if (lang() !== 'fr') {
   protectWords(document.body);
-  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1 || n.nodeType === 3) protectWords(n.nodeType === 3 ? n.parentNode ?? n : n); }))).observe(document.body, { childList: true, subtree: true });
+  // Nouveaux contenus (cartes, panier…) : on les protège par petits lots, sans gêner le défilement
+  let pending = new Set<Node>(), queued = false;
+  new MutationObserver((ms) => {
+    ms.forEach((m) => m.addedNodes.forEach((n) => { const el = n.nodeType === 3 ? n.parentElement : (n as Element); if (el && !el.closest('.notranslate, font, #goog-gt-tt, .skiptranslate')) pending.add(el); }));
+    if (!queued && pending.size) { queued = true; setTimeout(() => { const list = [...pending]; pending = new Set(); queued = false; list.forEach((el) => el.isConnected && protectWords(el)); }, 120); }
+  }).observe(document.body, { childList: true, subtree: true });
   (window as any).gtInit = () => new (window as any).google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'gt-el');
   const el = document.createElement('div'); el.id = 'gt-el'; el.style.display = 'none'; document.body.append(el);
   const sc = document.createElement('script'); sc.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; sc.async = true; document.head.append(sc);
