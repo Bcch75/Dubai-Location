@@ -28,12 +28,12 @@ const rows = [
 ];
 ---
 <Layout>
-  <section class="relative isolate flex h-[480px] items-end justify-center overflow-hidden sm:h-[630px] sm:items-center">
+  <section class="relative isolate flex h-[480px] items-center justify-center overflow-hidden sm:h-[630px]">
     {site.heroImage
       ? <img id="hero-img" src={site.heroImage} alt="Dubaï" loading="eager" fetchpriority="high" decoding="async" class="absolute inset-0 -z-20 h-full w-full object-cover object-[50%_40%] sm:object-[center_45%]" />
       : <Image src={hero} alt="Coucher de soleil sur la plage de Jumeirah et le Burj Al Arab" widths={[828, 1170, 1290, 1920, 2560]} sizes="(max-width: 640px) 220vw, 100vw" quality={90} format="webp" loading="eager" fetchpriority="high" class="absolute inset-0 -z-20 h-full w-full object-cover object-[68%_45%] sm:object-[center_45%]" />}
     <div class="absolute inset-0 -z-10 bg-black/25"></div>
-    <div class="container-x pb-16 text-center sm:pb-0 sm:pt-16">
+    <div class="container-x pt-16 text-center sm:pt-16">
       <h1 class="mx-auto max-w-5xl text-[32px] font-extrabold leading-[1.08] min-[375px]:text-[34px] min-[400px]:text-[37px] tracking-[-0.01em] !text-white sm:leading-none drop-shadow-[0_2px_12px_rgb(0_0_0/0.35)] sm:text-[60px]"><Fragment set:html={heroHtml} /></h1>
       <form action="/activites/" method="get" role="search" class="relative mx-auto mt-7 w-full max-w-[576px] sm:mt-10">
         <label for="hero-q" class="sr-only">Rechercher</label>
