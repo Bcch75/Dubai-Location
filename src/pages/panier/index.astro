@@ -9,8 +9,8 @@ import Layout from '../../layouts/Layout.astro';
       <div id="items" class="space-y-6"></div>
       <aside id="recap" class="hidden lg:sticky lg:top-28">
         <div class="rounded-[28px] bg-white p-6 shadow-[0_10px_40px_-12px_rgb(15_27_61/0.18)] sm:p-7">
-          <h2 class="text-[22px] font-extrabold text-ink">Récapitulatif</h2>
-          <div class="mt-6 space-y-5 text-[15px]">
+          <h2 class="text-[18px] font-extrabold text-ink">Récapitulatif</h2>
+          <div class="mt-4 space-y-3 text-[14px]">
             <p class="flex justify-between"><span class="text-gray-600">Sous-total</span><b id="sub" class="font-bold text-ink"></b></p>
             <p id="disc-row" class="hidden justify-between text-emerald-600"><span id="disc-l"></span><b id="disc"></b></p>
             <p class="flex justify-between text-[14px]"><span class="text-gray-600">Articles</span><span id="n" class="text-ink"></span></p>
@@ -24,7 +24,7 @@ import Layout from '../../layouts/Layout.astro';
             <p id="promo-msg" class="mt-2 hidden text-sm"></p>
           </details>
           <div class="my-6 border-t border-gray-200"></div>
-          <p class="flex items-center justify-between"><span class="text-[17px] text-gray-700">Total</span><b id="total" class="text-[26px] font-extrabold text-ink"></b></p>
+          <p class="flex items-center justify-between"><span class="text-[15px] text-gray-700">Total</span><b id="total" class="text-[19px] font-extrabold text-ink"></b></p>
           <div class="my-6 border-t border-gray-200"></div>
           <button type="button" id="go" class="h-12 w-full rounded-2xl bg-[#38b2f5] text-[16px] font-medium text-white">Passer la réservation</button>
           <a href="/activites/" class="mt-6 block text-center text-[15px] font-medium text-sky-500">Continuer mes achats</a>
@@ -98,7 +98,7 @@ import Layout from '../../layouts/Layout.astro';
       <div class="mt-5 flex items-center gap-5">
         <a href="${link}${isCar ? '' : `&edit=${i.key}`}" class="inline-flex h-12 items-center gap-2.5 rounded-full border-2 border-[#0f1b3d] px-6 text-[15px] font-extrabold text-[#0f1b3d]">${S(P.pen, 'h-5 w-5')}Modifier</a>
         <button type="button" data-rm="${i.key}" class="grid h-11 w-11 place-items-center rounded-full text-[#0f1b3d] hover:bg-red-50 hover:text-red-600" aria-label="Retirer du panier">${S(P.trash, 'h-6 w-6')}</button>
-        <b class="ml-auto whitespace-nowrap text-[18px] font-extrabold text-[#e5283a]">${lineTotal(i) ? aed(lineTotal(i)) : 'Sur demande'}</b>
+        <b class="ml-auto whitespace-nowrap text-[16px] font-extrabold text-[#e5283a]">${lineTotal(i) ? aed(lineTotal(i)) : 'Sur demande'}</b>
       </div>
     </article>`;
   };
