@@ -800,7 +800,7 @@ import { ap, ai } from '../../lib/admin-icons';
       return `<div class="flex gap-3 py-1.5"><span class="w-11 shrink-0 pt-2 text-[12px] font-semibold leading-tight text-gray-400">${timeLab(i)}</span>
         <button type="button" data-slot="${o.id}" data-src="${o.source}" class="min-w-0 flex-1 rounded-xl py-2 pl-3 pr-2 text-left" style="background:${col}14;border-left:3px solid ${col}">
           <b class="block truncate text-[13.5px] text-ink">${esc(o.contact_name || 'Client')}</b><span class="block truncate text-[12px] text-gray-600">${sub}</span>
-          ${o.contact_phone ? `<span class="mt-0.5 block text-[12px] font-semibold" style="color:${col}">${flagOf(o.contact_phone)}${esc(o.contact_phone)}</span>` : ''}
+          ${o.contact_phone ? `<span class="mt-0.5 block text-[12px] font-semibold" style="color:${col}">${esc(o.contact_phone)}</span>` : ''}
         </button></div>`;
     };
     panel.innerHTML = `
@@ -845,10 +845,8 @@ import { ap, ai } from '../../lib/admin-icons';
         <div><p class="grp-lab !mt-0">Client</p><div class="divide-y divide-gray-100 rounded-2xl bg-white shadow-sm">
           ${rowI('user', '#ec4899', 'Prénom', `<input id="sl-fn" class="${inp}" placeholder="Sarah" autocomplete="off">`)}
           ${rowI('user', '#ec4899', 'Nom', `<input id="sl-ln" class="${inp}" placeholder="Martin" autocomplete="off">`)}
-          ${rowI('phone', '#10b981', 'Tél.', `<span class="flex items-center justify-end gap-1.5">
-            <span class="relative grid h-8 w-9 shrink-0 place-items-center rounded-lg bg-gray-100 text-[17px]"><span id="sl-flag">🇫🇷</span><select id="sl-country" class="absolute inset-0 cursor-pointer opacity-0" aria-label="Pays">${CC.map((c, i) => `<option value="${i}">${c[2]} (${c[1]})</option>`).join('')}</select></span>
-            <input id="sl-cc" type="tel" inputmode="tel" value="+33" class="h-8 w-[52px] shrink-0 rounded-lg bg-gray-100 px-1.5 text-center text-[14px] text-ink outline-none" aria-label="Indicatif">
-            <input id="sl-ph" type="tel" inputmode="tel" class="${inp} min-w-0 !text-left" placeholder="6 12 34 56 78"></span>`)}
+          ${rowI('world', '#0ea5e9', 'Pays', `<select id="sl-country" class="${inp} appearance-none" aria-label="Pays">${CC.map((c, i) => `<option value="${i}">${c[2]}</option>`).join('')}</select>`)}
+          ${rowI('phone', '#10b981', 'Tél.', `<span class="flex items-center justify-end gap-2"><input id="sl-cc" type="tel" inputmode="tel" value="+33" class="h-8 w-[54px] shrink-0 rounded-lg bg-gray-100 px-1.5 text-center text-[14px] text-ink outline-none" aria-label="Indicatif"><input id="sl-ph" type="tel" inputmode="tel" class="${inp} min-w-0" placeholder="6 12 34 56 78"></span>`)}
           ${rowI('message', '#6b7280', 'Note', `<input id="sl-note" class="${inp}" placeholder="Hôtel, remarque…" autocomplete="off">`)}
         </div></div>
         <p id="sl-err" class="hidden rounded-xl bg-red-50 p-3 text-[13px] text-red-700"></p>
@@ -877,10 +875,10 @@ import { ap, ai } from '../../lib/admin-icons';
     form.querySelector('[data-close]')!.addEventListener('click', () => dlg.close());
     fillItems();
     // Pays : le drapeau ouvre la liste, l'indicatif se tape aussi à la main
-    $('sl-country').addEventListener('change', () => { const c = CC[+$<HTMLSelectElement>('sl-country').value]; $('sl-flag').textContent = c[0]; $('sl-cc').value = c[1]; });
+    $('sl-country').addEventListener('change', () => { $('sl-cc').value = CC[+$<HTMLSelectElement>('sl-country').value][1]; });
     $('sl-cc').addEventListener('input', () => {
       let v = $('sl-cc').value.replace(/[^\d+]/g, ''); if (v && !v.startsWith('+')) v = '+' + v; $('sl-cc').value = v;
-      const i = CC.findIndex((c) => c[1] === v); $('sl-flag').textContent = i >= 0 ? CC[i][0] : '🌍'; if (i >= 0) $<HTMLSelectElement>('sl-country').value = String(i);
+      const i = CC.findIndex((c) => c[1] === v); if (i >= 0) $<HTMLSelectElement>('sl-country').value = String(i);
     });
     form.onsubmit = async (e) => {
       e.preventDefault();
