@@ -96,8 +96,8 @@ import Layout from '../../layouts/Layout.astro';
       <p class="mt-5 flex gap-4">${S(P.ok, 'h-6 w-6 text-emerald-600')}<span class="text-[15px] font-extrabold text-[#0f1b3d]">Annulation gratuite jusqu'à 24h avant</span></p>
       ${isCar || !hasExtras(i.slug) ? '' : `<div class="mt-5 border-t border-gray-200 pt-5"><a href="${link}&edit=${i.key}&opts=1" class="inline-flex items-center gap-2.5 text-[15px] font-medium text-sky-500">${S(P.plus, 'h-6 w-6')}Ajouter des options</a></div>`}
       <div class="mt-5 flex items-center gap-5">
-        <a href="${link}${isCar ? '' : `&edit=${i.key}`}" class="inline-flex h-12 items-center gap-2.5 rounded-full border-2 border-[#0f1b3d] px-6 text-[15px] font-extrabold text-[#0f1b3d]">${S(P.pen, 'h-5 w-5')}Modifier</a>
-        <button type="button" data-rm="${i.key}" class="grid h-11 w-11 place-items-center rounded-full text-[#0f1b3d] hover:bg-red-50 hover:text-red-600" aria-label="Retirer du panier">${S(P.trash, 'h-6 w-6')}</button>
+        <a href="${link}${isCar ? '' : `&edit=${i.key}`}" class="inline-flex h-9 items-center gap-1.5 rounded-full border-[1.5px] border-[#0f1b3d] px-4 text-[13px] font-bold text-[#0f1b3d]">${S(P.pen, 'h-4 w-4')}Modifier</a>
+        <button type="button" data-rm="${i.key}" class="grid h-9 w-9 place-items-center rounded-full text-[#0f1b3d] hover:bg-red-50 hover:text-red-600" aria-label="Retirer du panier">${S(P.trash, 'h-5 w-5')}</button>
         <b class="ml-auto whitespace-nowrap text-[16px] font-extrabold text-[#e5283a]">${lineTotal(i) ? aed(lineTotal(i)) : 'Sur demande'}</b>
       </div>
     </article>`;
