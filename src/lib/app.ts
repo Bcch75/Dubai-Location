@@ -38,7 +38,23 @@ export function chooseLang(code: string) {
   location.reload();
 }
 // Traduction automatique si une autre langue que le français est choisie
+// Mots à ne jamais traduire : le nom de l'entreprise et les devises (« AED » devient « défibrillateur » en arabe !)
+const KEEP = /(Dubai Location|DUBAI LOCATION|Dubaï Location|\b(?:AED|EUR|USD|GBP)\b)/;
+function protectWords(root: Node) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => (KEEP.test(n.nodeValue ?? '') && !(n.parentElement?.closest('.notranslate,script,style,textarea,input,select,option')) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
+  });
+  const nodes: Text[] = []; while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  for (const t of nodes) {
+    const parts = (t.nodeValue ?? '').split(new RegExp(KEEP.source, 'g'));
+    const frag = document.createDocumentFragment();
+    parts.forEach((p, i) => { if (!p) return; if (i % 2) { const sp = document.createElement('span'); sp.className = 'notranslate'; sp.setAttribute('translate', 'no'); sp.textContent = p; frag.append(sp); } else frag.append(p); });
+    t.replaceWith(frag);
+  }
+}
 if (lang() !== 'fr') {
+  protectWords(document.body);
+  new MutationObserver((ms) => ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1 || n.nodeType === 3) protectWords(n.nodeType === 3 ? n.parentNode ?? n : n); }))).observe(document.body, { childList: true, subtree: true });
   (window as any).gtInit = () => new (window as any).google.translate.TranslateElement({ pageLanguage: 'fr', autoDisplay: false }, 'gt-el');
   const el = document.createElement('div'); el.id = 'gt-el'; el.style.display = 'none'; document.body.append(el);
   const sc = document.createElement('script'); sc.src = 'https://translate.google.com/translate_a/element.js?cb=gtInit'; sc.async = true; document.head.append(sc);
