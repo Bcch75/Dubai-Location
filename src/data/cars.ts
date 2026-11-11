@@ -59,9 +59,4 @@ export const carPrice = (c: Car) =>
   c.pricePerDay ? `${c.pricePerDay.toLocaleString('fr-FR')} AED / jour` : 'Prix sur demande';
 
 /** Conditions de location : à valider avec la conciergerie */
-export const rentalConditions = [
-  { icon: 'users', title: 'Âge minimum', text: '21 ans, et 25 ans pour certaines supercars.' },
-  { icon: 'check', title: 'Permis de conduire', text: 'Permis valide depuis plus d’un an. Un permis international peut être demandé selon votre pays.' },
-  { icon: 'wallet', title: 'Caution', text: 'Une caution est demandée à la remise du véhicule, puis restituée après le retour.' },
-  { icon: 'car', title: 'Livraison', text: 'À votre hôtel, à votre villa ou à l’aéroport, partout à Dubaï.' },
-];
+export { rentalConditions } from '../lib/cond-icons';

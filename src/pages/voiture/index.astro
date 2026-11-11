@@ -11,7 +11,9 @@ import { rentalConditions } from '../../data/cars';
 </Layout>
 <script>
   import { sb, esc, aed, img, url, cart, carCard, paintFavs, ICON, CAR_CATEGORIES, carPrice, cachedCars, refreshCache, type Car } from '../../lib/app';
+  import { condIcon } from '../../lib/cond-icons';
   const conds = JSON.parse(document.getElementById('conds')!.textContent!);
+  const condList = (l: any[]) => l.map((k) => `<li class="flex gap-3.5">${condIcon(k.icon, 'mt-0.5 h-6 w-6 text-[#0f1b2d]')}<div><p class="text-[15px] font-bold text-[#0f1b2d]">${esc(k.title)}</p><p class="text-[13px] leading-snug text-gray-500">${esc(k.text)}</p></div></li>`).join('');
   const slug = new URLSearchParams(location.search).get('s') ?? '';
   const page = document.getElementById('page')!;
   const fromCache = cachedCars().find((x) => x.slug === slug) ?? null;
@@ -34,8 +36,8 @@ import { rentalConditions } from '../../data/cars';
         <div>
           <img src="${esc(img(c.image_url))}" alt="${esc(name)}" class="h-[260px] w-full rounded-2xl object-cover sm:h-[400px]">
           ${c.description ? `<p class="mt-6 leading-relaxed text-ink-soft">${esc(c.description)}</p>` : ''}
-          <h2 class="mt-8 text-xl font-bold">Conditions de location</h2>
-          <div class="mt-4 grid gap-3 sm:grid-cols-2">${conds.map((k: any) => `<div class="rounded-xl border border-line p-4"><b>${esc(k.title)}</b><p class="mt-1 text-sm text-muted">${esc(k.text)}</p></div>`).join('')}</div>
+          <h2 class="mt-8 text-[20px] font-extrabold">Conditions de location</h2>
+          <ul id="conds-list" class="mt-4 space-y-4">${condList(conds)}</ul>
         </div>
         <aside class="lg:sticky lg:top-28 lg:self-start">
           <form id="book" class="rounded-2xl border border-line bg-white p-5 shadow-soft">
@@ -54,6 +56,7 @@ import { rentalConditions } from '../../data/cars';
         </aside>
       </div>
       <section class="mt-16"><h2 class="text-2xl font-bold">Autres voitures</h2><div id="related" class="no-scrollbar -mx-5 mt-5 flex snap-x gap-6 overflow-x-auto px-5 pb-6 pt-1 sm:mx-0 sm:px-0"></div></section>`;
+    sb.from('settings').select('data').eq('id', 1).maybeSingle().then(({ data }) => { const l = (data?.data as any)?.car_conditions; if (Array.isArray(l) && l.length) document.getElementById('conds-list')!.innerHTML = condList(l); });
     const d1 = document.getElementById('d1') as HTMLInputElement, d2 = document.getElementById('d2') as HTMLInputElement;
     const blocked = new Set<string>();
     sb.from('blocked_dates').select('day').eq('item_type', 'car').eq('item_slug', c.slug).gte('day', today).order('day').then(({ data }) => {

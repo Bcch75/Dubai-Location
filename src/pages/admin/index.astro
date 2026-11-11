@@ -156,6 +156,7 @@ import { ap, ai } from '../../lib/admin-icons';
   import { sb, isAdmin, getUser, goLogin, esc, aed, img, thumb } from '../../lib/app';
   import { ap, ai } from '../../lib/admin-icons';
   import { cropImage } from '../../lib/cropper';
+  import { COND_ICONS, rentalConditions } from '../../lib/cond-icons';
   import { pill, iconKey, ICON_COLORS } from '../../lib/icons';
   import { ICON_LIB } from '../../lib/icon-library';
   const user = await getUser();
@@ -363,6 +364,10 @@ import { ap, ai } from '../../lib/admin-icons';
     <div class="grid grid-cols-[1fr_90px_64px] gap-2"><input class="field !py-2 text-sm" data-o="group" placeholder="Groupe" value="${esc(o.group ?? '')}"><input class="field !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><input class="field !py-2 text-sm" data-o="people" type="number" placeholder="Pers." value="${esc(o.people ?? '')}"></div>
     <input class="field !py-2 text-sm" data-o="detail" placeholder="Détail" value="${esc(o.detail ?? '')}">
     <input class="field !py-2 text-sm" data-o="durations" placeholder="Durées : 30 min = 180 ; 1 h = 320" value="${esc((o.durations ?? []).map((d: any) => `${d.label} = ${d.price}`).join(' ; '))}">
+  </div>`;
+  const condRow = (c: any = {}) => `<div class="cond space-y-2 rounded-xl border border-gray-200 p-3">
+    <div class="flex items-center gap-2"><select data-c="icon" class="field !w-28 shrink-0 !py-2 text-sm">${Object.entries(COND_ICONS).map(([k, v]) => `<option value="${k}" ${k === (c.icon ?? 'doc') ? 'selected' : ''}>${v[0]}</option>`).join('')}</select><input data-c="title" class="field !py-2 text-sm" placeholder="Titre" value="${esc(c.title ?? '')}"><button type="button" data-rm-cond class="grid h-8 w-8 shrink-0 place-items-center text-gray-400 hover:text-red-600" aria-label="Retirer">${X_ICON}</button></div>
+    <textarea data-c="text" rows="2" class="field resize-none !py-2 text-sm" placeholder="Détail">${esc(c.text ?? '')}</textarea>
   </div>`;
   const extraRow = (o: any = {}) => `<div class="extra space-y-2 rounded-xl border border-gray-200 p-3" data-img="${esc(o.image ?? '')}">
     <div class="flex items-center gap-2">${picBtn(o.image)}<input class="field !py-2 text-sm" data-o="name" placeholder="Nom" value="${esc(o.name ?? '')}"><input class="field !w-24 shrink-0 !py-2 text-sm" data-o="price" type="number" placeholder="Prix" value="${esc(o.price ?? '')}"><button type="button" data-rm-opt class="grid h-8 w-8 shrink-0 place-items-center text-gray-400 hover:text-red-600" aria-label="Retirer">${X_ICON}</button></div>
@@ -837,6 +842,7 @@ import { ap, ai } from '../../lib/admin-icons';
     const [{ data: st }, { data: adm }] = await Promise.all([sb.from('settings').select('data').eq('id', 1).maybeSingle(), sb.from('admin_settings').select('deploy_hook').eq('id', 1).maybeSingle()]);
     const d: any = st?.data ?? {};
     form.innerHTML = '';
+    const condsInit: any[] = Array.isArray(d.car_conditions) && d.car_conditions.length ? d.car_conditions : rentalConditions;
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
         ${grp('Entreprise')}${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
@@ -853,6 +859,9 @@ import { ap, ai } from '../../lib/admin-icons';
             <div><span class="lab">Tuile Voitures</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
             <div><span class="lab">Photo derrière « Location de voitures de luxe »</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
           </div>`)}
+        ${sec(ap('car', '#c9a227', 16), 'Conditions de location', `${condsInit.length} conditions · page des voitures`, `
+          <div id="conds" class="space-y-2">${condsInit.map(condRow).join('')}</div>
+          <button type="button" id="add-cond" class="text-sm font-semibold text-gold">+ Ajouter une condition</button>`)}
         ${grp('Avancé')}${sec(ap('rocket', '#ef4444', 16), 'Publication', adm?.deploy_hook ? 'Automatique' : 'À configurer', `
           ${input('deploy_hook', 'Lien de publication', adm?.deploy_hook, 'https://api.vercel.com/v1/integrations/deploy/…', 'url', '(à créer une seule fois, voir ci-dessous)')}
           `)}
@@ -863,6 +872,8 @@ import { ap, ai } from '../../lib/admin-icons';
         </div>
       </form>`;
     const f = panel.querySelector('#set-form') as HTMLFormElement;
+    f.querySelector('#add-cond')!.addEventListener('click', () => f.querySelector('#conds')!.insertAdjacentHTML('beforeend', condRow()));
+    f.addEventListener('click', (e) => { const t = e.target as HTMLElement; if (t.closest('[data-rm-cond]')) t.closest('.cond')!.remove(); });
     const v = (k: string) => (f.querySelector<HTMLInputElement>('#f_' + k)?.value || '').trim();
     // envoi de la photo d'accueil (même composant que le catalogue)
     f.querySelectorAll<HTMLInputElement>('[data-upload]').forEach((inp) => inp.addEventListener('change', async () => {
@@ -887,7 +898,8 @@ import { ap, ai } from '../../lib/admin-icons';
       e.preventDefault();
       const ph = (k: string) => [...f.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!)[0] ?? '';
       const hero = ph('hero');
-      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero, logo_url: ph('logo'), cars_tile_image: ph('cars_tile'), cars_hero_image: ph('cars_hero') };
+      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero, logo_url: ph('logo'), cars_tile_image: ph('cars_tile'), cars_hero_image: ph('cars_hero'),
+        car_conditions: [...f.querySelectorAll<HTMLElement>('#conds .cond')].map((r) => ({ icon: r.querySelector<HTMLSelectElement>('[data-c="icon"]')!.value, title: r.querySelector<HTMLInputElement>('[data-c="title"]')!.value.trim(), text: r.querySelector<HTMLTextAreaElement>('[data-c="text"]')!.value.trim() })).filter((c) => c.title) };
       const [{ error: e1 }, { error: e2 }] = await Promise.all([
         sb.from('settings').update({ data }).eq('id', 1),
         sb.from('admin_settings').update({ deploy_hook: v('deploy_hook') || null }).eq('id', 1),
