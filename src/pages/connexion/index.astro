@@ -95,6 +95,8 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
     if (error) return say('l-msg', error.message === 'Invalid login credentials' ? 'E-mail ou mot de passe incorrect.' : error.message === 'Email not confirmed' ? 'Confirmez d’abord votre e-mail (lien reçu par e-mail).' : error.message);
     sb.auth.updateUser({ data: { lang: lang() } }).catch(() => {});
     try { if ($('l-remember').checked) localStorage.removeItem('dl-noremember'); else { localStorage.setItem('dl-noremember', '1'); sessionStorage.setItem('dl-alive', '1'); } } catch {}
+    const nextParam = new URLSearchParams(location.search).get('next');
+    if (!nextParam || /compte/.test(nextParam)) { const { data: { user } } = await sb.auth.getUser(); const { data: pr } = await sb.from('profiles').select('is_admin').eq('id', user!.id).maybeSingle(); if (pr?.is_admin) { location.replace(url('admin/')); return; } }
     location.href = next;
   });
   $('forgot').addEventListener('click', async () => {
