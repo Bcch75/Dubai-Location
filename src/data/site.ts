@@ -34,7 +34,9 @@ try {
     if (d.hero_title) site.heroTitle = d.hero_title;
     if (d.search_placeholder) site.searchPlaceholder = d.search_placeholder;
     if (d.hero_image) site.heroImage = d.hero_image;
-    if (d.logo_url) site.logoUrl = d.logo_url;
+    // Ancien logo Dubai Location masqué (version de démonstration sans marque) ; tout nouveau logo envoyé dans l'admin s'affiche
+    const HIDDEN_LOGOS = ['https://ieuxlvyslzitrxxnkveq.supabase.co/storage/v1/object/public/images/site/1794316913612-logo_dubai_location_HD.png'];
+    if (d.logo_url && !HIDDEN_LOGOS.includes(d.logo_url)) site.logoUrl = d.logo_url;
     if ('site_name' in d) site.name = String(d.site_name ?? '').trim();   // vide = aucun nom affiché
     if (d.cars_tile_image) site.carsTileImage = d.cars_tile_image;
     if (d.cars_hero_image) site.carsHeroImage = d.cars_hero_image;
