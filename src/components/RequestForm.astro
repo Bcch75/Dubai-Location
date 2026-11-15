@@ -76,7 +76,7 @@ const today = new Date().toISOString().slice(0, 10);
       err.classList.add('hidden');
       const date = v('date') ? new Date(v('date') + 'T12:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) : 'à définir';
       const lines = [
-        `Bonjour Dubai Location 👋`,
+        `Bonjour${document.documentElement.dataset.brand ? ' ' + document.documentElement.dataset.brand : ''} 👋`,
         ``,
         `Je m'appelle ${name} et je souhaite réserver :`,
         `• Expérience : ${v('activity') || 'je souhaite être conseillé(e)'}`,

@@ -14,14 +14,14 @@ const links = [
 ---
 <header id="site-header" class="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:px-5 sm:pt-4">
   <nav class="mx-auto flex h-[68px] max-w-[1220px] sm:h-[72px] items-center justify-between gap-2 rounded-2xl bg-white pl-3 pr-1.5 shadow-[0_25px_50px_-12px_rgb(0_0_0/0.25)] ring-1 ring-gray-200/50 sm:gap-4 sm:px-6" aria-label="Navigation principale">
-    <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label={`${site.name}, accueil`}>
-      {site.logoUrl
-        ? <img src={site.logoUrl} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-black/10 min-[390px]:h-11 min-[390px]:w-11 sm:h-11 sm:w-11" />
-        : <img src="/logo.svg" alt="" class="h-10 w-10 shrink-0 rounded-full min-[390px]:h-11 min-[390px]:w-11 sm:h-11 sm:w-11" />}
-      <span class="gold-text notranslate leading-none" translate="no">
-        <span class="block font-serif-logo text-[14px] font-bold tracking-[0.06em] min-[390px]:text-[15px] sm:text-[18px]">DUBAI</span>
-        <span class="mt-0.5 block text-[7px] font-semibold tracking-[0.3em] min-[390px]:text-[7.5px] sm:text-[8.5px]">LOCATION</span>
-      </span>
+    <a href="/" class="flex shrink-0 items-center gap-2 sm:gap-2.5" aria-label="Accueil">
+      {site.logoUrl && <img src={site.logoUrl} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover ring-1 ring-black/10 min-[390px]:h-11 min-[390px]:w-11" />}
+      {site.name && (
+        <span class="gold-text notranslate leading-none" translate="no">
+          <span class="block font-serif-logo text-[14px] font-bold tracking-[0.06em] min-[390px]:text-[15px] sm:text-[18px]">{site.name.split(' ')[0].toUpperCase()}</span>
+          {site.name.includes(' ') && <span class="mt-0.5 block text-[7px] font-semibold tracking-[0.3em] min-[390px]:text-[7.5px] sm:text-[8.5px]">{site.name.split(' ').slice(1).join(' ').toUpperCase()}</span>}
+        </span>
+      )}
     </a>
 
     <ul class="hidden items-center gap-1 lg:flex">
@@ -66,12 +66,14 @@ const links = [
     <div class="absolute inset-0 bg-black/30" data-close></div>
     <div class="menu-panel absolute inset-x-4 top-3 max-h-[calc(100dvh-24px)] -translate-y-2 overflow-y-auto rounded-2xl bg-white shadow-[0_25px_50px_-12px_rgb(0_0_0/0.35)] ring-1 ring-gray-200/50 transition-transform duration-200 sm:inset-x-5 sm:top-4">
       <div class="flex h-[68px] items-center justify-between gap-2 border-b border-gray-100 pl-3 pr-1.5">
-        <a href="/" class="flex shrink-0 items-center gap-2" aria-label={`${site.name}, accueil`}>
-          <img src={site.logoUrl || '/logo.svg'} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover min-[390px]:h-11 min-[390px]:w-11" />
-          <span class="gold-text notranslate leading-none" translate="no">
-            <span class="block font-serif-logo text-[14px] font-bold tracking-[0.06em] min-[390px]:text-[15px]">DUBAI</span>
-            <span class="mt-0.5 block text-[7px] font-semibold tracking-[0.3em] min-[390px]:text-[7.5px]">LOCATION</span>
-          </span>
+        <a href="/" class="flex shrink-0 items-center gap-2" aria-label="Accueil">
+          {site.logoUrl && <img src={site.logoUrl} alt="" class="h-10 w-10 shrink-0 rounded-full object-cover min-[390px]:h-11 min-[390px]:w-11" />}
+          {site.name && (
+            <span class="gold-text notranslate leading-none" translate="no">
+              <span class="block font-serif-logo text-[14px] font-bold tracking-[0.06em] min-[390px]:text-[15px]">{site.name.split(' ')[0].toUpperCase()}</span>
+              {site.name.includes(' ') && <span class="mt-0.5 block text-[7px] font-semibold tracking-[0.3em] min-[390px]:text-[7.5px]">{site.name.split(' ').slice(1).join(' ').toUpperCase()}</span>}
+            </span>
+          )}
         </a>
         <div class="flex items-center min-[360px]:gap-1 min-[390px]:gap-2">
           <a href="/activites/" class="hidden h-10 w-10 min-[390px]:h-11 min-[390px]:w-11 place-items-center rounded-full text-ink min-[430px]:grid" aria-label="Rechercher"><Icon name="search" class="h-6 w-6 min-[390px]:h-[26px] min-[390px]:w-[26px]" /></a>

@@ -15,23 +15,23 @@ interface Props {
 }
 const {
   title,
-  description = "Dubai Location, conciergerie privée à Dubaï : safari dans le désert, yacht privatisé, montgolfière, hélicoptère, excursions à Abu Dhabi et Oman. Réservation simple sur WhatsApp, équipe francophone.",
+  description = "Conciergerie privée à Dubaï : safari dans le désert, yacht privatisé, montgolfière, hélicoptère, excursions à Abu Dhabi et Oman. Réservation simple sur WhatsApp, équipe francophone.",
   transparentHeader = false,
   ogImage = heroImg,
 } = Astro.props;
-const fullTitle = title ? `${title} | ${site.name}` : `${site.name} · Conciergerie & activités de luxe à Dubaï`;
+const fullTitle = title ? (site.name ? `${title} | ${site.name}` : title) : `${site.name ? site.name + ' · ' : ''}Conciergerie & activités de luxe à Dubaï`;
 const og = await getImage({ src: ogImage, width: 1200, height: 630, format: 'jpg' });
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
 <!doctype html>
-<html lang="fr" data-base={import.meta.env.BASE_URL} data-wa={site.whatsapp}>
+<html lang="fr" data-base={import.meta.env.BASE_URL} data-wa={site.whatsapp} data-brand={site.name}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
-    {site.logoUrl ? <link rel="icon" href={site.logoUrl} /> : <link rel="icon" type="image/svg+xml" href="/logo.svg" />}
+    {site.logoUrl ? <link rel="icon" href={site.logoUrl} /> : <link rel="icon" href="data:," />}
     {site.logoUrl && <link rel="apple-touch-icon" href={site.logoUrl} />}
     <meta name="theme-color" content="#0F1B2D" />
     <script is:inline>

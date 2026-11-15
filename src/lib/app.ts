@@ -8,6 +8,8 @@ export type { Activity, Car };
 
 export const sb = createClient(import.meta.env.PUBLIC_SUPABASE_URL, import.meta.env.PUBLIC_SUPABASE_ANON_KEY);
 export const WA = document.documentElement.dataset.wa || '971569736810';
+/** Nom de l'entreprise (vide = aucun nom affiché) */
+export const brand = () => document.documentElement.dataset.brand ?? '';
 
 // Chemin de base (permet d'héberger le site dans un sous-dossier)
 setBase(document.documentElement.dataset.base ?? '/', document.documentElement.dataset.index === '1');

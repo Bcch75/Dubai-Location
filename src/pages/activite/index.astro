@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { getActivities } from '../../lib/data';
 const seedData = await getActivities();
 ---
-<Layout title="Activité" description="Réservez votre activité à Dubaï avec Dubai Location.">
+<Layout title="Activité" description="Réservez votre activité à Dubaï.">
   <div id="page" class="container-x pb-28 pt-24 sm:pt-32 lg:pb-20">
     <div class="animate-pulse space-y-4"><div class="h-72 rounded-2xl bg-sand"></div><div class="h-8 w-2/3 rounded bg-sand"></div></div>
   </div>
@@ -31,7 +31,7 @@ const seedData = await getActivities();
 </style>
 <script>
   import { svgIcon } from '../../lib/icons';
-  import { sb, esc, aed, img, thumb, url, cart, activityCard, paintFavs, ICON, waLink, videoBadge, cachedActivities, refreshCache, currency, CURRENCIES, type Activity } from '../../lib/app';
+  import { sb, esc, aed, img, thumb, url, cart, activityCard, paintFavs, ICON, waLink, videoBadge, cachedActivities, refreshCache, currency, CURRENCIES, type Activity, brand } from '../../lib/app';
   const qs = new URLSearchParams(location.search);
   const slug = qs.get('s') ?? '';
   const editKey = qs.get('edit');
@@ -43,7 +43,7 @@ const seedData = await getActivities();
   if (!a) {
     page.innerHTML = `<h1 class="text-3xl font-bold">Activité introuvable</h1><a class="btn-gold mt-6" href="${url('activites/')}">Voir toutes les activités</a>`;
   } else {
-    document.title = `${a.title} | Dubai Location`;
+    document.title = `${a.title}` + (brand() ? ' | ' + brand() : '');
     try { const seen = JSON.parse(localStorage.getItem('dl-seen') || '[]').filter((x: string) => x !== a.slug); localStorage.setItem('dl-seen', JSON.stringify([a.slug, ...seen].slice(0, 12))); } catch {}
     const opts = a.options ?? [];
     const extras = (a.extras ?? []).filter((e) => e.name);
@@ -127,7 +127,7 @@ const seedData = await getActivities();
             <button type="button" id="add" class="mt-4 h-12 w-full rounded-xl bg-[#38b2f5] text-[14px] font-semibold text-white transition">${editKey ? 'Mettre à jour le panier' : 'Ajouter au panier'}</button>
             <p id="need" class="mt-2 text-center text-[13px] font-medium text-[#e5283a]"></p>
             <p class="mt-4 flex gap-3 text-emerald-600">${S(P.shield, 'h-6 w-6')}<span><b class="block text-[14px] font-medium text-ink">Annulation gratuite</b><span class="text-[13px] text-gray-500">Annulation jusqu'à 24 heures à l'avance, sans frais</span></span></p>
-            <a class="mt-5 block text-center text-sm font-medium text-sky-500" target="_blank" rel="noopener" href="${waLink(`Bonjour Dubai Location, j'ai une question sur « ${a.title} ».`)}">Une question ? Écrivez-nous sur WhatsApp</a>
+            <a class="mt-5 block text-center text-sm font-medium text-sky-500" target="_blank" rel="noopener" href="${waLink(`Bonjour${brand() ? ' ' + brand() : ''}, j'ai une question sur « ${a.title} ».`)}">Une question ? Écrivez-nous sur WhatsApp</a>
           </div>
         </aside>
       </div>

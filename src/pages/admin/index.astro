@@ -978,16 +978,18 @@ import { ap, ai } from '../../lib/admin-icons';
     const condsInit: any[] = Array.isArray(d.car_conditions) && d.car_conditions.length ? d.car_conditions : rentalConditions;
     panel.innerHTML = `
       <form id="set-form" class="space-y-4">
-        ${grp('Entreprise')}${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
+        ${grp('Entreprise')}${sec(ap('flag', '#c9a227', 16), 'Nom et logo', esc(d.site_name ?? '') || 'Aucun nom affiché', `
+          ${input('site_name', 'Nom de l’entreprise', d.site_name, 'Laisser vide pour ne rien afficher')}
+          <div><span class="lab">Logo</span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>`)}
+        ${sec(ap('phone', '#10b981', 16), 'Coordonnées', esc(d.phone ?? ''), `
           <div class="grid gap-4 sm:grid-cols-2">${input('whatsapp', 'WhatsApp', d.whatsapp, '971569736810', 'text', '(chiffres uniquement, avec l’indicatif)')}${input('phone', 'Téléphone', d.phone, '+971 56 973 6810')}</div>
           <div class="grid gap-4 sm:grid-cols-2">${input('email', 'Email', d.email, 'contact@…', 'email')}${input('hours', 'Horaires', d.hours, '7j/7 · 8h – 23h')}</div>`)}
         ${grp('Apparence')}${sec(ap('home', '#0171eb', 16), 'Textes de l’accueil', esc(d.hero_title ?? ''), `
           ${input('hero_title', 'Grand titre', d.hero_title, 'Trouvez et réservez des activités')}
           ${input('search_placeholder', 'Barre de recherche', d.search_placeholder, 'Destination ou une activité...')}
           `)}
-        ${sec(ap('photo', '#8b5cf6', 16), 'Images du site', 'Logo, photo d’accueil, voitures', `
+        ${sec(ap('photo', '#8b5cf6', 16), 'Images du site', 'Photo d’accueil, voitures', `
           <div class="grid gap-5 sm:grid-cols-2">
-            <div><span class="lab">Logo</span>${photoBox('logo', d.logo_url ? [d.logo_url] : [], false)}</div>
             <div><span class="lab">Grande photo de l’accueil</span>${photoBox('hero', d.hero_image ? [d.hero_image] : [], false)}</div>
             <div><span class="lab">Tuile Voitures</span>${photoBox('cars_tile', d.cars_tile_image ? [d.cars_tile_image] : [], false)}</div>
             <div><span class="lab">Photo derrière « Location de voitures de luxe »</span>${photoBox('cars_hero', d.cars_hero_image ? [d.cars_hero_image] : [], false)}</div>
@@ -1031,7 +1033,7 @@ import { ap, ai } from '../../lib/admin-icons';
       e.preventDefault();
       const ph = (k: string) => [...f.querySelectorAll<HTMLElement>(`[data-photos="${k}"] .photo`)].map((p) => p.dataset.url!)[0] ?? '';
       const hero = ph('hero');
-      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), search_placeholder: v('search_placeholder'), hero_image: hero, logo_url: ph('logo'), cars_tile_image: ph('cars_tile'), cars_hero_image: ph('cars_hero'),
+      const data = { ...d, whatsapp: v('whatsapp').replace(/\D/g, ''), phone: v('phone'), email: v('email'), hours: v('hours'), hero_title: v('hero_title'), site_name: v('site_name'), search_placeholder: v('search_placeholder'), hero_image: hero, logo_url: ph('logo'), cars_tile_image: ph('cars_tile'), cars_hero_image: ph('cars_hero'),
         car_conditions: [...f.querySelectorAll<HTMLElement>('#conds .cond')].map((r) => ({ icon: r.querySelector<HTMLSelectElement>('[data-c="icon"]')!.value, title: r.querySelector<HTMLInputElement>('[data-c="title"]')!.value.trim(), text: r.querySelector<HTMLTextAreaElement>('[data-c="text"]')!.value.trim() })).filter((c) => c.title) };
       const [{ error: e1 }, { error: e2 }] = await Promise.all([
         sb.from('settings').update({ data }).eq('id', 1),

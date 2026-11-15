@@ -4,7 +4,7 @@ import { getCars } from '../../lib/data';
 const seedData = await getCars();
 import { rentalConditions } from '../../data/cars';
 ---
-<Layout title="Voiture" description="Louez une voiture de luxe à Dubaï avec Dubai Location.">
+<Layout title="Voiture" description="Louez une voiture de luxe à Dubaï.">
   <div id="page" class="container-x pb-20 pt-28 sm:pt-32"><div class="animate-pulse space-y-4"><div class="h-8 w-1/2 rounded bg-sand"></div><div class="h-80 rounded-2xl bg-sand"></div></div></div>
   <script type="application/json" id="conds" set:html={JSON.stringify(rentalConditions)} />
   <script type="application/json" id="seed-cars" set:html={JSON.stringify(seedData)} />
@@ -14,7 +14,7 @@ import { rentalConditions } from '../../data/cars';
   .car-date:focus { border-color: #38b2f5; }
 </style>
 <script>
-  import { sb, esc, aed, img, url, cart, carCard, paintFavs, ICON, CAR_CATEGORIES, carPrice, cachedCars, refreshCache, type Car } from '../../lib/app';
+  import { sb, esc, aed, img, url, cart, carCard, paintFavs, ICON, CAR_CATEGORIES, carPrice, cachedCars, refreshCache, type Car, brand } from '../../lib/app';
   import { condIcon } from '../../lib/cond-icons';
   const conds = JSON.parse(document.getElementById('conds')!.textContent!);
   const condList = (l: any[]) => l.map((k) => `<li class="flex gap-3.5">${condIcon(k.icon, 'mt-0.5 h-6 w-6 text-[#0f1b2d]')}<div><p class="text-[15px] font-bold text-[#0f1b2d]">${esc(k.title)}</p><p class="text-[13px] leading-snug text-gray-500">${esc(k.text)}</p></div></li>`).join('');
@@ -27,7 +27,7 @@ import { rentalConditions } from '../../data/cars';
   if (!c) { page.innerHTML = `<h1 class="text-3xl font-bold">Voiture introuvable</h1><a class="btn-gold mt-6" href="${url('voitures/')}">Voir les voitures</a>`; }
   else {
     const name = `${c.brand} ${c.model}`;
-    document.title = `${name} | Dubai Location`;
+    document.title = `${name}` + (brand() ? ' | ' + brand() : '');
     const today = new Date().toISOString().slice(0, 10);
     page.innerHTML = `
       <nav class="text-xs text-muted"><a href="${url('')}">Accueil</a> › <a href="${url('voitures/')}">Voitures</a></nav>

@@ -23,14 +23,14 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
         </div>
         <p class="mx-2 mb-2 rounded-2xl bg-gray-50 px-3 py-3 text-center text-[12.5px] text-gray-600 min-[370px]:whitespace-nowrap">Vous n'avez pas encore de compte ? <a href="#inscription" class="font-bold text-sky-500">S'inscrire</a></p>
       </form>
-      <p class="mt-5 flex gap-2.5 px-1 text-[12.5px] text-gray-500"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1"/></svg>Ne communiquez jamais vos identifiants Dubai Location. Vos données sont protégées et sécurisées.</p>
+      <p class="mt-5 flex gap-2.5 px-1 text-[12.5px] text-gray-500"><svg viewBox="0 0 24 24" class="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1"/></svg>Ne communiquez jamais vos identifiants. Vos données sont protégées et sécurisées.</p>
     </div>
 
     <!-- Inscription -->
     <div id="v-signup" class="hidden">
       <form id="f-signup" class="card-auth" novalidate>
         <div class="p-5 sm:p-7">
-          <h1 class="text-[17px] font-extrabold text-[#0f1b3d]">Créer un compte Dubai Location</h1>
+          <h1 class="text-[17px] font-extrabold text-[#0f1b3d]">Créer un compte</h1>
           <label class="lab-auth mt-4" for="s-name">Nom complet</label>
           <input id="s-name" class="inp" placeholder="Prénom Nom" autocomplete="name">
           <p data-err="s-name" class="err hidden">Veuillez indiquer votre prénom et nom de famille</p>
@@ -71,13 +71,13 @@ const pw = (id: string, ac: string) => `<div class="relative"><input id="${id}" 
   .err::before { content: ''; flex: none; width: 15px; height: 15px; margin-top: 1px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpath d='M12 3 2 20h20z'/%3E%3Cpath d='M12 10v4M12 17h.01'/%3E%3C/svg%3E") center/contain no-repeat; }
 </style>
 <script>
-  import { sb, url, lang } from '../../lib/app';
+  import { sb, url, lang, brand } from '../../lib/app';
   const next = new URLSearchParams(location.search).get('next') || url('compte/');
   const $ = <T extends HTMLElement = HTMLInputElement>(id: string) => document.getElementById(id) as T;
   const show = () => {
     const sign = location.hash === '#inscription';
     $('v-login').classList.toggle('hidden', sign); $('v-signup').classList.toggle('hidden', !sign);
-    document.title = (sign ? 'Créer un compte' : 'Connexion') + ' | Dubai Location';
+    document.title = (sign ? 'Créer un compte' : 'Connexion') + (brand() ? ' | ' + brand() : '');
     window.scrollTo(0, 0);
   };
   window.addEventListener('hashchange', show); show();

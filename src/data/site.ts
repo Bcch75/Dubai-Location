@@ -2,7 +2,7 @@
 //  Informations de la conciergerie — modifiez ici, tout le site suit.
 // ———————————————————————————————————————————
 export const site = {
-  name: 'Dubai Location',
+  name: '', // nom de l'entreprise (vide = rien d'affiché) — modifiable dans Admin › Apparence › Nom et logo
   tagline: 'Conciergerie privée à Dubaï',
   phoneDisplay: '+971 56 973 6810',
   whatsapp: '971569736810', // format international, sans + ni espaces
@@ -35,6 +35,7 @@ try {
     if (d.search_placeholder) site.searchPlaceholder = d.search_placeholder;
     if (d.hero_image) site.heroImage = d.hero_image;
     if (d.logo_url) site.logoUrl = d.logo_url;
+    if ('site_name' in d) site.name = String(d.site_name ?? '').trim();   // vide = aucun nom affiché
     if (d.cars_tile_image) site.carsTileImage = d.cars_tile_image;
     if (d.cars_hero_image) site.carsHeroImage = d.cars_hero_image;
   }
@@ -52,5 +53,5 @@ export const socials: { key: string; label: string; url: string; count: string }
 ];
 
 /** Lien WhatsApp avec message pré-rempli */
-export const waLink = (message = `Bonjour ${site.name} 👋 J'aimerais avoir des informations.`) =>
+export const waLink = (message = `Bonjour${site.name ? ' ' + site.name : ''} 👋 J'aimerais avoir des informations.`) =>
   `https://wa.me/${site.whatsapp}?text=${encodeURIComponent(message)}`;
